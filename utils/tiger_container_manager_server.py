@@ -267,7 +267,9 @@ def launch_traffic():
     """
     # Build the command to execute your Bash script with its arguments
     command = [TERMINAL_ISSUER_PATH] + args
-    # Run the command
+
+    """
+    # Run the command from the RD desktop
     try:
         # Run the command and capture the output
         output = subprocess.check_output(command, stderr=subprocess.STDOUT)
@@ -275,8 +277,12 @@ def launch_traffic():
     except subprocess.CalledProcessError as e:
         # Handle errors if the command exits with a non-zero status
         print("Error:", e)
+    """
+
+    # Run the command from the SSH tunnel
     for args_line in args:
         container_key, command_to_run = args_line.split(':')[1:3]
+        launch_traffic_single(container_key, command_to_run)
         response_str += args_line.split(':')[1] + ' ' + args_line.split(':')[2]  + "\n"
     return response_str
 
@@ -473,7 +479,7 @@ if __name__ == "__main__":
                 self.send_response(200)
                 self.send_header('Content-type', 'application/json')
                 self.end_headers()
-                with open('flow_rewards.json', 'r') as file:
+                with open('flow_rewards_hard.json', 'r') as file:
                     response_obj = json.load(file)
                 self.wfile.write(json.dumps(response_obj).encode())
             elif self.path == '/curricula':
