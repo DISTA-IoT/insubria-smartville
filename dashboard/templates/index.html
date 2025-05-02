@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='/js/dash.js') }}"></script>
+    
+    <title>SmartVille TIGER</title>
+</head>
+<body>
+    <h1>SmartVille TIGER</h1>
+    <div class="containerForGroup">
+        <h2>Node Manager</h2>
+        <nav>
+            <button id="refresh-containers">Refresh containers</button>
+        </nav>
+        <nav>
+            <button id="create-topology">Create topology</button>
+            <button id="delete-project" class="stop">Delete GNS3 Project</button>
+        </nav>
+        <nav>
+            <button id="start-traffic">Start Traffic</button>
+            <button id="fix-traffic" class="blue">Fix Traffic</button>
+            <button id="stop-traffic" class="stop">Stop Traffic</button>
+        </nav>
+        <nav>
+            <button id="attach-controller">Attach Controller</button>
+        </nav>
+        <nav>
+            <button id="get-labels" class="blue">Get Labels</button>
+            <button id="get-flow-rewards" class="blue">Get Flow Rewards</button>
+            <button id="get-curricula" class="blue">Get Curricula</button>
+        </nav>
+        
+
+    </div>
+    <div class="containerForGroup">
+        <h2>Bot Master</h2>
+        <nav>
+            <button id="start-automatic-attacks">Start Automatic Attacks</button>
+            <button id="stop-automatic-attacks" class="stop">Stop Automatic Attacks</button>
+        </nav>
+        <nav>
+            <button id="start-preconf-attack">Start Preconfigured Attack</button>
+            <button id="stop-preconf-attack" class="stop">Stop Preconfigured Attack</button>
+        </nav>
+        <!--
+        {% for button in rendering_params.botmaster_buttons %}
+            <nav>
+                <button id="{{ button }}_start_attack">attack from {{ button }}</button>
+                <button id="{{ button }}_end_attack" class="stop">stop attacking from {{ button }}</button>
+            </nav>
+        {% endfor %}
+        -->
+</body>
+</html>

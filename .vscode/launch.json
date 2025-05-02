@@ -68,6 +68,15 @@
             "justMyCode": true,
             "cwd": "${workspaceFolder}/utils",  // Set the current working directory here
 
+        },
+        {
+            "name": "Dash",
+            "type": "python",
+            "request": "launch",
+            "program": "dash.py",
+            "justMyCode": true,
+            "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
+
         }
     ]
 }
