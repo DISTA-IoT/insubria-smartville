@@ -6,6 +6,7 @@
 .vscode
 .env
 **/__pycache__/*
+dashboard/outputs
 
 # These are our venvs environments names:
 gns3_thesis/*

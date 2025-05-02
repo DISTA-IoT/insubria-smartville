@@ -22,8 +22,8 @@ import subprocess
 import json
 import random
 import yaml
-import http.server
-import socketserver
+from omegaconf import DictConfig, OmegaConf 
+import hydra
 import json
 import logging
 from curricula import CLASS_LABELS, ZDA_LABELS, TEST_ZDA_LABELS
@@ -293,37 +293,44 @@ def init_traffic_stuff():
                 TRAFFIC_DICT[container_key] = f"python3 replay.py {random.choice(benign_patterns)} {random.choice(des_ips)} --repeat 10" 
 
 
-if __name__ == "__main__":
-    global app
 
 
-    
-    print("\n________________________________________________________________\n\n"+\
-          "               SMARTVILLE Container Manager \n" +\
-          "________________________________________________________________\n"+\
-          "\n"+\
-          "IMPORTANT:  - Parameters are read from the smartville.yaml file at project's root dir. \n" +\
-          "            - Re-launch this script each time you change container status (through node restart). \n\n\n")
-    # Read configuration from YAML file
-    config_file_path = "../smartville.yaml"
-    config_dict = read_config(config_file_path)
-    # setting global vars for commodity:
-    TERMINAL_ISSUER_PATH = config_dict['base_params']['terminal_issuer_path'] 
-    
-    
-        
-    PORT = 7777
+@hydra.main(config_path="../config", config_name="default", version_base="1.2")
+def main(cfg: DictConfig) -> None:
+    global containers_dict, containers_ips, TRAFFIC_DICT, TERMINAL_ISSUER_PATH
+
     NAME = 'SmartVille'
     app = Flask(NAME)
     app.logger.name = NAME
     app.logger.setLevel('DEBUG')
+
+    if cfg.override != "":
+        try:
+            # Load the variant specified from the command line
+            config_overrides = OmegaConf.load(hydra.utils.get_original_cwd() + f'/config/overrides/{cfg.override}.yaml')
+            # Merge configurations, with the variant overriding the base config
+            cfg = OmegaConf.merge(cfg, config_overrides)
+        except:
+            app.logger.error('Unsuccesfully tried to use the configuration override: ',cfg.override)
+            assert 1 == 0
+
+    app.logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n" +\
+        "            - You can ovverride them by using the command line: \n" +\
+        "                python3 dash.py --override=your_override.yaml \n" +\
+        "              Where your override file should be in the config/overrides folder. \n" +\
+        "            - You might need to re-launch the app each time you restart your containers. \n\n\n")
+   
+
+    TERMINAL_ISSUER_PATH = cfg['base_params']['terminal_issuer_path'] 
+    
+    
 
 
     @app.route('/', methods=['GET'])
     def home():
         rendering_params = {'foo': 'bar'}
         return render_template('index.html', rendering_params=rendering_params)
-  
+
 
     @app.route('/refresh_containers', methods=['POST'])
     def refresh_containers():
@@ -444,7 +451,7 @@ if __name__ == "__main__":
     def get_curricula():
         curricula = {}
 
-        from_file = config_dict['base_params']['container_manager_curricula_from_file']  
+        from_file = cfg['base_params']['container_manager_curricula_from_file']  
         if from_file:
             print('curricula will be read from file')
             curricula['CLASS_LABELS'] =  CLASS_LABELS
@@ -474,3 +481,7 @@ if __name__ == "__main__":
 
     # Run the Flask app
     app.run() 
+
+
+if __name__ == "__main__":
+    main()
