@@ -1,6 +1,38 @@
 override: ""
 # SmartVille Configuration
 
+topology_creator:
+  # Topology creation configuration
+  project: SmartVille
+
+  # Docker images
+  controller_docker: pox-controller
+  switch_docker: openvswitch
+  victim_docker: victim
+  attacker_docker: attacker
+
+  # Controller configuration
+  contr_start: sh  # Could also be: "./pox.py samples.pretty_log smartController.smartController"
+
+  # Topology size
+  n_attackers: 10  # Number of attacker nodes in the topology
+  n_victims: 3     # Number of victim nodes in the topology
+
+  # GNS3 Configuration
+  use_gns3_config_file: true
+  gns3_config_path: ~/.config/GNS3/2.2/gns3_server.conf
+
+  # GNS3 Server settings (used when use_gns3_config_file is false)
+  gns3_host: localhost
+  gns3_port: 3080
+  gns3_auth: false
+  gns3_username: admin
+  gns3_password: admin
+
+  # Environment variables (newline separated)
+  env_vars: ''  # Format example: "VAR_ONE=value1\nVAR2=2\nBLABLABLA=something"
+
+
 base_params:
   # container_manager_replay_from_file 
   # If True, the "s" option in container manager will replay patterns following the "preset_traffic.json" file. 

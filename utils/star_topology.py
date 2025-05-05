@@ -17,8 +17,9 @@
 # used in this file can be found in the accompanying `NOTICE` file.
 from gns3util import *
 import gns3fy as gfy
-import argparse
-
+import logging
+from omegaconf import DictConfig, OmegaConf 
+import hydra
 
 PROJECT_NAME = None
 
@@ -279,35 +280,32 @@ def update_templates(templates):
     update_generic_template(templates, VICTIM_IMG_NAME, 'sh')
 
 
-if __name__ == "__main__":
 
+@hydra.main(config_path="../config", config_name="default", version_base="1.2")
+def main(cfg: DictConfig) -> None:
+    global PROJECT_NAME, GNS3_HOST, GNS3_PORT, GNS3_AUTH, GNS3_USERNAME, GNS3_PASSWORD
+    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME
+    global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT
+    global gns3_server_connector, logger, server, project, node_ids, template_ids
 
-    # Parse command-line arguments
-    parser = argparse.ArgumentParser(description="Topology creation script")
-    parser.add_argument("--project", help="GNS3 Project Name (Default is \"SmartVille\")", default="SmartVille")
+    logger = logging.getLogger("Topology Creator")
 
-    parser.add_argument("--controller_docker", help="Controller's Docker image Name (Default is \"pox-controller\")", default="pox-controller")
-    parser.add_argument("--switch_docker", help="SDN Switch's Docker image Name (Default is \"openvswitch\")", default="openvswitch")
-    parser.add_argument("--victim_docker", help="Victim's Docker image Name (Default is \"victim\")", default="victim")
-    parser.add_argument("--attacker_docker", help="Attacker's Docker image Name (Default is \"attacker\")", default="attacker")
+    if cfg.override != "":
+        try:
+            # Load the variant specified from the command line
+            config_overrides = OmegaConf.load(hydra.utils.get_original_cwd() + f'/config/overrides/{cfg.override}.yaml')
+            # Merge configurations, with the variant overriding the base config
+            cfg = OmegaConf.merge(cfg, config_overrides)
+        except:
+            logger.error('Unsuccesfully tried to use the configuration override: ',cfg.override)
+            assert 1 == 0
 
-    parser.add_argument("--contr_start", help="Controller's Start Command.  (Default is \"sh\")\n "+ \
-                        "Could also be:  \"./pox.py samples.pretty_log smartController.smartController\"", default="sh")
-    parser.add_argument("--n_attackers", type=int, default=10, help="Number of attacker nodes in the topology. Default: 10")
-    parser.add_argument("--n_victims", type=int, default=3, help="Number of victim nodes in the topology. Default: 3")
-
-
-    parser.add_argument("--use_gns3_config_file", type=bool, default=True, help="Grab GNS3 Server configurations from file. Default: True")
-    parser.add_argument("--gns3_config_path", type=str, default="~/.config/GNS3/2.2/gns3_server.conf", help="GNS3 Server config file, "+\
-                        "Default: \"~/.config/GNS3/2.2/gns3_server.conf\"")
-
-    parser.add_argument("--gns3_host", type=str, default="localhost", help="When not using config file. GNS3 server's hostname (Default is \"localhost\")")
-    parser.add_argument("--gns3_port", type=int, default=3080, help="When not using config file. GNS3 server's port. Default: 3080")
-    parser.add_argument("--gns3_auth", type=bool, default=True, help=" When not using config file. GNS3 server requires auth (Default True)")
-    parser.add_argument("--gns3_username", type=str, default="admin", help="When not using config file. GNS3 server's admin username (Default is \"admin\")")
-    parser.add_argument("--gns3_password", type=str, default="12345", help="When not using config file. GNS3 server's password (Default is \"12345\")")
-    parser.add_argument("--env_vars", type=str, default='', help="Newline char (\\n) Env variables for node containers. E.g:  VAR_ONE=value1\\nVAR2=2\\nBLABLABLA=something. Default is empty str.")
-    args = parser.parse_args()
+    logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n" +\
+        "            - You can ovverride them by using the command line: \n" +\
+        "                python3 utils/star_topology.py --override=your_override.yaml \n" +\
+        "              Where your override file should be in the config/overrides folder. \n")
+   
+    args = cfg.topology_creator
 
     PROJECT_NAME = args.project
     
@@ -332,11 +330,13 @@ if __name__ == "__main__":
         GNS3_USERNAME = server.user
         GNS3_PASSWORD = server.password
     else:
+        
         GNS3_HOST = args.gns3_host
         GNS3_PORT = args.gns3_port
         GNS3_AUTH = args.gns3_auth
         GNS3_USERNAME = args.gns3_username
         GNS3_PASSWORD = args.gns3_password    
+        server = Server(GNS3_HOST, GNS3_PORT, GNS3_AUTH, GNS3_USERNAME, GNS3_PASSWORD)
 
 
     gns3_server_connector = gfy.Gns3Connector(f"http://{GNS3_HOST}:{GNS3_PORT}", user=GNS3_USERNAME, cred=GNS3_PASSWORD)
@@ -349,3 +349,7 @@ if __name__ == "__main__":
 
     
     starTopology(templates)
+
+
+if __name__ == "__main__":
+    main()

@@ -3,11 +3,10 @@
 /.venv/*
 /buildstatus/*
 /bin/*
-.vscode
 .env
 **/__pycache__/*
 dashboard/outputs
-
+outputs
 # These are our venvs environments names:
 gns3_thesis/*
 gns3-thesis
