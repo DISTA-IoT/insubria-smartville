@@ -4,3 +4,6 @@
 [submodule "poxController"]
 	path = poxController
 	url = https://github.com/DISTA-IoT/smartville-controller
+[submodule "AttackerNode"]
+	path = AttackerNode
+	url = https://github.com/DISTA-IoT/smartville_attacker
