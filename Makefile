@@ -14,7 +14,7 @@ build-controller:
 	docker build --build-arg GIT_USERNAME=$(GIT_USERNAME) --build-arg GIT_TOKEN=$(GIT_TOKEN) --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
 
 build-attacker:
-	docker build -t attacker -f attacker.Dockerfile AttackerNode/.
+	docker build -t attacker -f AttackerNode/attacker.Dockerfile AttackerNode/.
 
 build-victim:
 	docker build -t victim -f victim.Dockerfile VictimNode/.

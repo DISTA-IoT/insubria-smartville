@@ -1,6 +1,5 @@
 FROM ubuntu:focal
 
-
 RUN     apt-get -y update && \
         apt-get -y upgrade
 
@@ -22,18 +21,10 @@ RUN pip3 install scapy confluent_Kafka netifaces psutil tqdm
 
 RUN pip3 install netifaces
 
+RUN apt-get update && apt-get install -y git && \
+        rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+RUN git clone https://github.com/DISTA-IoT/smartville_attacker.git attacker
 
-COPY scripts/. /app/
 
-COPY  cc_heartbeat/. /app/cc_heartbeat/
-COPY  gafgyt/. /app/gafgyt/
-COPY  generic_ddos/. /app/generic_ddos/
-COPY  h_scan/. /app/h_scan/
-COPY  hajime/. /app/hajime/
-COPY  hakai/. /app/hakai/
-COPY  mirai/. /app/mirai/
-COPY  muhstik/. /app/muhstik/
-COPY  okiru/. /app/okiru/
-COPY  torii/. /app/torii/
+WORKDIR /attacker
