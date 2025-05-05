@@ -7,3 +7,6 @@
 [submodule "AttackerNode"]
 	path = AttackerNode
 	url = https://github.com/DISTA-IoT/smartville_attacker
+[submodule "VictimNode"]
+	path = VictimNode
+	url = https://github.com/DISTA-IoT/smartville_victim
