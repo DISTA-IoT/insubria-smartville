@@ -1,0 +1,4 @@
+topology_creator:
+  use_gns3_config_file: false   
+  n_attackers: 2  
+  n_victims: 2     

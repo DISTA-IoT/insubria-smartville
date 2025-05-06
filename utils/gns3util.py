@@ -194,6 +194,47 @@ def create_docker_template(
     req.raise_for_status()
     return req.json()
 
+
+
+def create_cloud_template(
+    server: Server,
+    name: str,
+    category: str = 'guest',
+    symbol: str = ':/symbols/cloud.svg',
+    default_name_format: str = 'Cloud {0}'
+) -> Optional[Dict[str, Any]]:
+    """
+    Create a new GNS3 built-in cloud template.
+
+    Parameters:
+        server (Server): The GNS3 server instance.
+        name (str): Name of the template.
+        category (str): Category of the template (default: 'guest').
+        symbol (str): Symbol used in the GUI (default: cloud symbol).
+        default_name_format (str): Default naming format for nodes.
+
+    Returns:
+        dict: JSON response from the GNS3 server.
+    """
+    payload = {
+        "name": name,
+        "template_type": "cloud",
+        "compute_id": "local",
+        "builtin": False,
+        "category": category,
+        "symbol": symbol,
+        "default_name_format": default_name_format
+    }
+
+    response = requests.post(
+        f"http://{server.addr}:{server.port}/v2/templates",
+        data=json.dumps(payload),
+        auth=(server.user, server.password)
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def create_docker_template_switch(
         server: Server, 
         name: str, 

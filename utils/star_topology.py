@@ -20,6 +20,9 @@ import gns3fy as gfy
 import logging
 from omegaconf import DictConfig, OmegaConf 
 import hydra
+import subprocess
+import re
+
 
 PROJECT_NAME = None
 
@@ -34,7 +37,7 @@ SWITCH_IMG_NAME = None
 VICTIM_IMG_NAME = None
 ATTACKER_IMG_NAME = None
 NAT_IMG_NAME = "NAT"
-
+CLOUD_IMG_NAME = "smartville-cloud-bridge"
 CONTROLLER_START_COMMAND=None
 
 
@@ -44,6 +47,45 @@ server = None
 gns3_server_connector = None
 project = None
 
+
+
+
+
+def setup_gns3_bridge():
+    bridge_name = "gns3-bridge"
+    bridge_ip = "192.168.1.100/24"
+    
+    # Check if bridge already exists
+    try:
+        # Check if interface exists
+        subprocess.run(["ip", "link", "show", bridge_name], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        # Interface exists, check if it has the correct IP
+        ip_output = subprocess.run(["ip", "addr", "show", bridge_name], check=True, stdout=subprocess.PIPE, text=True).stdout
+        if re.search(rf"inet {re.escape(bridge_ip)}", ip_output):
+            print(f"{bridge_name} already exists with correct IP configuration")
+            return True
+        
+        # Interface exists but with wrong config - reconfigure it
+        print(f"{bridge_name} exists but needs reconfiguration")
+        subprocess.run(["sudo", "ip", "addr", "flush", "dev", bridge_name], check=True)
+        subprocess.run(["sudo", "ip", "addr", "add", bridge_ip, "dev", bridge_name], check=True)
+        subprocess.run(["sudo", "ip", "link", "set", bridge_name, "up"], check=True)
+        print(f"Reconfigured {bridge_name} with {bridge_ip}")
+        return True
+        
+    except subprocess.CalledProcessError:
+        # Interface doesn't exist, create it
+        try:
+            subprocess.run(["sudo", "ip", "link", "add", "name", bridge_name, "type", "bridge"], check=True)
+            subprocess.run(["sudo", "ip", "addr", "add", bridge_ip, "dev", bridge_name], check=True)
+            subprocess.run(["sudo", "ip", "link", "set", bridge_name, "up"], check=True)
+            print(f"Successfully created {bridge_name} with {bridge_ip}")
+            return True
+        except subprocess.CalledProcessError as e:
+            print(f"Failed to create {bridge_name}: {e}")
+            return False
+        
 
 def resetProject(PROJECT_NAME):
     global project
@@ -145,6 +187,25 @@ def mountNAT(templates):
     print("NAT created")
 
 
+def mountCloud(templates):    
+    cloud_template_id = get_template_id_from_name(templates, CLOUD_IMG_NAME)
+    print("CLOUD TEMPLATE ID: ",cloud_template_id)
+
+    # Create a new node
+    cloud_node = gfy.Node(
+        project_id=project.id, 
+        connector=gns3_server_connector, 
+        name=CLOUD_IMG_NAME, 
+        template_id= cloud_template_id,
+        x=0,
+        y=+350)
+
+    # Add the node to the project
+    cloud_node.create()
+
+    print("Cloud created")
+
+
 def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name,switch_port,ip,gateway,x,y):
     template_id = get_template_id_from_name(templates, curr_img_name)
 
@@ -209,7 +270,7 @@ def mount_all_hosts(templates, switch_node_name,curr_node_count):
     return node_names
 
 
-def connect_all(edge_switch_node_name,controller_node_name,host_names):
+def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_name,host_names):
 
     nat_id = get_node_id_by_name(server, project, NAT_IMG_NAME)
     edge_switch_id = get_node_id_by_name(server, project, edge_switch_node_name)
@@ -221,6 +282,17 @@ def connect_all(edge_switch_node_name,controller_node_name,host_names):
     for idx, host_name in enumerate(host_names):
         host_id = get_node_id_by_name(server, project, host_name)
         create_link(server, project,str(edge_switch_id),3+idx,str(host_id),1)
+
+    cloud_id = get_node_id_by_name(server, project, CLOUD_IMG_NAME)
+    main_switch_id = get_node_id_by_name(server, project, main_switch_node_name)
+    # interrupt execution, asking the user to place the correct bridge in the GNS3 GUI
+    print("IMPORTANT:")
+    print(f"Please locate the \"{CLOUD_IMG_NAME}\" node in your topology using the STANDALONE GNS3 GUI")
+    print("and make sure to put the \"gns3-bridge\" in the first (or only) place in the interface list.")
+    print("Then press ENTER to continue...")
+    print("If you are using the GNS3 Web GUI, you might not found the \"gns3-bridge\" in the list of available interfaces.")
+    input()
+    create_link(server, project, str(cloud_id),0,str(main_switch_id),1)
 
 def start_all():
     for id in node_ids:
@@ -234,7 +306,8 @@ def starTopology(templates):
     controller_node_name = mountController(templates, switch1_node_name,"192.168.1.1/24")
     host_names = mount_all_hosts(templates, switch1_node_name, 2)
     mountNAT(templates)
-    connect_all(edge_switch_node_name,controller_node_name,host_names)
+    mountCloud(templates)
+    connect_all(switch1_node_name, edge_switch_node_name,controller_node_name,host_names)
     start_all()
 
 
@@ -258,7 +331,7 @@ def update_switch_template(templates):
         delete_template(server,project,switch_template_id)
         print((f"{SWITCH_IMG_NAME}: old switch template deleted"))
     print((f"{SWITCH_IMG_NAME}: creating a new template using local image"))
-    network_adapters_count = 3 + VICTIM_NODE_COUNT + ATTACKER_NODE_COUNT
+    network_adapters_count = 6 + VICTIM_NODE_COUNT + ATTACKER_NODE_COUNT
     create_docker_template_switch(server, SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count)
 
 
@@ -343,11 +416,15 @@ def main(cfg: DictConfig) -> None:
 
     resetProject(PROJECT_NAME)
 
+    setup_gns3_bridge()
+
+    create_cloud_template(server, CLOUD_IMG_NAME)
     templates = get_all_templates(server)
     update_templates(templates)
     templates = get_all_templates(server)
 
     
+
     starTopology(templates)
 
 

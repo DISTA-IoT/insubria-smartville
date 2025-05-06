@@ -45,7 +45,7 @@
             "request": "launch",
             "program": "utils/star_topology.py",
             "args": [
-                
+                "override=jesus"
             ],
             "justMyCode": true
         },
