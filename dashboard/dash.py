@@ -21,50 +21,13 @@ import time
 import subprocess
 import json
 import random
-import yaml
 from omegaconf import DictConfig, OmegaConf 
 import hydra
 import json
 import requests
 from curricula import CLASS_LABELS, ZDA_LABELS, TEST_ZDA_LABELS
-from flask import Flask, render_template, request
-
-
-
-config_dict = {
-    'base_params': {
-        'container_manager_replay_from_file': True,
-        'container_manager_curricula_from_file': True,
-        'browser_path': '/usr/bin/firefox',
-        'terminal_issuer_path': './terminal_issuer.sh'
-    },
-    'intrusion_detection': {
-        'eval': False,
-        'device': 'cpu',
-        'seed': 777,
-        'ai_debug': True,
-        'multi_class': True,
-        'use_packet_feats': True,
-        'packet_buffer_len': 1,
-        'flow_buff_len': 10,
-        'node_features': False,
-        'metric_buffer_len': 10,
-        'inference_freq_secs': 60,
-        'grafana_user': 'admin',
-        'grafana_password': 'admin',
-        'max_kafka_conn_retries': 5,
-        'curriculum': 1,
-        'wb_tracking': False,
-        'wb_project_name': 'SmartVille',
-        'wb_run_name': 'My new run',
-        'FLOWSTATS_FREQ_SECS': 5,
-        'flow_idle_timeout': 10,
-        'arp_timeout': 120,
-        'max_buffered_packets': 5,
-        'max_buffering_secs' : 5,
-        'arp_req_exp_secs': 4
-    }
-}
+from flask import Flask, render_template
+import os
 
 containers_dict = {}
 containers_ips = {}
@@ -238,6 +201,13 @@ def init_traffic_stuff(cfg):
                 TRAFFIC_DICT[container_key] = f"python3 replay.py {random.choice(benign_patterns)} {random.choice(des_ips)} --repeat 10" 
 
 
+def append_ips_to_no_proxy():
+    no_proxy_ips = ','.join(containers_ips.values())
+    os.environ['no_proxy'] = os.environ['no_proxy']+','+no_proxy_ips
+    # get the current value of no_proxy
+    current_no_proxy = subprocess.check_output("echo $no_proxy", shell=True).decode('utf-8').strip()
+    # Print the current value of no_proxy
+    print(f"Current no_proxy value: {current_no_proxy}")
 
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
@@ -299,6 +269,8 @@ def main(cfg: DictConfig) -> None:
             containers_dict[container_img_name] = container
             containers_ips[container_img_name] = container_ip 
         
+        if cfg['base_params']['disable_proxy']:
+            append_ips_to_no_proxy()
         return {'msg': return_str}
     
 

@@ -45,6 +45,8 @@ base_params:
   # of processes' status. If you do not like it, feel free to change it... 
   # make sure to make the terminal_issuer script executable by running  +x terminal_issuer.sh (or whatever other issuer script you create)
   terminal_issuer_path: './terminal_issuer.sh'     
+  disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
+
 
 intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
