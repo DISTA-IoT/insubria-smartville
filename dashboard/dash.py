@@ -25,7 +25,7 @@ import yaml
 from omegaconf import DictConfig, OmegaConf 
 import hydra
 import json
-import logging
+import requests
 from curricula import CLASS_LABELS, ZDA_LABELS, TEST_ZDA_LABELS
 from flask import Flask, render_template, request
 
@@ -76,29 +76,6 @@ start_kafka_command = "kafka-server-start.sh pox/smartController/kafka_server.pr
 start_prometheus_command = "prometheus --config.file=pox/smartController/prometheus.yml --storage.tsdb.path=pox/smartController/PrometheusLogs/"
 start_grafana_command = "grafana-server -homepath /usr/share/grafana"
 start_training_command = "./pox.py samples.pretty_log smartController.smartController"
-
-
-def read_config(file_path):
-        
-    try:
-        # Read configuration from YAML file
-        with open(file_path, 'r') as file:
-            file_confg_dict = yaml.safe_load(file)
-        
-        # Update default configuration with values from the file
-        if file_confg_dict:
-            for key in config_dict.keys():
-                if key in file_confg_dict:
-                    config_dict[key].update(file_confg_dict[key])
-        return config_dict
-
-    except FileNotFoundError:
-        print(f"Error: Configuration file '{file_path}' not found.")
-        return config_dict
-
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file: {e}")
-        return config_dict
 
 
 # Function to continuously print output of a command
@@ -191,27 +168,6 @@ def get_cmd_line_args(config_dict):
     return args_str
 
 
-def start_training(controller_container):
-
-    training_args = get_cmd_line_args(config_dict['intrusion_detection'])
-    training_command = f"{start_training_command} {training_args}"
-    print(f"Training command: {training_command}")
-    print(f"Now launching training")
-    command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:TRAINING:{training_command}"]
-    launch_detached_command(command)
-
-
-def launch_brower_consoles(controller_container):
-    ifconfig_output = run_command_in_container(
-        controller_container, 
-        "ifconfig")
-    accessible_ip = ifconfig_output.split('eth1')[1].split('inet ')[1].split(' ')[0]
-    # url = "http://"+accessible_ip+":9090"  # Prometheus
-    # subprocess.Popen([config_dict['base_params']['browser_path'], url])
-    url = "http://"+accessible_ip+":3000"  # Grafana
-    subprocess.Popen([config_dict['base_params']['browser_path'], url])
-    time.sleep(5)
-    print('\nBrowser launched, press enter to continue\n')
 
 def delete_kafka_logs(controller_container):
     print('Deleting Kafka logs...')
@@ -219,22 +175,6 @@ def delete_kafka_logs(controller_container):
         controller_container, 
         "rm -rf /opt/kafka/logs")
 
-
-def launch_controller_processes(controller_container):
-    launch_zookeeper_detached(controller_container)
-    print('Zookeeper launched on controller! please wait...')
-    time.sleep(1)
-    launch_prometheus_detached(controller_container)
-    print('Prometheus launched on controller! please wait...')
-    time.sleep(1)
-    launch_grafana_detached(controller_container)
-    print('Grafana launched on controller! please wait...')
-    time.sleep(1)
-    launch_kafka_detached(controller_container)
-    print('Kafka launched on controller! please wait...')
-    time.sleep(1)
-    print('Launching Grafanfa dashboard on host...')
-    launch_brower_consoles(controller_container)
 
 
 def launch_metrics():
@@ -252,33 +192,38 @@ def run_command_in_container(container, command):
     return pid
 
 
-def launch_traffic_single(container_key, command_to_run):
-    container_obj = containers_dict[container_key]
-    pattern, target_ip = command_to_run.split(' ')[2:4]
-
-    exec_result = container_obj.exec_run(
-                f"sh -c '{command_to_run} & echo $!'", 
-                detach=True)
-    if exec_result.exit_code == 0:
-        log_str = f"Started {pattern} traffic from {container_key} ({container_obj.name}) to {target_ip}"
-        
+def launch_traffic_single(target_ip, command_to_run):
+    # send a get request to target_ip port 8000
+    response = requests.get(f"http://{target_ip}:8000")
+    if response.status_code == 200:
+        result = f"GET request to {target_ip} was successful."
     else:
-        log_str = f"Failed to start pattern {pattern} in {container_key} ({container_obj.name}). Exit code: {exec_result.exit_code}"
-        if exec_result.output:
-            print(f"Error output: {exec_result.output.decode('utf-8')}")
-    
-    print(log_str)
-    return log_str
+        result = f"GET request to {target_ip} failed with status code: {response.status_code}"
+
+    return result
 
 
-def init_traffic_stuff():
+def launch_browser_consoles(cfg, controller_container):
+        ifconfig_output = run_command_in_container(
+            controller_container, 
+            "ifconfig")
+        accessible_ip = ifconfig_output.split('eth1')[1].split('inet ')[1].split(' ')[0]
+        # url = "http://"+accessible_ip+":9090"  # Prometheus
+        # subprocess.Popen([config_dict['base_params']['browser_path'], url])
+        url = "http://"+accessible_ip+":3000"  # Grafana
+        subprocess.Popen([cfg['base_params']['browser_path'], url])
+        time.sleep(5)
+        print('\nBrowser launched, press enter to continue\n')
+
+
+def init_traffic_stuff(cfg):
     global TRAFFIC_DICT
-    from_file = config_dict['base_params']['container_manager_replay_from_file']  
+    from_file = cfg['base_params']['container_manager_replay_from_file']  
     if from_file:
         print('traffic will be replayed from file')
         # Read dictionary from a file in JSON format
         # Modify this file to adjust it to your topology and desired pattern replay dynamics.
-        with open('../utils/preset_traffic.json', 'r') as file:
+        with open('utils/preset_traffic.json', 'r') as file:
             TRAFFIC_DICT = json.load(file)
     else: 
         attacks = ['cc_heartbeat', 'generic_ddos', 'h_scan', 'hakai',  'torii', 'mirai', 'gafgyt', 'hajime', 'okiru', 'muhstik'] 
@@ -372,7 +317,7 @@ def main(cfg: DictConfig) -> None:
         # Run the command from the SSH tunnel
         for args_line in args:
             container_key, command_to_run = args_line.split(':')[1:3]
-            launch_traffic_single(container_key, command_to_run)
+            launch_traffic_single(containers_ips[container_key], command_to_run)
             response_str += args_line.split(':')[1] + ' ' + args_line.split(':')[2]  + "\n"
         return response_str
 
@@ -476,8 +421,37 @@ def main(cfg: DictConfig) -> None:
         else:
             return 'Error attaching the switch to the controller!'
 
+    @app.route('/start_training', methods=['POST'])
+    def start_training(controller_container):
+
+        training_args = get_cmd_line_args(cfg['intrusion_detection'])
+        training_command = f"{start_training_command} {training_args}"
+        print(f"Training command: {training_command}")
+        print(f"Now launching training")
+        command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:TRAINING:{training_command}"]
+        launch_detached_command(command)
+
+
+
+    @app.route('/launch_controller_processes', methods=['POST'])
+    def launch_controller_processes(controller_container):
+        launch_zookeeper_detached(controller_container)
+        print('Zookeeper launched on controller! please wait...')
+        time.sleep(1)
+        launch_prometheus_detached(controller_container)
+        print('Prometheus launched on controller! please wait...')
+        time.sleep(1)
+        launch_grafana_detached(controller_container)
+        print('Grafana launched on controller! please wait...')
+        time.sleep(1)
+        launch_kafka_detached(controller_container)
+        print('Kafka launched on controller! please wait...')
+        time.sleep(1)
+        print('Launching Grafanfa dashboard on host...')
+        launch_browser_consoles(cfg, controller_container)
+
     refresh_containers() 
-    init_traffic_stuff()
+    init_traffic_stuff(cfg)
 
     # Run the Flask app
     app.run() 

@@ -9,3 +9,6 @@ topology_creator:
     
   n_attackers: 2  
   n_victims: 2     
+
+base_params: 
+  container_manager_replay_from_file : false
