@@ -379,13 +379,14 @@ def main(cfg: DictConfig) -> None:
     def get_flow_rewards():
         # merge all the entries in the cfg.rewards list into a unique dict:
         merged_rewards = {}
-        for reward in cfg.rewards:
+        for reward in cfg.knowledge.rewards:
             for key, value in reward.items():
                 if key not in merged_rewards:
                     merged_rewards[key] = value
                 else:
                     merged_rewards[key] += value
         return merged_rewards
+
 
     @app.route('/curricula', methods=['GET'])
     def get_curricula():

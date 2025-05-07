@@ -111,18 +111,57 @@ attackers:
       pattern: 'muhstik'
       destination: 'victim-0'
 
+knowledge:
 
-rewards:
-    - Echo (Benign G2): 0.02
-    - Hakai: -0.20
-    - Mirai (ZdA G2): -0.40
-    - Hajime (ZdA G2): -0.26
-    - Doorlock (Benign G2): 0.01
-    - Gafgyt (ZdA G2): -0.5
-    - Muhstik (ZdA G2): -0.6
-    - H_Scan (ZdA G2): -0.7
-    - Okiru (ZdA G1): -0.8
-    - Gen_DDoS (ZdA G1): -0.9
-    - Torii: -0.51
-    - CC_HeartBeat (ZdA G1): -0.61
-    - Hue (Benign): 0.05
+    bening: 
+        - Echo
+        - Doorlock
+        - Hue
+
+    malicious:
+        - Hakai
+        - Mirai
+        - Hajime
+        - Gafgyt
+        - Muhstik
+        - H_Scan
+        - Okiru
+        - Gen_DDoS
+        - Torii
+        - CC_HeartBeat
+
+    rewards:
+        - Echo: 0.02
+        - Hakai: -0.20
+        - Mirai: -0.40
+        - Hajime: -0.26
+        - Doorlock: 0.01
+        - Gafgyt: -0.5
+        - Muhstik: -0.6
+        - H_Scan: -0.7
+        - Okiru: -0.8
+        - Gen_DDoS: -0.9
+        - Torii: -0.51
+        - CC_HeartBeat: -0.61
+        - Hue: 0.05
+
+    Knowns:
+        - Hue
+        - Hakai
+        - Torii
+
+    G1s:
+        - Okiru
+        - CC_HeartBeat
+        - Gen_DDoS
+        - Echo
+
+    G2s:
+        - Mirai
+        - Gatgyt
+        - Hajime
+        - H_Scan
+        - Muhstik
+        - Doorlock
+
+
