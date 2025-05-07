@@ -7,9 +7,6 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,192.168.122.1
     
-  n_attackers: 2  
-  n_victims: 2     
-
 base_params: 
   # container_manager_replay_from_file : false
   disable_proxy: true

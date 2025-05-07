@@ -224,7 +224,7 @@ def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name
     print(f"{curr_node_name}: started")
 
 
-def mount_all_hosts(templates, switch_node_name,curr_node_count):
+def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
     node_names = []
     # mounts hosts and links each one to a port of the switch
     gateway = None  
@@ -238,10 +238,11 @@ def mount_all_hosts(templates, switch_node_name,curr_node_count):
     i = 1
     half = False
 
-    for idx, ip in enumerate(ip_pool):
+    node_proto_names = list(cfg.honeypots.keys())+list(cfg.attackers.keys())
+    for idx, (ip, nodename) in enumerate(zip(ip_pool, node_proto_names)):
 
         img_name = VICTIM_IMG_NAME
-        curr_node_name = VICTIM_IMG_NAME+"-"+str(idx)+"("+ip+")"
+        curr_node_name = f'{nodename}({ip})'
 
         if (i > (len(ip_pool))/2) and not half:
             half = True
@@ -300,11 +301,11 @@ def start_all():
         print("Node: ",id," started")
 
 
-def starTopology(templates):
+def starTopology(cfg, templates):
     switch1_node_name = mountSwitch(templates, "openvswitch-1","192.168.1.2/24","192.168.1.1")
     edge_switch_node_name = mount_edge_switch(templates)
     controller_node_name = mountController(templates, switch1_node_name,"192.168.1.1/24")
-    host_names = mount_all_hosts(templates, switch1_node_name, 2)
+    host_names = mount_all_hosts(cfg, templates, switch1_node_name, 2)
     mountNAT(templates)
     mountCloud(templates)
     connect_all(switch1_node_name, edge_switch_node_name,controller_node_name,host_names)
@@ -392,8 +393,8 @@ def main(cfg: DictConfig) -> None:
     CONTROLLER_START_COMMAND = args.contr_start
     ENV_STR = args.env_vars
     
-    ATTACKER_NODE_COUNT = args.n_attackers
-    VICTIM_NODE_COUNT = args.n_victims
+    ATTACKER_NODE_COUNT = len(cfg.honeypots)
+    VICTIM_NODE_COUNT = len(cfg.attackers)
 
     if USE_GNS3_FILE:
         server = Server(*read_local_gns3_config(GNS3_CONFIG_PATH))
@@ -425,7 +426,7 @@ def main(cfg: DictConfig) -> None:
 
     
 
-    starTopology(templates)
+    starTopology(cfg, templates)
 
 
 if __name__ == "__main__":
