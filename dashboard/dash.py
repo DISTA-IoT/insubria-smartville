@@ -31,7 +31,6 @@ import os
 
 containers_dict = {}
 containers_ips = {}
-TRAFFIC_DICT ={}
 TERMINAL_ISSUER_PATH = None
 
 start_zookeeper_command = "zookeeper-server-start.sh pox/smartController/zookeeper.properties"
@@ -180,27 +179,26 @@ def launch_browser_consoles(cfg, controller_container):
 
 
 def init_traffic_stuff(cfg):
-    global TRAFFIC_DICT
-    from_file = cfg['base_params']['container_manager_replay_from_file']  
-    victim_ips = [item[1] for item in containers_ips.items() if 'victim' in item[0]]
+    attacks = ['cc_heartbeat', 'generic_ddos', 'h_scan', 'hakai',  'torii', 'mirai', 'gafgyt', 'hajime', 'okiru', 'muhstik'] 
+    benign_patterns =['echo', 'doorlock', 'hue']
 
-    if from_file:
-        print('traffic will be replayed from file')
-        TRAFFIC_DICT = dict(cfg['traffic'].copy())
-        for container_key in TRAFFIC_DICT:
-            TRAFFIC_DICT[container_key] = dict(TRAFFIC_DICT[container_key])
-            TRAFFIC_DICT[container_key]['dest_ip'] = containers_ips[TRAFFIC_DICT[container_key]['destination']]
-    else: 
-        attacks = ['cc_heartbeat', 'generic_ddos', 'h_scan', 'hakai',  'torii', 'mirai', 'gafgyt', 'hajime', 'okiru', 'muhstik'] 
-        benign_patterns =['echo', 'doorlock', 'hue']
-        
+    for honeypot_monodict in cfg.honeypots:
+        honeypot_name = list(honeypot_monodict.keys())[0]
+        honeypot_info = list(honeypot_monodict.values())[0]
+        honeypot_info = dict(honeypot_info)
+        honeypot_info['dest_ip'] = containers_ips[honeypot_info['destination']]
+        if 'pattern' not in honeypot_info:
+            honeypot_info['pattern'] = random.choice(benign_patterns)
+        honeypot_monodict[honeypot_name] = honeypot_info
 
-        for container_key in containers_dict:
-            if 'attacker' in container_key:
-                TRAFFIC_DICT[container_key] = f"python3 replay.py {random.choice(attacks)} {random.choice(victim_ips)} --repeat 10"
-            elif 'victim' in container_key:
-                des_ips = list(set(victim_ips)  - set([containers_ips[container_key]]))
-                TRAFFIC_DICT[container_key] = f"python3 replay.py {random.choice(benign_patterns)} {random.choice(des_ips)} --repeat 10" 
+    for attacker_monodict in cfg.attackers:
+        attacker_name = list(attacker_monodict.keys())[0]
+        attacker_info = list(attacker_monodict.values())[0]
+        attacker_info = dict(attacker_info)
+        attacker_info['dest_ip'] = containers_ips[attacker_info['destination']]
+        if 'pattern' not in attacker_info:
+            attacker_info['pattern'] = random.choice(attacks)
+        attacker_monodict[attacker_name] = attacker_info
 
 
 def append_ips_to_no_proxy():
@@ -214,7 +212,7 @@ def append_ips_to_no_proxy():
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
-    global containers_dict, containers_ips, TRAFFIC_DICT, TERMINAL_ISSUER_PATH
+    global containers_dict, containers_ips, TERMINAL_ISSUER_PATH
 
     NAME = 'SmartVille'
     app = Flask(NAME)
@@ -281,20 +279,31 @@ def main(cfg: DictConfig) -> None:
     @app.route('/launch_traffic', methods=['POST'])
     def launch_traffic():
         response_str = ""
-        args =[] 
-        for container_key, container_obj in containers_dict.items():
-            if 'attacker' in container_key or 'victim' in container_key:
-                # Get the proper command
-                command_to_run = TRAFFIC_DICT[container_key] 
-                print(f"{container_key} ({container_obj.name}) will launch {command_to_run}")
-                args.append(f"{container_obj.id}:{container_key}:{command_to_run}")
-        print('Now launching traffic:')
 
-        # Run the command from the SSH tunnel
-        for args_line in args:
-            container_key, command_to_run = args_line.split(':')[1:3]
-            launch_traffic_single(containers_ips[container_key], command_to_run)
-            response_str += args_line.split(':')[1] + ' ' + args_line.split(':')[2]  + "\n"
+        for attacker_monodict in cfg.attackers:
+            attacker_name = list(attacker_monodict.keys())[0]
+            traffic_info = list(attacker_monodict.values())[0]
+            attacker_ip = containers_ips[attacker_name]
+            traffic_info = dict(traffic_info) # Otherwise OmegaConfig won't support overwrites.
+            response = requests.post(f"http://{attacker_ip}:8000/replay", json=traffic_info)
+            response_str += f"Replay from {attacker_name}"
+            if response.status_code == 200:
+                response_str += f"Started successfully.\n"
+            else:
+                response_str += f"Failed with status code: {response.status_code}\n"
+
+        for honeypot_monodict in cfg.honeypots:
+            honeypot_name = list(honeypot_monodict.keys())[0]
+            traffic_info = list(honeypot_monodict.values())[0]
+            honeypot_ip = containers_ips[honeypot_name]
+            traffic_info = dict(traffic_info)
+            response = requests.post(f"http://{honeypot_ip}:8000/replay", json=traffic_info)
+            response_str += f"Replay from {honeypot_name}"
+            if response.status_code == 200:
+                response_str += f"Started successfully.\n"
+            else:
+                response_str += f"Failed with status code: {response.status_code}\n"
+        
         return response_str
 
     
@@ -326,24 +335,7 @@ def main(cfg: DictConfig) -> None:
         
         str_report = ""
 
-        for container_key, container_obj in containers_dict.items():
-            if 'openvswitch' not in container_key and 'controller' not in container_key:
-                # Find and kill the Python process running the replay script
-                exec_result = container_obj.exec_run(
-                    cmd=['sh', '-c', "pgrep -f 'python3 replay.py'"],
-                    detach=False
-                )
-                answer = str(exec_result.output, 'utf-8').split('\n')
-                if answer[1]  != '':
-                # print(f"{container_key} ({container_obj.name}) is replaying traffic in process {answer[0]}")
-                    print('')
-                else:
-                    str_report += f"{container_key} ({container_obj.name}) is not replaying any traffic!\n"
-                    print(f"{container_key} ({container_obj.name}) is not replaying any traffic!\n")
-                    if restart:
-                        str_report += f"{container_key} ({container_obj.name}) will now restart its traffic!\n"
-                        print('will now restart its traffic!')
-                        launch_traffic_single(container_key, TRAFFIC_DICT[container_key])
+        pass
         
         return str_report
     
@@ -354,7 +346,7 @@ def main(cfg: DictConfig) -> None:
         for container_key, ip_addr in containers_ips.items():
             curr_label = ''
             if 'controller' not in container_key and 'switch' not in container_key:
-                curr_label = TRAFFIC_DICT[container_key].split(' ')[2]
+                curr_label = cfg.attackers[container_key]['pattern']
                 if 'victim' in container_key:
                     curr_label += ' (Benign)'
                 init_labels_dict[ip_addr] = curr_label

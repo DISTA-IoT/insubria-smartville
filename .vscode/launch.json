@@ -66,7 +66,7 @@
             "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "justMyCode": true,
             "args": [
-                "override=dista"
+                "override=jesus"
                 ]
         }
     ]

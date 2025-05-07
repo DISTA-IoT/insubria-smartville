@@ -1,5 +1,3 @@
-topology_creator:
-  use_gns3_config_file: false   
 
 honeypots:
   - victim-0:
@@ -7,12 +5,12 @@ honeypots:
       destination: 'victim-1'
   - victim-1:
       pattern: 'echo'
-      destination: 'victim-2'
+      destination: 'victim-0'
 
 attackers:
-  - attacker-1:
+  - attacker-0:
       pattern: 'cc_heartbeart'
       destination: 'victim-0'
-  - attacker-2:
+  - attacker-1:
       pattern: 'generic_ddos'
       destination: 'victim-1'

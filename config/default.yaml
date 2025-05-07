@@ -30,11 +30,7 @@ topology_creator:
 
 
 base_params:
-  # container_manager_replay_from_file 
-  # If True, the "s" option in container manager will replay patterns following the "preset_traffic.json" file. 
-  # Otherwise, random patterns will be launched. 
   # Recommended option is True. (adjust the json file according to your needs) 
-  container_manager_replay_from_file : true 
   browser_path: '/usr/bin/firefox' # Browser Exetubale Path change to your favourite
   # terminal issuer path:
   # we created a bash script in the utils dir to issue commands on separated pseudo TTYs to keep track
