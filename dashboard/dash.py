@@ -182,16 +182,18 @@ def launch_browser_consoles(cfg, controller_container):
 def init_traffic_stuff(cfg):
     global TRAFFIC_DICT
     from_file = cfg['base_params']['container_manager_replay_from_file']  
+    victim_ips = [item[1] for item in containers_ips.items() if 'victim' in item[0]]
+
     if from_file:
         print('traffic will be replayed from file')
-        # Read dictionary from a file in JSON format
-        # Modify this file to adjust it to your topology and desired pattern replay dynamics.
-        with open('utils/preset_traffic.json', 'r') as file:
-            TRAFFIC_DICT = json.load(file)
+        TRAFFIC_DICT = dict(cfg['traffic'].copy())
+        for container_key in TRAFFIC_DICT:
+            TRAFFIC_DICT[container_key] = dict(TRAFFIC_DICT[container_key])
+            TRAFFIC_DICT[container_key]['dest_ip'] = containers_ips[TRAFFIC_DICT[container_key]['destination']]
     else: 
         attacks = ['cc_heartbeat', 'generic_ddos', 'h_scan', 'hakai',  'torii', 'mirai', 'gafgyt', 'hajime', 'okiru', 'muhstik'] 
         benign_patterns =['echo', 'doorlock', 'hue']
-        victim_ips = [item[1] for item in containers_ips.items() if 'victim' in item[0]]
+        
 
         for container_key in containers_dict:
             if 'attacker' in container_key:

@@ -11,5 +11,5 @@ topology_creator:
   n_victims: 2     
 
 base_params: 
-  container_manager_replay_from_file : false
+  # container_manager_replay_from_file : false
   disable_proxy: true
