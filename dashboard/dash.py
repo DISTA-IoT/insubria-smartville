@@ -286,11 +286,10 @@ def main(cfg: DictConfig) -> None:
             attacker_ip = containers_ips[attacker_name]
             traffic_info = dict(traffic_info) # Otherwise OmegaConfig won't support overwrites.
             response = requests.post(f"http://{attacker_ip}:8000/replay", json=traffic_info)
-            response_str += f"Replay from {attacker_name}"
-            if response.status_code == 200:
-                response_str += f"Started successfully.\n"
-            else:
-                response_str += f"Failed with status code: {response.status_code}\n"
+            response_str += f"Replay from {attacker_name} answered with status code: {response.status_code}\n"
+            if response.json() is not None:
+                response_str += f"message: {response.json()['message']}\n"
+
 
         for honeypot_monodict in cfg.honeypots:
             honeypot_name = list(honeypot_monodict.keys())[0]
@@ -298,11 +297,9 @@ def main(cfg: DictConfig) -> None:
             honeypot_ip = containers_ips[honeypot_name]
             traffic_info = dict(traffic_info)
             response = requests.post(f"http://{honeypot_ip}:8000/replay", json=traffic_info)
-            response_str += f"Replay from {honeypot_name}"
-            if response.status_code == 200:
-                response_str += f"Started successfully.\n"
-            else:
-                response_str += f"Failed with status code: {response.status_code}\n"
+            response_str += f"Replay from {honeypot_name} answered with status code: {response.status_code}\n"
+            if response.json() is not None:
+                response_str += f"message: {response.json()['message']}\n"
         
         return response_str
 
@@ -310,34 +307,27 @@ def main(cfg: DictConfig) -> None:
     @app.route('/stop_traffic', methods=['POST'])
     def stop_traffic():
 
-        str_report = ""
-        for container_key, container_obj in containers_dict.items():
-            
-            try:
-                # Find and kill the Python process running the replay script
-                exec_result = container_obj.exec_run(
-                    cmd=['sh', '-c', "pkill -f 'python3 replay.py'"],
-                    detach=True
-                )
-                str_report += f"Stopped eventual python3 replay.py process from {container_key}\n"
-                print(f"Stopped eventual python3 replay.py process from {container_key}")
-                
-            except Exception as e:
-                str_report += f"Error stopping pattern from {container_key}: {str(e)}\n"
-                print(f"Error stopping pattern  from {container_key}: {str(e)}")
-        
-        return str_report
-    
+        response_str = ""
 
-    @app.route('/fix_traffic', methods=['POST'])
-    def fix_traffic(restart=False):
-        """Verify if the pattern is actually running in the container"""
-        
-        str_report = ""
+        for attacker_monodict in cfg.attackers:
+            attacker_name = list(attacker_monodict.keys())[0]
+            attacker_ip = containers_ips[attacker_name]
+            response = requests.post(f"http://{attacker_ip}:8000/stop")
+            response_str += f"Replay from {attacker_name} answered with status code: {response.status_code}\n"
+            if response.json() is not None:
+                response_str += f"message: {response.json()['message']}\n"
 
-        pass
+
+        for honeypot_monodict in cfg.honeypots:
+            honeypot_name = list(honeypot_monodict.keys())[0]
+            honeypot_ip = containers_ips[honeypot_name]
+            response = requests.post(f"http://{honeypot_ip}:8000/stop")
+            response_str += f"Replay from {honeypot_name} answered with status code: {response.status_code}\n"
+            if response.json() is not None:
+                response_str += f"message: {response.json()['message']}\n"
         
-        return str_report
+        return response_str
+
     
 
     @app.route('/labels', methods=['GET'])
@@ -388,6 +378,7 @@ def main(cfg: DictConfig) -> None:
             return 'Switch and controller attached!'
         else:
             return 'Error attaching the switch to the controller!'
+
 
     @app.route('/start_training', methods=['POST'])
     def start_training(controller_container):
