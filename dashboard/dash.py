@@ -377,10 +377,15 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/flow_rewards', methods=['GET'])
     def get_flow_rewards():
-        with open('../utils/flow_rewards_hard.json', 'r') as file:
-            response_obj = json.load(file)
-        return response_obj
-
+        # merge all the entries in the cfg.rewards list into a unique dict:
+        merged_rewards = {}
+        for reward in cfg.rewards:
+            for key, value in reward.items():
+                if key not in merged_rewards:
+                    merged_rewards[key] = value
+                else:
+                    merged_rewards[key] += value
+        return merged_rewards
 
     @app.route('/curricula', methods=['GET'])
     def get_curricula():
