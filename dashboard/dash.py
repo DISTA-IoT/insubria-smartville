@@ -329,6 +329,30 @@ def main(cfg: DictConfig) -> None:
         return response_str
 
     
+    @app.route('/check_traffic', methods=['POST'])
+    def check_traffic():
+
+        response_str = ""
+
+        for attacker_monodict in cfg.attackers:
+            attacker_name = list(attacker_monodict.keys())[0]
+            attacker_ip = containers_ips[attacker_name]
+            response = requests.get(f"http://{attacker_ip}:8000/replay_status")
+            response_str += f"Replay from {attacker_name} answered with status code: {response.status_code}\n"
+            if response.json() is not None:
+                response_str += f"message: {response.json()['message']}\n"
+
+
+        for honeypot_monodict in cfg.honeypots:
+            honeypot_name = list(honeypot_monodict.keys())[0]
+            honeypot_ip = containers_ips[honeypot_name]
+            response = requests.get(f"http://{honeypot_ip}:8000/replay_status")
+            response_str += f"Replay from {honeypot_name} answered with status code: {response.status_code}\n"
+            if response.json() is not None:
+                response_str += f"message: {response.json()['message']}\n"
+        
+        return response_str
+    
 
     @app.route('/labels', methods=['GET'])
     def create_init_labels_dict():

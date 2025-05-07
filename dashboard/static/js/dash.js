@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const deleteProjectButton = document.getElementById("delete-project");
 
     const attachControllerButton = document.getElementById("attach-controller");
-    const fixTrafficButton = document.getElementById("fix-traffic");
+    const checkTrafficButton = document.getElementById("check-traffic");
 
     const getLabelsButton = document.getElementById("get-labels");
     const getFlowrewardsButton = document.getElementById("get-flow-rewards");
@@ -37,7 +37,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     stopTrafficButton.addEventListener("click", function() {
         fetch("/stop_traffic", {method: "POST"})
           .then(response => response.text())
-          .then(data => console.log(data));
+          .then(data => alert(data));
     });
   
   
@@ -59,10 +59,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(data => console.log(data));
     });
   
-    fixTrafficButton.addEventListener("click", function() {
-        fetch("/fix_traffic", {method: "POST"})
+    checkTrafficButton.addEventListener("click", function() {
+        fetch("/check_traffic", {method: "POST"})
           .then(response => response.text())
-          .then(data => console.log(data));
+          .then(data => alert(data));
     });
   
   
