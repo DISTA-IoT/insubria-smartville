@@ -223,6 +223,31 @@ def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name
     node_ids.append(host_id)
     print(f"{curr_node_name}: started")
 
+def get_host_ip():
+    """
+    This function is used to get the IP address of the host machine.
+    It uses the 'ip addr' command to retrieve the IP address of the first network interface.
+    """
+    result = subprocess.run(['ip', 'addr'], stdout=subprocess.PIPE, text=True)
+    output = result.stdout
+    # get ip address and subnet mask of the first network interface
+    match = re.search(r'inet (\d+\.\d+\.\d+\.\d+)/(\d+)', output)
+    if match:
+        ip_address = match.group(1)
+        subnet_mask = match.group(2)
+    else:
+        print("No IP address found.")
+        return None
+    
+    number_of_hosts = ATTACKER_NODE_COUNT + VICTIM_NODE_COUNT
+    # generate a list of IP addresses in the host INTERNAL network to avoid confict with physical network
+    network = ip_address.split(".")
+    network[-1] = "0"
+    network = ".".join(network)
+    netmask = f"/{subnet_mask}"
+    ip_pool = generateIPList(number_of_hosts, network, netmask)
+
+
 
 def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
     node_names = []
