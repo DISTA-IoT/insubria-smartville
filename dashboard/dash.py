@@ -357,13 +357,21 @@ def main(cfg: DictConfig) -> None:
     @app.route('/labels', methods=['GET'])
     def create_init_labels_dict():
         init_labels_dict = {}
-        for container_key, ip_addr in containers_ips.items():
-            curr_label = ''
-            if 'controller' not in container_key and 'switch' not in container_key:
-                curr_label = cfg.attackers[container_key]['pattern']
-                if 'victim' in container_key:
-                    curr_label += ' (Benign)'
-                init_labels_dict[ip_addr] = curr_label
+
+        for honeypot_monodict in cfg.honeypots:
+            honeypot_name = list(honeypot_monodict.keys())[0]
+            honeypot_info = list(honeypot_monodict.values())[0]
+            honeypot_pattern = honeypot_info['pattern']
+            honeypot_ip = containers_ips[honeypot_name]
+            init_labels_dict[honeypot_ip] = honeypot_pattern + ' (Benign)'
+
+        for attacker_monodict in cfg.attackers:
+            attacker_name = list(attacker_monodict.keys())[0]
+            attacker_info = list(attacker_monodict.values())[0]
+            attacker_pattern = attacker_info['pattern']
+            attacker_ip = containers_ips[attacker_name]
+            init_labels_dict[attacker_ip] = attacker_pattern
+
         return init_labels_dict
 
 
