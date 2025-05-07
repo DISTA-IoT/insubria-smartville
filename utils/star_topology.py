@@ -32,6 +32,7 @@ GNS3_PORT = None
 ATTACKER_NODE_COUNT = None
 VICTIM_NODE_COUNT = None
 ATTACKER_SERVER_COMMAND = 'python attacker_server.py'
+HONEYPOT_SERVER_COMMAND = 'python honeypot_server.py'
 CONTROLLER_IMG_NAME = None
 SWITCH_IMG_NAME = None
 VICTIM_IMG_NAME = None
@@ -241,18 +242,19 @@ def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
     node_proto_names = [list(honeypot.keys())[0] for honeypot in cfg.honeypots]+[list(attacker.keys())[0] for attacker in cfg.attackers]
     for idx, (ip, nodename) in enumerate(zip(ip_pool, node_proto_names)):
 
-        img_name = VICTIM_IMG_NAME
-        curr_node_name = f'{nodename}({ip})'
-
+        
         if (i > (len(ip_pool))/2) and not half:
             half = True
             x = -300
             y = -200
         
+
         if idx > VICTIM_NODE_COUNT-1:
             img_name = ATTACKER_IMG_NAME
-            curr_node_name = ATTACKER_IMG_NAME+"-"+str(idx)+"("+ip+")"
+        else:
+            img_name = VICTIM_IMG_NAME
         
+        curr_node_name = f'{nodename}({ip})'
         mount_single_Host(
             templates,
             img_name,
@@ -352,7 +354,7 @@ def update_templates(templates):
     update_switch_template(templates)
     update_controller_template(templates)
     update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND)
-    update_generic_template(templates, VICTIM_IMG_NAME, 'sh')
+    update_generic_template(templates, VICTIM_IMG_NAME, HONEYPOT_SERVER_COMMAND)
 
 
 
