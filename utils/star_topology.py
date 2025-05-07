@@ -31,7 +31,7 @@ GNS3_PORT = None
 
 ATTACKER_NODE_COUNT = None
 VICTIM_NODE_COUNT = None
-
+ATTACKER_SERVER_COMMAND = 'python attacker_server.py'
 CONTROLLER_IMG_NAME = None
 SWITCH_IMG_NAME = None
 VICTIM_IMG_NAME = None
@@ -223,31 +223,6 @@ def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name
     node_ids.append(host_id)
     print(f"{curr_node_name}: started")
 
-def get_host_ip():
-    """
-    This function is used to get the IP address of the host machine.
-    It uses the 'ip addr' command to retrieve the IP address of the first network interface.
-    """
-    result = subprocess.run(['ip', 'addr'], stdout=subprocess.PIPE, text=True)
-    output = result.stdout
-    # get ip address and subnet mask of the first network interface
-    match = re.search(r'inet (\d+\.\d+\.\d+\.\d+)/(\d+)', output)
-    if match:
-        ip_address = match.group(1)
-        subnet_mask = match.group(2)
-    else:
-        print("No IP address found.")
-        return None
-    
-    number_of_hosts = ATTACKER_NODE_COUNT + VICTIM_NODE_COUNT
-    # generate a list of IP addresses in the host INTERNAL network to avoid confict with physical network
-    network = ip_address.split(".")
-    network[-1] = "0"
-    network = ".".join(network)
-    netmask = f"/{subnet_mask}"
-    ip_pool = generateIPList(number_of_hosts, network, netmask)
-
-
 
 def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
     node_names = []
@@ -263,7 +238,7 @@ def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
     i = 1
     half = False
 
-    node_proto_names = list(cfg.honeypots.keys())+list(cfg.attackers.keys())
+    node_proto_names = [list(honeypot.keys())[0] for honeypot in cfg.honeypots]+[list(attacker.keys())[0] for attacker in cfg.attackers]
     for idx, (ip, nodename) in enumerate(zip(ip_pool, node_proto_names)):
 
         img_name = VICTIM_IMG_NAME
@@ -320,6 +295,7 @@ def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_nam
     input()
     create_link(server, project, str(cloud_id),0,str(main_switch_id),1)
 
+
 def start_all():
     for id in node_ids:
         start_node(server, project, id)
@@ -375,8 +351,11 @@ def update_controller_template(templates):
 def update_templates(templates):
     update_switch_template(templates)
     update_controller_template(templates)
-    update_generic_template(templates, ATTACKER_IMG_NAME, 'sh')
+    update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND)
     update_generic_template(templates, VICTIM_IMG_NAME, 'sh')
+
+
+
 
 
 
@@ -388,21 +367,34 @@ def main(cfg: DictConfig) -> None:
     global gns3_server_connector, logger, server, project, node_ids, template_ids
 
     logger = logging.getLogger("Topology Creator")
-
+    logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n")
     if cfg.override != "":
         try:
             # Load the variant specified from the command line
             config_overrides = OmegaConf.load(hydra.utils.get_original_cwd() + f'/config/overrides/{cfg.override}.yaml')
+            """           
+            def is_dict_of_dicts(d):
+                return isinstance(d, DictConfig) and all(isinstance(v, DictConfig) for v in d.values())
+
             # Merge configurations, with the variant overriding the base config
+            # Replace specific top-level fields completely if present in override
+            for k in config_overrides:
+                if k in cfg and is_dict_of_dicts(cfg[k]) and is_dict_of_dicts(config_overrides[k]):
+                    # Fully replace dict-of-dicts
+                    cfg[k] = config_overrides[k]
+                else:
+                    # Let OmegaConf.merge handle it
+                    cfg = OmegaConf.merge(cfg, OmegaConf.create({k: config_overrides[k]}))
+            """
             cfg = OmegaConf.merge(cfg, config_overrides)
         except:
             logger.error('Unsuccesfully tried to use the configuration override: ',cfg.override)
             assert 1 == 0
-
-    logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n" +\
-        "            - You can ovverride them by using the command line: \n" +\
-        "                python3 utils/star_topology.py --override=your_override.yaml \n" +\
-        "              Where your override file should be in the config/overrides folder. \n")
+    else:
+    
+        logger.info("            - You can ovverride them by using the command line: \n" +\
+            "                python3 utils/star_topology.py --override=your_override.yaml \n" +\
+            "              Where your override file should be in the config/overrides folder. \n")
    
     args = cfg.topology_creator
 
@@ -420,7 +412,7 @@ def main(cfg: DictConfig) -> None:
     
     ATTACKER_NODE_COUNT = len(cfg.honeypots)
     VICTIM_NODE_COUNT = len(cfg.attackers)
-
+    
     if USE_GNS3_FILE:
         server = Server(*read_local_gns3_config(GNS3_CONFIG_PATH))
         GNS3_HOST = server.addr
@@ -455,4 +447,5 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    
     main()

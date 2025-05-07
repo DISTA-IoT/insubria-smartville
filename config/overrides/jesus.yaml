@@ -1,4 +1,18 @@
 topology_creator:
   use_gns3_config_file: false   
-  n_attackers: 2  
-  n_victims: 2     
+
+honeypots:
+  - victim-0:
+      pattern: 'doorlock'
+      destination: 'victim-1'
+  - victim-1:
+      pattern: 'echo'
+      destination: 'victim-2'
+
+attackers:
+  - attacker-1:
+      pattern: 'cc_heartbeart'
+      destination: 'victim-0'
+  - attacker-2:
+      pattern: 'generic_ddos'
+      destination: 'victim-1'
