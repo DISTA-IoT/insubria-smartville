@@ -62,7 +62,8 @@
             "name": "Dash",
             "type": "python",
             "request": "launch",
-            "program": "dashboard/dash.py",
+            "program": "dash.py",
+            "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "justMyCode": true,
             "args": [
                 "override=dista"

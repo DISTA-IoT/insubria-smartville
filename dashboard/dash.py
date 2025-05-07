@@ -222,7 +222,7 @@ def main(cfg: DictConfig) -> None:
     if cfg.override != "":
         try:
             # Load the variant specified from the command line
-            config_overrides = OmegaConf.load(hydra.utils.get_original_cwd() + f'/config/overrides/{cfg.override}.yaml')
+            config_overrides = OmegaConf.load(f'../config/overrides/{cfg.override}.yaml')
             # Merge configurations, with the variant overriding the base config
             cfg = OmegaConf.merge(cfg, config_overrides)
         except:
@@ -244,6 +244,8 @@ def main(cfg: DictConfig) -> None:
     @app.route('/', methods=['GET'])
     def home():
         rendering_params = {'foo': 'bar'}
+        # print current working directory
+        print(f"Current working directory: {os.getcwd()}")
         return render_template('index.html', rendering_params=rendering_params)
 
 
@@ -426,7 +428,7 @@ def main(cfg: DictConfig) -> None:
     init_traffic_stuff(cfg)
 
     # Run the Flask app
-    app.run() 
+    app.run(host='0.0.0.0',port=cfg['base_params']['dashboard_port'])
 
 
 if __name__ == "__main__":
