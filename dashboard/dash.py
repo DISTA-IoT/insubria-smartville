@@ -19,7 +19,7 @@ import docker
 import threading
 import time
 import subprocess
-import json
+from functools import reduce
 import random
 from omegaconf import DictConfig, OmegaConf 
 import hydra
@@ -387,27 +387,16 @@ def main(cfg: DictConfig) -> None:
         return merged_rewards
 
 
-    @app.route('/send_curricula_to_controller', methods=['POST'])
-    def send_curricula_to_controller():
-        curricula = {}
-        response_str = ""
-        curricula['honeypots'] = OmegaConf.to_container(cfg.honeypots)
-        curricula['attackers'] = OmegaConf.to_container(cfg.attackers)
-        curricula['rewards'] = OmegaConf.to_container(cfg.rewards)
-        curricula['knowledge'] = OmegaConf.to_container(cfg.knowledge)
-        curricula['container_ips'] = containers_ips
-
-        response = requests.post(f"http://192.168.1.1:8000/curricula", json=curricula)
-        app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
-        return response.json()
-    
-
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg)
         init_args['container_ips'] = containers_ips
         del init_args['topology_creator']
         del init_args['base_params']
+        rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards), {}).copy()
+        del init_args['rewards']
+        init_args['rewards'] = rewards
+
         response = requests.post(f"http://192.168.1.1:8000/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
         return response.json()
