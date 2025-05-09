@@ -63,7 +63,7 @@ intrusion_detection:
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
   wb_project_name:  'TIGER' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
-  FLOWSTATS_FREQ_SECS:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. Default is 5.
+  flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. Default is 5.
   flow_idle_timeout:  10 # Number of no-activity seconds  for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
   arp_timeout: 120 # Number of seconds to delete and ARP entry in the switch. Default is 120
   max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
