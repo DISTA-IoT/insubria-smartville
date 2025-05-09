@@ -400,6 +400,17 @@ def main(cfg: DictConfig) -> None:
         response = requests.post(f"http://192.168.1.1:8000/curricula", json=curricula)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
         return response.json()
+    
+
+    @app.route('/initialize_controller', methods=['POST'])
+    def initialize_controller():
+        init_args = OmegaConf.to_container(cfg)
+        init_args['container_ips'] = containers_ips
+        del init_args['topology_creator']
+        del init_args['base_params']
+        response = requests.post(f"http://192.168.1.1:8000/initialize", json=init_args)
+        app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
+        return response.json()
 
 
     @app.route('/attach_controller',  methods=['POST'])

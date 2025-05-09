@@ -10,10 +10,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const attachControllerButton = document.getElementById("attach-controller");
     const checkTrafficButton = document.getElementById("check-traffic");
 
-    const getLabelsButton = document.getElementById("get-labels");
+    const initControllerButton = document.getElementById("init-controller");
     const getFlowrewardsButton = document.getElementById("get-flow-rewards");
-
-    const sendCurriculaButton = document.getElementById("send-curricula");
 
 
     const startExperimentButton = document.getElementById("start-experiment");
@@ -66,10 +64,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
     });
   
   
-    getLabelsButton.addEventListener("click", function() {
-        fetch("/labels", {method: "GET"})
-          .then(response => response.text())
-          .then(data => console.log(data));
+    initControllerButton.addEventListener("click", function() {
+        fetch("/initialize_controller", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
     });
 
     getFlowrewardsButton.addEventListener("click", function() {
@@ -78,11 +76,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(data => console.log(data));
     });
   
-    sendCurriculaButton.addEventListener("click", function() {
-        fetch("/send_curricula_to_controller", {method: "POST"})
-          .then(response => response.json())
-          .then(data => alert(data.msg));
-    });
   
     startAttackButtons.forEach(button => {
         button.addEventListener("click", function() {
