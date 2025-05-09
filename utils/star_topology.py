@@ -25,7 +25,7 @@ import re
 
 
 PROJECT_NAME = None
-
+ENV_STR = None
 GNS3_HOST = None
 GNS3_PORT = None
 
@@ -33,6 +33,7 @@ ATTACKER_NODE_COUNT = None
 VICTIM_NODE_COUNT = None
 ATTACKER_SERVER_COMMAND = 'python attacker_server.py'
 HONEYPOT_SERVER_COMMAND = 'python honeypot_server.py'
+ATTACH_CONTROLLER_COMMAND = 'ovs-vsctl set-controller br0 tcp:192.168.1.1:6633 & sh'
 CONTROLLER_IMG_NAME = None
 SWITCH_IMG_NAME = None
 VICTIM_IMG_NAME = None
@@ -128,7 +129,7 @@ def mount_edge_switch(templates):
     """
     We did not add Gateways to node configuration in GNS3. If you need to do so, refer to the GNS3utils API.
     """
-    template_id = get_template_id_from_name(templates, SWITCH_IMG_NAME)
+    template_id = get_template_id_from_name(templates, 'edge-'+SWITCH_IMG_NAME)
     curr_switch_label = "openvswitch-edge-1"
     edge_openvswitch=create_node(server, project, 0, -200, template_id,curr_switch_label)
     print(f"{curr_switch_label}: created")
@@ -327,7 +328,19 @@ def update_generic_template(templates, img_name, start_command):
     create_docker_template(server, img_name, start_command, str(img_name+":latest"), environment=ENV_STR)
 
 
-def update_switch_template(templates):
+def update_edge_switch_template(templates):
+    global project
+
+    switch_template_id = get_template_id_from_name(templates, 'edge-'+SWITCH_IMG_NAME)
+    if(switch_template_id is not None):
+        delete_template(server,project,switch_template_id)
+        print((f"{SWITCH_IMG_NAME}: old switch template deleted"))
+    print((f"{SWITCH_IMG_NAME}: creating a new template using local image"))
+    network_adapters_count = 6 + VICTIM_NODE_COUNT + ATTACKER_NODE_COUNT
+    create_docker_template_switch(server, 'edge-'+SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count)
+
+
+def update_main_switch_template(templates):
     global project
 
     switch_template_id = get_template_id_from_name(templates, SWITCH_IMG_NAME)
@@ -336,11 +349,11 @@ def update_switch_template(templates):
         print((f"{SWITCH_IMG_NAME}: old switch template deleted"))
     print((f"{SWITCH_IMG_NAME}: creating a new template using local image"))
     network_adapters_count = 6 + VICTIM_NODE_COUNT + ATTACKER_NODE_COUNT
-    create_docker_template_switch(server, SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count)
-
+    create_docker_template_switch(
+        server, SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count, start_command='')
 
 def update_controller_template(args, templates):
-    global project
+    global project, ENV_STR
 
     controller_template_id = get_template_id_from_name(templates, CONTROLLER_IMG_NAME)
     if(controller_template_id is not None):
@@ -353,8 +366,21 @@ def update_controller_template(args, templates):
     create_docker_template(server, CONTROLLER_IMG_NAME, CONTROLLER_START_COMMAND, str(CONTROLLER_IMG_NAME+":latest"),environment=ENV_STR)
 
 
+def update_cloud_template(templates):
+    global project
+
+    cloud_template_id = get_template_id_from_name(templates, CLOUD_IMG_NAME)
+    if(cloud_template_id is not None):
+        delete_template(server,project,cloud_template_id)
+        print(f"old controller template {CLOUD_IMG_NAME} deleted")
+
+    create_cloud_template(server, CLOUD_IMG_NAME)
+
+
 def update_templates(args, templates):
-    update_switch_template(templates)
+    update_cloud_template(templates)
+    update_edge_switch_template(templates)
+    update_main_switch_template(templates)
     update_controller_template(args, templates)
     update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND)
     update_generic_template(templates, VICTIM_IMG_NAME, HONEYPOT_SERVER_COMMAND)
@@ -370,7 +396,7 @@ def main(cfg: DictConfig) -> None:
     global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME
     global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT
     global gns3_server_connector, logger, server, project, node_ids, template_ids
-
+    global ENV_STR
     logger = logging.getLogger("Topology Creator")
     logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n")
     if cfg.override != "":
@@ -441,7 +467,7 @@ def main(cfg: DictConfig) -> None:
 
     setup_gns3_bridge()
 
-    create_cloud_template(server, CLOUD_IMG_NAME)
+    
     templates = get_all_templates(server)
     update_templates(args, templates)
     templates = get_all_templates(server)

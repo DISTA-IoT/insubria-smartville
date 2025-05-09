@@ -4,6 +4,7 @@
 TARGET_IMAGES=(
     "attacker:latest"
     "victim:latest"
+    "pox-controller:latest"
     # Add more images as needed
 )
 

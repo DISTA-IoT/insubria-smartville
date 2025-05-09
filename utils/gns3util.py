@@ -240,7 +240,8 @@ def create_docker_template_switch(
         name: str, 
         image: str, 
         environment: str = '',
-        adapter_count: int =18) -> Optional[Dict[str, Any]]:
+        adapter_count: int =18,
+        start_command: str = '') -> Optional[Dict[str, Any]]:
     """Create a new GNS3 docker template.
 
     'environment' should be the empty string '' or a string with newline separated key=value pairs,
@@ -259,7 +260,7 @@ def create_docker_template_switch(
                 'default_name_format': '{name}-{0}',
                 'extra_hosts': '',
                 'extra_volumes': [],
-                'start_command': '',
+                'start_command': start_command,
                 'symbol': ':/symbols/multilayer_switch.svg',
                 'template_type': 'docker',
                 'usage': ''
