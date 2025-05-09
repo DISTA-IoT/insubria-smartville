@@ -25,7 +25,6 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 import json
 import requests
-from curricula import CLASS_LABELS, ZDA_LABELS, TEST_ZDA_LABELS
 from flask import Flask, render_template
 import os
 
@@ -379,7 +378,7 @@ def main(cfg: DictConfig) -> None:
     def get_flow_rewards():
         # merge all the entries in the cfg.rewards list into a unique dict:
         merged_rewards = {}
-        for reward in cfg.knowledge.rewards:
+        for reward in cfg.rewards:
             for key, value in reward.items():
                 if key not in merged_rewards:
                     merged_rewards[key] = value
@@ -388,20 +387,19 @@ def main(cfg: DictConfig) -> None:
         return merged_rewards
 
 
-    @app.route('/curricula', methods=['GET'])
-    def get_curricula():
+    @app.route('/send_curricula_to_controller', methods=['POST'])
+    def send_curricula_to_controller():
         curricula = {}
+        response_str = ""
+        curricula['honeypots'] = OmegaConf.to_container(cfg.honeypots)
+        curricula['attackers'] = OmegaConf.to_container(cfg.attackers)
+        curricula['rewards'] = OmegaConf.to_container(cfg.rewards)
+        curricula['knowledge'] = OmegaConf.to_container(cfg.knowledge)
+        curricula['container_ips'] = containers_ips
 
-        from_file = cfg['base_params']['container_manager_curricula_from_file']  
-        if from_file:
-            print('curricula will be read from file')
-            curricula['CLASS_LABELS'] =  CLASS_LABELS
-            curricula['ZDA_LABELS'] = ZDA_LABELS
-            curricula['TEST_ZDA_LABELS'] = TEST_ZDA_LABELS   
-        else:
-            print('Random curricula is not yet implemented!')
-            assert 1 == 0
-        return curricula
+        response = requests.post(f"http://192.168.1.1:8000/curricula", json=curricula)
+        app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
+        return response.json()
 
 
     @app.route('/attach_controller',  methods=['POST'])
@@ -413,9 +411,9 @@ def main(cfg: DictConfig) -> None:
                     f"sh -c '{attaching_command} & echo $!'", 
                     detach=True)
         if exec_result.exit_code == 0:
-            return 'Switch and controller attached!'
+            return {'status_code':200, 'msg':'Switch and controller attached!'}
         else:
-            return 'Error attaching the switch to the controller!'
+            return {'status_code':500, 'msg':'Error attaching the switch to the controller!'}
 
 
     @app.route('/start_training', methods=['POST'])
