@@ -217,7 +217,7 @@ def main(cfg: DictConfig) -> None:
     app = Flask(NAME)
     app.logger.name = NAME
     app.logger.setLevel('DEBUG')
-
+    app.logger.info("IMPORTANT: Parameters are read from the default.yaml file at the config dir." )
     if cfg.override != "":
         try:
             # Load the variant specified from the command line
@@ -227,12 +227,12 @@ def main(cfg: DictConfig) -> None:
         except:
             app.logger.error('Unsuccesfully tried to use the configuration override: ',cfg.override)
             assert 1 == 0
-
-    app.logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n" +\
-        "            - You can ovverride them by using the command line: \n" +\
-        "                python3 dash.py --override=your_override.yaml \n" +\
-        "              Where your override file should be in the config/overrides folder. \n" +\
-        "            - You might need to re-launch the app each time you restart your containers. \n\n\n")
+    else:   
+        
+        app.logger.info("            - You can ovverride them by using the command line: \n" +\
+            "                python3 dash.py --override=your_override.yaml \n" +\
+            "              Where your override file should be in the config/overrides folder. \n" +\
+            "            - You might need to re-launch the app each time you restart your containers. \n\n\n")
    
 
     TERMINAL_ISSUER_PATH = cfg['base_params']['terminal_issuer_path'] 
