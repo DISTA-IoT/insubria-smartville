@@ -25,6 +25,13 @@ topology_creator:
   gns3_username: admin
   gns3_password: admin
 
+  switch_args:
+    flow_idle_timeout:  10 # Number of no-activity seconds  for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
+    arp_timeout: 120 # Number of seconds to delete and ARP entry in the switch. Default is 120
+    max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
+    max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
+    arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
+    
   # Environment variables (newline separated)
   env_vars: ''  # Format example: "VAR_ONE=value1\nVAR2=2\nBLABLABLA=something"
 
@@ -39,6 +46,7 @@ base_params:
   terminal_issuer_path: './terminal_issuer.sh'     
   disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
   dashboard_port: 7777 # Port of the Flask dashboard in the host machine
+
 
 
 intrusion_detection:
@@ -64,11 +72,6 @@ intrusion_detection:
   wb_project_name:  'TIGER' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
   flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. Default is 5.
-  flow_idle_timeout:  10 # Number of no-activity seconds  for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
-  arp_timeout: 120 # Number of seconds to delete and ARP entry in the switch. Default is 120
-  max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
-  max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
-  arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
   dropout: 0.6 # Dropout rate for the neural network. Default is 0.6
   init_k_shot: 5 #  Initial value for k_shot in k_shot learning. Default is 5. 
   batch_size: 20 # Batch size for the neural network. Default is 20

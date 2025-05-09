@@ -339,7 +339,7 @@ def update_switch_template(templates):
     create_docker_template_switch(server, SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count)
 
 
-def update_controller_template(templates):
+def update_controller_template(args, templates):
     global project
 
     controller_template_id = get_template_id_from_name(templates, CONTROLLER_IMG_NAME)
@@ -347,12 +347,15 @@ def update_controller_template(templates):
         delete_template(server,project,controller_template_id)
         print(f"old controller template {CONTROLLER_IMG_NAME} deleted")
 
+    for key, value in args.get('switch_args').items():
+        ENV_STR += f"{key}={value}\n"
+
     create_docker_template(server, CONTROLLER_IMG_NAME, CONTROLLER_START_COMMAND, str(CONTROLLER_IMG_NAME+":latest"),environment=ENV_STR)
 
 
-def update_templates(templates):
+def update_templates(args, templates):
     update_switch_template(templates)
-    update_controller_template(templates)
+    update_controller_template(args, templates)
     update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND)
     update_generic_template(templates, VICTIM_IMG_NAME, HONEYPOT_SERVER_COMMAND)
 
@@ -440,7 +443,7 @@ def main(cfg: DictConfig) -> None:
 
     create_cloud_template(server, CLOUD_IMG_NAME)
     templates = get_all_templates(server)
-    update_templates(templates)
+    update_templates(args, templates)
     templates = get_all_templates(server)
 
     
