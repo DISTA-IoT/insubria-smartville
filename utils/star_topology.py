@@ -373,9 +373,11 @@ def start_all():
 
 
 def starTopology(cfg, templates):
-    main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=cfg.topology_creator.main_switch_ip, gateway=cfg.topology_creator.main_switch_ip)
+    main_switch_ip = cfg.topology_creator.main_switch_ip + cfg.topology_creator.netmask
+    main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=main_switch_ip)
     edge_switch_node_name = mount_edge_switch(templates)
-    controller_node_name = mountController(templates, main_switch_node_name, ip=cfg.topology_creator.controller_ip)
+    controller_ip = cfg.topology_creator.controller_ip + cfg.topology_creator.netmask
+    controller_node_name = mountController(templates, main_switch_node_name, ip=controller_ip)
     host_names = mount_all_hosts(cfg, templates, main_switch_node_name)
     mountNAT(templates)
     mountCloud(templates)
