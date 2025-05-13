@@ -261,13 +261,41 @@ def main(cfg: DictConfig) -> None:
         for container in client.containers.list():
 
             container_info = client.api.inspect_container(container.id)
-            # Extract the IP address of the container from its network settings
-            container_info_str = container_info['Config']['Hostname']
-            container_img_name = container_info_str.split('(')[0]
-            container_ip = container_info_str.split('(')[-1][:-1].split('/')[0]
-            # append sring to the return string
-            return_str += f'{container_img_name} is {container.name} with ip {container_ip}\n'
+            
+            container_img_name = container_info['Config']['Hostname']
             containers_dict[container_img_name] = container
+
+            try:
+                exec_result = container.exec_run("ifconfig")
+                if exec_result.exit_code == 0:
+                    cmd_output = exec_result.output.decode('utf-8')
+                    # Extract IP address from ifconfig output using Python string operations
+                    ip_address = None
+                    for line in cmd_output.split('\n'):
+                        # Look for inet addr: pattern (older ifconfig format)
+                        if 'inet addr:' in line:
+                            ip_part = line.split('inet addr:')[1].strip()
+                            ip_address = ip_part.split()[0]
+                            break
+                        # Look for inet pattern (newer ifconfig format)
+                        elif 'inet ' in line and '127.0.0.1' not in line:
+                            parts = line.strip().split()
+                            for i, part in enumerate(parts):
+                                if part == 'inet':
+                                    # IP address is likely the next part
+                                    if i + 1 < len(parts):
+                                        ip_address = parts[i + 1].split('/')[0]
+                                        break
+                            if ip_address:
+                                break
+                    
+                    container_ip = ip_address if ip_address else "IP not available"
+                    return_str += f' {container_img_name} is alive with ip {ip_address} \n'
+            except Exception as e:
+                container_ip = "IP not available"
+                return_str += f"Failed to get IP for {container_img_name}: {str(e)}\n"
+        
+           
             containers_ips[container_img_name] = container_ip 
         
         if cfg['base_params']['disable_proxy']:
