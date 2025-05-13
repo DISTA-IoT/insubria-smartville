@@ -55,7 +55,7 @@ project = None
 
 def setup_gns3_bridge(cfg):
     bridge_name = "gns3-bridge"
-    bridge_ip = cfg.topology_creator.bridge_ip
+    bridge_ip = cfg.topology_creator.bridge_ip+cfg.topology_creator.netmask
     
     # Check if bridge already exists
     try:
@@ -373,7 +373,7 @@ def start_all():
 
 
 def starTopology(cfg, templates):
-    main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=cfg.topology_creator.main_switch_ip)
+    main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=cfg.topology_creator.main_switch_ip, gateway=cfg.topology_creator.main_switch_ip)
     edge_switch_node_name = mount_edge_switch(templates)
     controller_node_name = mountController(templates, main_switch_node_name, ip=cfg.topology_creator.controller_ip)
     host_names = mount_all_hosts(cfg, templates, main_switch_node_name)
