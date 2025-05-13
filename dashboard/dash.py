@@ -263,6 +263,7 @@ def main(cfg: DictConfig) -> None:
             container_info = client.api.inspect_container(container.id)
             
             container_img_name = container_info['Config']['Hostname']
+            container_img_name = container_img_name.split('(')[0]            
             containers_dict[container_img_name] = container
 
             try:
@@ -433,7 +434,8 @@ def main(cfg: DictConfig) -> None:
     @app.route('/attach_controller',  methods=['POST'])
     def  attach_controller():
         switch_container = containers_dict['openvswitch-1']
-        attaching_command = "ovs-vsctl set-controller br0 tcp:192.168.1.1:6633"
+        controller_ip = containers_ips['pox-controller']
+        attaching_command = f"ovs-vsctl set-controller br0 tcp:{controller_ip}:6633"
         
         exec_result = switch_container.exec_run(
                     f"sh -c '{attaching_command} & echo $!'", 

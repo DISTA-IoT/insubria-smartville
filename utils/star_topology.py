@@ -53,9 +53,9 @@ project = None
 
 
 
-def setup_gns3_bridge():
+def setup_gns3_bridge(cfg):
     bridge_name = "gns3-bridge"
-    bridge_ip = "192.168.1.100/24"
+    bridge_ip = cfg.topology_creator.bridge_ip
     
     # Check if bridge already exists
     try:
@@ -255,7 +255,7 @@ def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name
     print(f"{curr_node_name}: started")
 
 
-def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_ips=False):
+def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_ips=True):
     node_names = []
     # mounts hosts and links each one to a port of the switch
     gateway = None  
@@ -263,8 +263,8 @@ def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_i
 
     if fixed_ips:
         #generate pool of ip addresses for specified network (es. 192.168.1.0)
-        network = "192.168.1.0"
-        netmask = "/24"
+        network = cfg.topology_creator.subnet
+        netmask = cfg.topology_creator.netmask
         ip_pool = generateIPList(ATTACKER_NODE_COUNT + VICTIM_NODE_COUNT, network, netmask, starting_from=curr_node_count+1)
     else:
         # ip_pool will be a list of Nones:
@@ -317,7 +317,7 @@ def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_i
     return node_names
 
 
-def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_name,host_names, fixed_ips=False):
+def connect_all(cfg, main_switch_node_name, edge_switch_node_name,controller_node_name,host_names, fixed_ips=True):
 
     nat_id = get_node_id_by_name(server, project, NAT_IMG_NAME)
     edge_switch_id = get_node_id_by_name(server, project, edge_switch_node_name)
@@ -338,6 +338,9 @@ def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_nam
         print("---------------------------------------------------------------------------------------")
         print("-------------------------IMPORTANT:----------------------------------------------------")
         print("---------------------------------------------------------------------------------------")
+        print(f"Setting the gns3 bridge in you host, we might need root permissions!!!!")
+        setup_gns3_bridge(cfg)
+
         print(f"Please locate the \"{CLOUD_IMG_NAME}\" node in your topology using the STANDALONE GNS3 GUI")
         print("and make sure to put the \"gns3-bridge\" in the first (or only) place in the interface list.")
         print("Then press ENTER to continue...")
@@ -370,13 +373,13 @@ def start_all():
 
 
 def starTopology(cfg, templates):
-    main_switch_node_name = mountSwitch(templates, "openvswitch-1")
+    main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=cfg.topology_creator.main_switch_ip)
     edge_switch_node_name = mount_edge_switch(templates)
-    controller_node_name = mountController(templates, main_switch_node_name)
+    controller_node_name = mountController(templates, main_switch_node_name, ip=cfg.topology_creator.controller_ip)
     host_names = mount_all_hosts(cfg, templates, main_switch_node_name)
     mountNAT(templates)
     mountCloud(templates)
-    connect_all(main_switch_node_name, edge_switch_node_name,controller_node_name,host_names)
+    connect_all(cfg, main_switch_node_name, edge_switch_node_name,controller_node_name,host_names)
     start_all()
 
 
@@ -528,9 +531,6 @@ def main(cfg: DictConfig) -> None:
     gns3_server_connector = gfy.Gns3Connector(f"http://{GNS3_HOST}:{GNS3_PORT}", user=GNS3_USERNAME, cred=GNS3_PASSWORD)
 
     resetProject(PROJECT_NAME)
-
-    # setup_gns3_bridge()
-
     
     templates = get_all_templates(server)
     update_templates(args, templates)

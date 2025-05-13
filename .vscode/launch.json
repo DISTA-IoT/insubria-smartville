@@ -33,7 +33,7 @@
             "name": "DISTA Star Topology Generation",
             "type": "python",
             "request": "launch",
-            "program": "utils/simple_topology.py",
+            "program": "utils/star_topology.py",
             "args": [
                 "override=dista"
             ],
@@ -43,7 +43,7 @@
             "name": "home Star Topology Generation",
             "type": "python",
             "request": "launch",
-            "program": "utils/simple_topology.py",
+            "program": "utils/star_topology.py",
             "args": [
                 "override=jesus"
             ],
