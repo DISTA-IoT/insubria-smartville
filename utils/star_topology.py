@@ -109,16 +109,26 @@ def generateIPList(ip_nr,network,netmask, starting_from=3):
     return ip_pool
 
 
-def mountSwitch(templates, curr_switch_label,ip,gateway):
+def mountSwitch(templates, curr_switch_label,ip=None,gateway=None):
     template_id = get_template_id_from_name(templates, SWITCH_IMG_NAME)
-    switch1_node_name = curr_switch_label + "("+ ip +")"
-    openvswitch=create_node(server, project, 0, 100, template_id, switch1_node_name)
+    control_interface = 'eth0'
+    if ip is not None:
+        switch1_node_name = curr_switch_label + "("+ ip +")"
+    else:
+        switch1_node_name = curr_switch_label
 
+
+    openvswitch=create_node(server, project, 0, 100, template_id, switch1_node_name)
     print(f"{curr_switch_label}: created")
     openvswitch_id = openvswitch['node_id']
-
-    set_node_network_interfaces(server, project, openvswitch_id, "eth0", ipaddress.IPv4Interface(ip), gateway)
-    print(f"{curr_switch_label}: assigned ip: {ip}, gateway: {gateway} on eth0")
+    
+    if ip is not None:
+        set_node_network_interfaces(server, project, openvswitch_id, control_interface, ipaddress.IPv4Interface(ip), gateway)
+        print(f"{curr_switch_label}: assigned ip: {ip}, gateway: {gateway} on {control_interface}")
+    else:
+        openvswitch_id = openvswitch['node_id']
+        set_dhcp_node_network_interfaces(server, project, openvswitch_id, control_interface, None)
+        print(f"{curr_switch_label}: DHCP on ",control_interface)
     
     print(f"{curr_switch_label}: started")
     node_ids.append(openvswitch_id)
@@ -144,12 +154,16 @@ def mount_edge_switch(templates):
     return curr_switch_label
 
 
-def mountController(templates, switch_name, ip):
+def mountController(templates, switch_name, ip=None):
     """
     We did not add Gateways to node configuration in GNS3. If you need to do so, refer to the GNS3utils API.
     """
     template_id = get_template_id_from_name(templates, CONTROLLER_IMG_NAME)
-    controller_name = "pox-controller-1"+"("+ip+")"
+    if ip is not None:
+        controller_name = CONTROLLER_IMG_NAME+"("+ip+")"
+    else:
+        controller_name = CONTROLLER_IMG_NAME
+
     openvswitch_id = get_node_id_by_name(server,project,switch_name)
     controller_id = get_node_id_by_name(server,project,controller_name)
     print(f"controller id {controller_id}, switch id {openvswitch_id}")
@@ -161,11 +175,20 @@ def mountController(templates, switch_name, ip):
     controller_id = controller['node_id']
     print(f"new {CONTROLLER_IMG_NAME} controller created ")
     time.sleep(2)
+
+    if ip is not None:
+        set_node_network_interfaces(server, project, controller_id, "eth0", ipaddress.IPv4Interface(ip), None)
+        print(f"{CONTROLLER_IMG_NAME}: assigned ip: {ip} on eth0")
+    else:
+        set_dhcp_node_network_interfaces(server, project, controller_id, "eth0", None)
+        print(f"{CONTROLLER_IMG_NAME}: DHCP on eth0")
+
     create_link(server, project, controller_id,0,openvswitch_id,0)
     print(f"Created a link from {CONTROLLER_IMG_NAME} to {switch_name} on port eth0")
-    set_node_network_interfaces(server, project, controller_id, "eth0", ipaddress.IPv4Interface("192.168.1.1/24"), None)
-    print(f"{CONTROLLER_IMG_NAME}: assigned ip: {ip} on eth0")
-    set_dhcp_node_network_interfaces(server,project,controller_id,"eth1", "smartcontroller")
+
+    set_dhcp_node_network_interfaces(server,project,controller_id,"eth1", None)
+    print(f"{CONTROLLER_IMG_NAME}: DHCP on eth1")
+
     node_ids.append(controller_id)
     print(f"{CONTROLLER_IMG_NAME}: started")
     return controller_name
@@ -216,46 +239,64 @@ def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name
     host=create_node(server, project, x, y, template_id,curr_node_name)
     host_id=host['node_id']
     print(f"{curr_node_name}: created")
-    set_node_network_interfaces(server, project, host_id, "eth0", ipaddress.IPv4Interface(ip), gateway)
+
+    if ip is not None:
+        set_node_network_interfaces(server, project, host_id, "eth0", ipaddress.IPv4Interface(ip), gateway)
+        print(f"{curr_node_name}: assigned ip: {ip}, gateway: {gateway} on eth0")
+    else:
+        set_dhcp_node_network_interfaces(server,project,host_id,"eth0", None)
+
     set_dhcp_node_network_interfaces(server,project,host_id,"eth1", None)
 
-    print(f"{curr_node_name}: assigned ip: {ip}, gateway: {gateway} on eth0")
     create_link(server, project,host_id,0,openvswitch_id,switch_port)
     print(f"{curr_node_name}: link to {switch1_node_name} on port {switch_port} created")
+
     node_ids.append(host_id)
     print(f"{curr_node_name}: started")
 
 
-def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
+def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_ips=False):
     node_names = []
     # mounts hosts and links each one to a port of the switch
     gateway = None  
     switch_port = 3
-    network = "192.168.1.0"
-    netmask = "/24"
-    #generate pool of ip addresses for specified network (es. 192.168.1.0)
-    ip_pool = generateIPList(ATTACKER_NODE_COUNT + VICTIM_NODE_COUNT, network, netmask, starting_from=curr_node_count+1)
+
+    if fixed_ips:
+        #generate pool of ip addresses for specified network (es. 192.168.1.0)
+        network = "192.168.1.0"
+        netmask = "/24"
+        ip_pool = generateIPList(ATTACKER_NODE_COUNT + VICTIM_NODE_COUNT, network, netmask, starting_from=curr_node_count+1)
+    else:
+        # ip_pool will be a list of Nones:
+        ip_pool = [None] * (ATTACKER_NODE_COUNT + VICTIM_NODE_COUNT)
+
     x = 300
     y = -200
     i = 1
     half = False
 
-    node_proto_names = [list(honeypot.keys())[0] for honeypot in cfg.honeypots]+[list(attacker.keys())[0] for attacker in cfg.attackers]
+    node_proto_names = [list(honeypot.keys())[0] 
+                        for honeypot in cfg.honeypots]+ \
+                        [list(attacker.keys())[0] 
+                            for attacker in cfg.attackers]
+    
     for idx, (ip, nodename) in enumerate(zip(ip_pool, node_proto_names)):
 
-        
         if (i > (len(ip_pool))/2) and not half:
             half = True
             x = -300
             y = -200
-        
 
         if idx > VICTIM_NODE_COUNT-1:
             img_name = ATTACKER_IMG_NAME
         else:
             img_name = VICTIM_IMG_NAME
         
-        curr_node_name = f'{nodename}({ip})'
+        if ip is not None:
+            curr_node_name = f'{nodename}({ip})'
+        else:
+            curr_node_name = nodename
+
         mount_single_Host(
             templates,
             img_name,
@@ -270,11 +311,13 @@ def mount_all_hosts(cfg, templates, switch_node_name,curr_node_count):
         i = i+1
         y = y+100
         switch_port = switch_port+1
+
         node_names.append(curr_node_name)
+    
     return node_names
 
 
-def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_name,host_names):
+def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_name,host_names, fixed_ips=False):
 
     nat_id = get_node_id_by_name(server, project, NAT_IMG_NAME)
     edge_switch_id = get_node_id_by_name(server, project, edge_switch_node_name)
@@ -289,14 +332,35 @@ def connect_all(main_switch_node_name, edge_switch_node_name,controller_node_nam
 
     cloud_id = get_node_id_by_name(server, project, CLOUD_IMG_NAME)
     main_switch_id = get_node_id_by_name(server, project, main_switch_node_name)
-    # interrupt execution, asking the user to place the correct bridge in the GNS3 GUI
-    print("IMPORTANT:")
-    print(f"Please locate the \"{CLOUD_IMG_NAME}\" node in your topology using the STANDALONE GNS3 GUI")
-    print("and make sure to put the \"gns3-bridge\" in the first (or only) place in the interface list.")
-    print("Then press ENTER to continue...")
-    print("If you are using the GNS3 Web GUI, you might not found the \"gns3-bridge\" in the list of available interfaces.")
-    input()
-    create_link(server, project, str(cloud_id),0,str(main_switch_id),1)
+
+    if fixed_ips:
+        # interrupt execution, asking the user to place the correct bridge in the GNS3 GUI
+        print("---------------------------------------------------------------------------------------")
+        print("-------------------------IMPORTANT:----------------------------------------------------")
+        print("---------------------------------------------------------------------------------------")
+        print(f"Please locate the \"{CLOUD_IMG_NAME}\" node in your topology using the STANDALONE GNS3 GUI")
+        print("and make sure to put the \"gns3-bridge\" in the first (or only) place in the interface list.")
+        print("Then press ENTER to continue...")
+        print("If you are using the GNS3 Web GUI, you might not found the \"gns3-bridge\" in the list of available interfaces.")
+        input()
+        create_link(server, project, str(cloud_id),0,str(main_switch_id),1)
+
+    else:
+        cloud_node = gfy.Node(node_id=str(cloud_id), connector=gns3_server_connector, project_id=project.id)
+        cloud_node.get()
+        portnames = [port['name'] for port in cloud_node.ports]
+        # ask the user to select the correct port
+        print("Please select the correct port for the cloud node:")
+        for i, portname in enumerate(portnames):
+            print(f"{i}: {portname}")
+        port_index = int(input("Enter the index of the port: "))
+        # check if the index is valid
+        if port_index < 0 or port_index >= len(portnames):
+            print("Invalid index. Exiting.")
+            exit(1)
+        
+        create_link(server, project, str(cloud_id),0,str(main_switch_id),1, port_number_1=port_index)
+        print(f"Created a link from {CLOUD_IMG_NAME} port  to {main_switch_node_name} on port eth0")
 
 
 def start_all():
@@ -306,13 +370,13 @@ def start_all():
 
 
 def starTopology(cfg, templates):
-    switch1_node_name = mountSwitch(templates, "openvswitch-1","192.168.1.2/24","192.168.1.1")
+    main_switch_node_name = mountSwitch(templates, "openvswitch-1")
     edge_switch_node_name = mount_edge_switch(templates)
-    controller_node_name = mountController(templates, switch1_node_name,"192.168.1.1/24")
-    host_names = mount_all_hosts(cfg, templates, switch1_node_name, 2)
+    controller_node_name = mountController(templates, main_switch_node_name)
+    host_names = mount_all_hosts(cfg, templates, main_switch_node_name)
     mountNAT(templates)
     mountCloud(templates)
-    connect_all(switch1_node_name, edge_switch_node_name,controller_node_name,host_names)
+    connect_all(main_switch_node_name, edge_switch_node_name,controller_node_name,host_names)
     start_all()
 
 
@@ -465,7 +529,7 @@ def main(cfg: DictConfig) -> None:
 
     resetProject(PROJECT_NAME)
 
-    setup_gns3_bridge()
+    # setup_gns3_bridge()
 
     
     templates = get_all_templates(server)

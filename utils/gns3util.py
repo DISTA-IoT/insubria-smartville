@@ -373,8 +373,13 @@ def create_project(server: Server, name: str, height: int, width: int, zoom: Opt
 def delete_project(server: Server, project_name: str):
     """Delete GNS3 project by name."""
     
-    # Get the project ID based on the project name
-    project_id = get_project_id(server, project_name)
+    # Get the project ID based on the project name, capture connectionError exception:
+    try:
+        project_id = get_project_id(server, project_name)
+    except requests.exceptions.ConnectionError as err:
+        print(f"Connection Error: {err}")
+        assert 1 == 0, "Connection error. Check if the GNS3 server is running."
+   
 
     if project_id is not None:
         # Make a DELETE request to delete the project
@@ -621,11 +626,13 @@ def start_node_by_name(server: Server, project: Project, node_name: str) -> None
     else:
         print(f"Node '{node_name}' not found.")
 
-def create_link(server: Server, project: Project, node1_id: str, node1_port: int, node2_id: str, node2_port: int):
+def create_link(server: Server, project: Project, node1_id: str, node1_port: int, node2_id: str, node2_port: int, port_number_1=None, port_number_2=None):
     """Create link between two nodes."""
+    port_number_1 = 0 if port_number_1 is None else port_number_1
+    port_number_2 = 0 if port_number_2 is None else port_number_2
     try:
-        payload = {"nodes":[{"node_id": node1_id, "adapter_number": node1_port, "port_number": 0},
-                            {"node_id": node2_id, "adapter_number": node2_port, "port_number": 0}]}
+        payload = {"nodes":[{"node_id": node1_id, "adapter_number": node1_port, "port_number": port_number_1},
+                            {"node_id": node2_id, "adapter_number": node2_port, "port_number": port_number_2}]}
         req = requests.post(f"http://{server.addr}:{server.port}/v2/projects/{project.id}/links", data=json.dumps(payload), auth=(server.user, server.password))
         req.raise_for_status()
         # TODO rename link node labels

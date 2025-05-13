@@ -12,7 +12,7 @@ topology_creator:
   attacker_docker: attacker
 
   # Controller configuration
-  contr_start: sh  # Could also be: "./pox.py samples.pretty_log smartController.smartController"
+  contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.smartController"
 
   # GNS3 Configuration
   use_gns3_config_file: true
