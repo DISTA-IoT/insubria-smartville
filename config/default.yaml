@@ -152,19 +152,19 @@ attackers:
 
 
 rewards:
-    - Echo: 0.02
-    - Hakai: -0.20
-    - Mirai: -0.40
-    - Hajime: -0.26
-    - Doorlock: 0.01
-    - Gafgyt: -0.5
-    - Muhstik: -0.6
-    - H_Scan: -0.7
-    - Okiru: -0.8
-    - Gen_DDoS: -0.9
-    - Torii: -0.51
-    - CC_HeartBeat: -0.61
-    - Hue: 0.05
+    - echo: 0.02
+    - hakai: -0.20
+    - mirai: -0.40
+    - hajime: -0.26
+    - doorlock: 0.01
+    - gafgyt: -0.5
+    - muhstik: -0.6
+    - h_Scan: -0.7
+    - okiru: -0.8
+    - generic_ddos: -0.9
+    - torii: -0.51
+    - cc_heartbeart: -0.61
+    - hue: 0.05
 
 
 knowledge:
