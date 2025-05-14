@@ -27,13 +27,16 @@ import json
 import requests
 from flask import Flask, render_template
 import os
+import ipaddress
 
 containers_dict = {}
-containers_ips = {}
-ips_containers = {}
+containers_external_ips = {}
+containers_internal_ips = {}
+internal_ips_containers = {}
 traffic_dict = {}
 
 TERMINAL_ISSUER_PATH = None
+internal_subnet = None
 
 start_zookeeper_command = "zookeeper-server-start.sh pox/smartController/zookeeper.properties"
 start_kafka_command = "kafka-server-start.sh pox/smartController/kafka_server.properties"
@@ -187,17 +190,17 @@ def init_traffic_stuff(cfg):
     attackers_dict = OmegaConf.to_container(cfg.attackers)
 
     for honeypot_name, honeypot_info in honeypots_dict.items():
-        honeypot_info['dest_ip'] = containers_ips[honeypot_info['destination']]
-        honeypot_info['src_ip'] = containers_ips[honeypot_name]
+        honeypot_info['dest_ip'] = containers_internal_ips[honeypot_info['destination']]
+        honeypot_info['src_ip'] = containers_internal_ips[honeypot_name]
         honeypot_info['benign'] = True
         if 'pattern' not in honeypot_info:
             honeypot_info['pattern'] = random.choice(cfg.knowledge.bening_patterns)
             
 
     for attacker_name, attacker_info in attackers_dict.items():
-        attacker_info['dest_ip'] = containers_ips[attacker_info['destination']]
+        attacker_info['dest_ip'] = containers_internal_ips[attacker_info['destination']]
         attacker_info['benign'] = False
-        attacker_info['src_ip'] = containers_ips[attacker_name]
+        attacker_info['src_ip'] = containers_internal_ips[attacker_name]
         if 'pattern' not in attacker_info:
             attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns)
             
@@ -207,7 +210,7 @@ def init_traffic_stuff(cfg):
     
 
 def append_ips_to_no_proxy():
-    no_proxy_ips = ','.join(containers_ips.values())
+    no_proxy_ips = ','.join(containers_internal_ips.values())
     os.environ['no_proxy'] = os.environ['no_proxy']+','+no_proxy_ips
     # get the current value of no_proxy
     current_no_proxy = subprocess.check_output("echo $no_proxy", shell=True).decode('utf-8').strip()
@@ -217,7 +220,7 @@ def append_ips_to_no_proxy():
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
-    global containers_dict, containers_ips, TERMINAL_ISSUER_PATH
+    global containers_dict, containers_internal_ips, TERMINAL_ISSUER_PATH, internal_subnet
 
     NAME = 'SmartVille'
     app = Flask(NAME)
@@ -248,6 +251,8 @@ def main(cfg: DictConfig) -> None:
     # the value of the outer dict should be the inner dict
     cfg.attackers = {list(attacker.keys())[0]: attacker[list(attacker.keys())[0]] for attacker in cfg.attackers}
     cfg.honeypots = {list(honeypot.keys())[0]: honeypot[list(honeypot.keys())[0]] for honeypot in cfg.honeypots}
+    internal_subnet = cfg.topology_creator.subnet+cfg.topology_creator.netmask
+
 
     @app.route('/', methods=['GET'])
     def home():
@@ -259,8 +264,10 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/refresh_containers', methods=['POST'])
     def refresh_containers():
-        global containers_dict
-        global containers_ips, ips_containers
+        global containers_dict, internal_subnet
+        global containers_internal_ips, internal_ips_containers, containers_external_ips
+
+
         # Connect to the Docker daemon
         client = docker.from_env()
         return_str = ""
@@ -270,44 +277,49 @@ def main(cfg: DictConfig) -> None:
         for container in client.containers.list():
 
             container_info = client.api.inspect_container(container.id)
-            
-            container_img_name = container_info['Config']['Hostname']
-            container_img_name = container_img_name.split('(')[0]            
-            containers_dict[container_img_name] = container
+            img_name = container_info['Config']['Image']
+            if img_name != 'openvswitch:latest':
+                container_name = container_info['Config']['Hostname']
+                container_name = container_name.split('(')[0]            
+                containers_dict[container_name] = container
 
-            try:
-                exec_result = container.exec_run("ifconfig")
-                if exec_result.exit_code == 0:
-                    cmd_output = exec_result.output.decode('utf-8')
-                    # Extract IP address from ifconfig output using Python string operations
-                    ip_address = None
-                    for line in cmd_output.split('\n'):
-                        # Look for inet addr: pattern (older ifconfig format)
-                        if 'inet addr:' in line:
-                            ip_part = line.split('inet addr:')[1].strip()
-                            ip_address = ip_part.split()[0]
-                            break
-                        # Look for inet pattern (newer ifconfig format)
-                        elif 'inet ' in line and '127.0.0.1' not in line:
-                            parts = line.strip().split()
-                            for i, part in enumerate(parts):
-                                if part == 'inet':
-                                    # IP address is likely the next part
-                                    if i + 1 < len(parts):
-                                        ip_address = parts[i + 1].split('/')[0]
-                                        break
-                            if ip_address:
-                                break
-                    
-                    container_ip = ip_address if ip_address else "IP not available"
-                    return_str += f' {container_img_name} is alive with ip {ip_address} \n'
-            except Exception as e:
-                container_ip = "IP not available"
-                return_str += f"Failed to get IP for {container_img_name}: {str(e)}\n"
-        
-           
-            containers_ips[container_img_name] = container_ip 
-            ips_containers[container_ip] = container_img_name
+                try:
+                    return_str += f'{container_name}:\n'
+                    exec_result = container.exec_run("ifconfig")
+                    if exec_result.exit_code == 0:
+                        cmd_output = exec_result.output.decode('utf-8')
+                        # Extract IP address from ifconfig output using Python string operations
+                        ip_address = None
+                        for line in cmd_output.split('\n'):
+                            # Look for inet addr: pattern (older ifconfig format)
+                            if 'inet addr:' in line:
+                                ip_part = line.split('inet addr:')[1].strip()
+                                ip_address = ip_part.split()[0]
+                            # Look for inet pattern (newer ifconfig format)
+                            elif 'inet ' in line and '127.0.0.1' not in line:
+                                parts = line.strip().split()
+                                for i, part in enumerate(parts):
+                                    if part == 'inet':
+                                        # IP address is likely the next part
+                                        if i + 1 < len(parts):
+                                            ip_address = parts[i + 1].split('/')[0]
+                            
+                            # verify if ip_adress is inside the internal subnet 
+                            if ip_address is not None:
+                                if  ipaddress.ip_address(ip_address) in ipaddress.ip_network(internal_subnet, strict=False):
+                                    containers_internal_ips[container_name] = ip_address 
+                                    internal_ips_containers[ip_address] = container_name
+                                    return_str += f' internal address: {ip_address} \n'
+                                else:
+                                    containers_external_ips[container_name] = ip_address
+                                    return_str += f' external address: {ip_address} \n'
+                            ip_address = None
+                        
+                except Exception as e:
+                    return_str += f"Failed to get IP for {container_name}: {str(e)}\n"
+            
+            
+            
 
         if cfg['base_params']['disable_proxy']:
             append_ips_to_no_proxy()
@@ -319,8 +331,8 @@ def main(cfg: DictConfig) -> None:
         response_str = ""
 
         for hostname, host_info in traffic_dict.items():
-            node_ip = host_info['src_ip']
-            response = requests.post(f"http://{node_ip}:8000/replay", json=host_info)
+            node_external_ip = containers_external_ips[hostname]
+            response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
             response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
                 response_str += f"message: {response.json()['message']}\n"
@@ -335,8 +347,8 @@ def main(cfg: DictConfig) -> None:
         response_str = ""
 
         for hostname, host_info in traffic_dict.items():
-            node_ip = host_info['src_ip']
-            response = requests.post(f"http://{node_ip}:8000/stop")
+            node_external_ip = containers_external_ips[hostname]
+            response = requests.post(f"http://{node_external_ip}:8000/stop")
             response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
                 response_str += f"message: {response.json()['message']}\n"
@@ -350,8 +362,8 @@ def main(cfg: DictConfig) -> None:
         response_str = ""
 
         for hostname, host_info in traffic_dict.items():
-            node_ip = host_info['src_ip']
-            response = requests.get(f"http://{node_ip}:8000/replay_status")
+            node_external_ip = containers_external_ips[hostname]
+            response = requests.get(f"http://{node_external_ip}:8000/replay_status")
             response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
                 response_str += f"message: {response.json()['message']}\n"
@@ -376,8 +388,8 @@ def main(cfg: DictConfig) -> None:
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg)
-        init_args['container_ips'] = containers_ips
-        init_args['ips_containers'] = ips_containers
+        init_args['container_ips'] = containers_internal_ips
+        init_args['ips_containers'] = internal_ips_containers
         del init_args['topology_creator']
         del init_args['base_params']
         del init_args['honeypots']
@@ -386,8 +398,8 @@ def main(cfg: DictConfig) -> None:
         rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards), {}).copy()
         del init_args['rewards']
         init_args['rewards'] = rewards
-        
-        response = requests.post(f"http://192.168.1.1:8000/initialize", json=init_args)
+        controller_external_ip = containers_external_ips['pox-controller']
+        response = requests.post(f"http://{controller_external_ip}:8000/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
         return response.json()
 
@@ -395,7 +407,7 @@ def main(cfg: DictConfig) -> None:
     @app.route('/attach_controller',  methods=['POST'])
     def  attach_controller():
         switch_container = containers_dict['openvswitch-1']
-        controller_ip = containers_ips['pox-controller']
+        controller_ip = containers_internal_ips['pox-controller']
         attaching_command = f"ovs-vsctl set-controller br0 tcp:{controller_ip}:6633"
         
         exec_result = switch_container.exec_run(
