@@ -120,7 +120,7 @@ honeypots:
 
 attackers:
   - attacker-1:
-      pattern: 'cc_heartbeart'
+      pattern: 'cc_heartbeat'
       destination: 'victim-0'
   - attacker-2:
       pattern: 'generic_ddos'
@@ -163,7 +163,7 @@ rewards:
     - okiru: -0.8
     - generic_ddos: -0.9
     - torii: -0.51
-    - cc_heartbeart: -0.61
+    - cc_heartbeat: -0.61
     - hue: 0.05
 
 
@@ -184,7 +184,7 @@ knowledge:
         - okiru
         - generic_ddos
         - torii
-        - cc_heartbeart
+        - cc_heartbeat
 
     Knowns:
         - hue
@@ -193,7 +193,7 @@ knowledge:
 
     G1s:
         - okiru
-        - cc_heartbeart
+        - cc_heartbeat
         - generic_ddos
         - echo
 

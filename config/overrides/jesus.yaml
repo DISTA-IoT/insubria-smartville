@@ -1,7 +1,7 @@
 
 intrusion_detection:
     use_packet_feats: false
-     
+
 honeypots:
   - victim-0:
       pattern: 'doorlock'
@@ -12,7 +12,7 @@ honeypots:
 
 attackers:
   - attacker-0:
-      pattern: 'cc_heartbeart'
+      pattern: 'cc_heartbeat'
       destination: 'victim-0'
   - attacker-1:
       pattern: 'generic_ddos'
