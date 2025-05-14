@@ -109,45 +109,45 @@ intrusion_detection:
 
 honeypots:
   - victim-0:
-      pattern: 'Doorlock'
+      pattern: 'doorlock'
       destination: 'victim-1'
   - victim-1:
-      pattern: 'Echo'
+      pattern: 'echo'
       destination: 'victim-2'
   - victim-2:
-      pattern: 'Hue'
+      pattern: 'hue'
       destination: 'victim-0'
 
 attackers:
   - attacker-1:
-      pattern: 'CC_HeartBeat'
+      pattern: 'cc_heartbeart'
       destination: 'victim-0'
   - attacker-2:
-      pattern: 'Gen_DDoS'
+      pattern: 'generic_ddos'
       destination: 'victim-1'
   - attacker-3:
-      pattern: 'H_Scan'
+      pattern: 'h_scan'
       destination: 'victim-2'
   - attacker-4:
-      pattern: 'Hakai'
+      pattern: 'hakai'
       destination: 'victim-0'
   - attacker-5:
-      pattern: 'Torii'
+      pattern: 'torii'
       destination: 'victim-1'
   - attacker-6:
-      pattern: 'Mirai'
+      pattern: 'mirai'
       destination: 'victim-2'
   - attacker-7:
-      pattern: 'Gafgyt'
+      pattern: 'gafgyt'
       destination: 'victim-0'
   - attacker-8:
-      pattern: 'Hajime'
+      pattern: 'hajime'
       destination: 'victim-1'
   - attacker-9:
-      pattern: 'Okiru'
+      pattern: 'okiru'
       destination: 'victim-2'
   - attacker-10:
-      pattern: 'Muhstik'
+      pattern: 'muhstik'
       destination: 'victim-0'
 
 
@@ -170,39 +170,39 @@ rewards:
 knowledge:
 
     bening_patterns: 
-        - Echo
-        - Doorlock
-        - Hue
+        - echo
+        - doorlock
+        - hue
 
     malicious_patterns:
-        - Hakai
-        - Mirai
-        - Hajime
-        - Gafgyt
-        - Muhstik
-        - H_Scan
-        - Okiru
-        - Gen_DDoS
-        - Torii
-        - CC_HeartBeat
+        - hakai
+        - mirai
+        - hajime
+        - gafgyt
+        - muhstik
+        - h_scan
+        - okiru
+        - generic_ddos
+        - torii
+        - cc_heartbeart
 
     Knowns:
-        - Hue
-        - Hakai
-        - Torii
+        - hue
+        - hakai
+        - torii
 
     G1s:
-        - Okiru
-        - CC_HeartBeat
-        - Gen_DDoS
-        - Echo
+        - okiru
+        - cc_heartbeart
+        - generic_ddos
+        - echo
 
     G2s:
-        - Mirai
-        - Gafgyt
-        - Hajime
-        - H_Scan
-        - Muhstik
-        - Doorlock
+        - mirai
+        - gafgyt
+        - hajime
+        - h_scan
+        - muhstik
+        - doorlock
 
 

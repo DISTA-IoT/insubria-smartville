@@ -1,16 +1,16 @@
 
 honeypots:
   - victim-0:
-      pattern: 'Doorlock'
+      pattern: 'doorlock'
       destination: 'victim-1'
   - victim-1:
-      pattern: 'Echo'
+      pattern: 'echo'
       destination: 'victim-2'
 
 attackers:
   - attacker-0:
-      pattern: 'CC_HeartBeat'
+      pattern: 'cc_heartbeart'
       destination: 'victim-0'
   - attacker-1:
-      pattern: 'Gen_DDoS'
+      pattern: 'generic_ddos'
       destination: 'victim-1'
