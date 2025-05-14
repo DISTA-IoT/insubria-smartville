@@ -1,4 +1,7 @@
 
+intrusion_detection:
+    use_packet_feats: false
+     
 honeypots:
   - victim-0:
       pattern: 'doorlock'
