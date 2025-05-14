@@ -195,7 +195,7 @@ def init_traffic_stuff(cfg):
 
     for attacker_name, attacker_info in attackers_dict.items():
         attacker_info['dest_ip'] = containers_ips[attacker_info['destination']]
-        honeypot_info['benign'] = False
+        attacker_info['benign'] = False
         if 'pattern' not in attacker_info:
             attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns)
             

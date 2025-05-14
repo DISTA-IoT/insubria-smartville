@@ -109,45 +109,45 @@ intrusion_detection:
 
 honeypots:
   - victim-0:
-      pattern: 'doorlock'
+      pattern: 'Doorlock'
       destination: 'victim-1'
   - victim-1:
-      pattern: 'echo'
+      pattern: 'Echo'
       destination: 'victim-2'
   - victim-2:
-      pattern: 'hue'
+      pattern: 'Hue'
       destination: 'victim-0'
 
 attackers:
   - attacker-1:
-      pattern: 'cc_heartbeart'
+      pattern: 'CC_HeartBeat'
       destination: 'victim-0'
   - attacker-2:
-      pattern: 'generic_ddos'
+      pattern: 'Gen_DDoS'
       destination: 'victim-1'
   - attacker-3:
-      pattern: 'h_scan'
+      pattern: 'H_Scan'
       destination: 'victim-2'
   - attacker-4:
-      pattern: 'hakai'
+      pattern: 'Hakai'
       destination: 'victim-0'
   - attacker-5:
-      pattern: 'torii'
+      pattern: 'Torii'
       destination: 'victim-1'
   - attacker-6:
-      pattern: 'mirai'
+      pattern: 'Mirai'
       destination: 'victim-2'
   - attacker-7:
-      pattern: 'gafgyt'
+      pattern: 'Gafgyt'
       destination: 'victim-0'
   - attacker-8:
-      pattern: 'hajime'
+      pattern: 'Hajime'
       destination: 'victim-1'
   - attacker-9:
-      pattern: 'okiru'
+      pattern: 'Okiru'
       destination: 'victim-2'
   - attacker-10:
-      pattern: 'muhstik'
+      pattern: 'Muhstik'
       destination: 'victim-0'
 
 
