@@ -169,12 +169,12 @@ rewards:
 
 knowledge:
 
-    bening: 
+    bening_patterns: 
         - Echo
         - Doorlock
         - Hue
 
-    malicious:
+    malicious_patterns:
         - Hakai
         - Mirai
         - Hajime

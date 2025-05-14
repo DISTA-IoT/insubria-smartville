@@ -30,6 +30,9 @@ import os
 
 containers_dict = {}
 containers_ips = {}
+ips_containers = {}
+traffic_dict = {}
+
 TERMINAL_ISSUER_PATH = None
 
 start_zookeeper_command = "zookeeper-server-start.sh pox/smartController/zookeeper.properties"
@@ -178,27 +181,28 @@ def launch_browser_consoles(cfg, controller_container):
 
 
 def init_traffic_stuff(cfg):
-    attacks = ['cc_heartbeat', 'generic_ddos', 'h_scan', 'hakai',  'torii', 'mirai', 'gafgyt', 'hajime', 'okiru', 'muhstik'] 
-    benign_patterns =['echo', 'doorlock', 'hue']
+    global traffic_dict
 
-    for honeypot_monodict in cfg.honeypots:
-        honeypot_name = list(honeypot_monodict.keys())[0]
-        honeypot_info = list(honeypot_monodict.values())[0]
-        honeypot_info = dict(honeypot_info)
+    honeypots_dict = OmegaConf.to_container(cfg.honeypots)
+    attackers_dict = OmegaConf.to_container(cfg.attackers)
+
+    for honeypot_name, honeypot_info in honeypots_dict.items():
         honeypot_info['dest_ip'] = containers_ips[honeypot_info['destination']]
+        honeypot_info['benign'] = True
         if 'pattern' not in honeypot_info:
-            honeypot_info['pattern'] = random.choice(benign_patterns)
-        honeypot_monodict[honeypot_name] = honeypot_info
+            honeypot_info['pattern'] = random.choice(cfg.knowledge.bening_patterns)
+            
 
-    for attacker_monodict in cfg.attackers:
-        attacker_name = list(attacker_monodict.keys())[0]
-        attacker_info = list(attacker_monodict.values())[0]
-        attacker_info = dict(attacker_info)
+    for attacker_name, attacker_info in attackers_dict.items():
         attacker_info['dest_ip'] = containers_ips[attacker_info['destination']]
+        honeypot_info['benign'] = False
         if 'pattern' not in attacker_info:
-            attacker_info['pattern'] = random.choice(attacks)
-        attacker_monodict[attacker_name] = attacker_info
+            attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns)
+            
 
+    # fuse the honeypots and attackers dict into a unique dict
+    traffic_dict = {**honeypots_dict, **attackers_dict}
+    
 
 def append_ips_to_no_proxy():
     no_proxy_ips = ','.join(containers_ips.values())
@@ -238,7 +242,10 @@ def main(cfg: DictConfig) -> None:
     TERMINAL_ISSUER_PATH = cfg['base_params']['terminal_issuer_path'] 
     
     
-
+    # transform cfg.attackers, which is  a list of dicts, into a dict of dicts. the key's of the outer dict should be the unique key of the inner dict
+    # the value of the outer dict should be the inner dict
+    cfg.attackers = {list(attacker.keys())[0]: attacker[list(attacker.keys())[0]] for attacker in cfg.attackers}
+    cfg.honeypots = {list(honeypot.keys())[0]: honeypot[list(honeypot.keys())[0]] for honeypot in cfg.honeypots}
 
     @app.route('/', methods=['GET'])
     def home():
@@ -251,7 +258,7 @@ def main(cfg: DictConfig) -> None:
     @app.route('/refresh_containers', methods=['POST'])
     def refresh_containers():
         global containers_dict
-        global containers_ips
+        global containers_ips, ips_containers
         # Connect to the Docker daemon
         client = docker.from_env()
         return_str = ""
@@ -298,7 +305,8 @@ def main(cfg: DictConfig) -> None:
         
            
             containers_ips[container_img_name] = container_ip 
-        
+            ips_containers[container_ip] = container_img_name
+
         if cfg['base_params']['disable_proxy']:
             append_ips_to_no_proxy()
         return {'msg': return_str}
@@ -380,27 +388,6 @@ def main(cfg: DictConfig) -> None:
                 response_str += f"message: {response.json()['message']}\n"
         
         return response_str
-    
-
-    @app.route('/labels', methods=['GET'])
-    def create_init_labels_dict():
-        init_labels_dict = {}
-
-        for honeypot_monodict in cfg.honeypots:
-            honeypot_name = list(honeypot_monodict.keys())[0]
-            honeypot_info = list(honeypot_monodict.values())[0]
-            honeypot_pattern = honeypot_info['pattern']
-            honeypot_ip = containers_ips[honeypot_name]
-            init_labels_dict[honeypot_ip] = honeypot_pattern + ' (Benign)'
-
-        for attacker_monodict in cfg.attackers:
-            attacker_name = list(attacker_monodict.keys())[0]
-            attacker_info = list(attacker_monodict.values())[0]
-            attacker_pattern = attacker_info['pattern']
-            attacker_ip = containers_ips[attacker_name]
-            init_labels_dict[attacker_ip] = attacker_pattern
-
-        return init_labels_dict
 
 
     @app.route('/flow_rewards', methods=['GET'])
@@ -420,12 +407,16 @@ def main(cfg: DictConfig) -> None:
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg)
         init_args['container_ips'] = containers_ips
+        init_args['ips_containers'] = ips_containers
         del init_args['topology_creator']
         del init_args['base_params']
+        del init_args['honeypots']
+        del init_args['attackers']
+        init_args['traffic_dict'] = traffic_dict
         rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards), {}).copy()
         del init_args['rewards']
         init_args['rewards'] = rewards
-
+        
         response = requests.post(f"http://192.168.1.1:8000/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
         return response.json()
@@ -444,18 +435,6 @@ def main(cfg: DictConfig) -> None:
             return {'status_code':200, 'msg':'Switch and controller attached!'}
         else:
             return {'status_code':500, 'msg':'Error attaching the switch to the controller!'}
-
-
-    @app.route('/start_training', methods=['POST'])
-    def start_training(controller_container):
-
-        training_args = get_cmd_line_args(cfg['intrusion_detection'])
-        training_command = f"{start_training_command} {training_args}"
-        print(f"Training command: {training_command}")
-        print(f"Now launching training")
-        command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:TRAINING:{training_command}"]
-        launch_detached_command(command)
-
 
 
     @app.route('/launch_controller_processes', methods=['POST'])
