@@ -188,6 +188,7 @@ def init_traffic_stuff(cfg):
 
     for honeypot_name, honeypot_info in honeypots_dict.items():
         honeypot_info['dest_ip'] = containers_ips[honeypot_info['destination']]
+        honeypot_info['src_ip'] = containers_ips[honeypot_name]
         honeypot_info['benign'] = True
         if 'pattern' not in honeypot_info:
             honeypot_info['pattern'] = random.choice(cfg.knowledge.bening_patterns)
@@ -196,6 +197,7 @@ def init_traffic_stuff(cfg):
     for attacker_name, attacker_info in attackers_dict.items():
         attacker_info['dest_ip'] = containers_ips[attacker_info['destination']]
         attacker_info['benign'] = False
+        attacker_info['src_ip'] = containers_ips[attacker_name]
         if 'pattern' not in attacker_info:
             attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns)
             
@@ -316,26 +318,13 @@ def main(cfg: DictConfig) -> None:
     def launch_traffic():
         response_str = ""
 
-        for attacker_monodict in cfg.attackers:
-            attacker_name = list(attacker_monodict.keys())[0]
-            traffic_info = list(attacker_monodict.values())[0]
-            attacker_ip = containers_ips[attacker_name]
-            traffic_info = dict(traffic_info) # Otherwise OmegaConfig won't support overwrites.
-            response = requests.post(f"http://{attacker_ip}:8000/replay", json=traffic_info)
-            response_str += f"Replay from {attacker_name} answered with status code: {response.status_code}\n"
+        for hostname, host_info in traffic_dict.items():
+            node_ip = host_info['src_ip']
+            response = requests.post(f"http://{node_ip}:8000/replay", json=host_info)
+            response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
                 response_str += f"message: {response.json()['message']}\n"
 
-
-        for honeypot_monodict in cfg.honeypots:
-            honeypot_name = list(honeypot_monodict.keys())[0]
-            traffic_info = list(honeypot_monodict.values())[0]
-            honeypot_ip = containers_ips[honeypot_name]
-            traffic_info = dict(traffic_info)
-            response = requests.post(f"http://{honeypot_ip}:8000/replay", json=traffic_info)
-            response_str += f"Replay from {honeypot_name} answered with status code: {response.status_code}\n"
-            if response.json() is not None:
-                response_str += f"message: {response.json()['message']}\n"
         
         return response_str
 
@@ -345,20 +334,10 @@ def main(cfg: DictConfig) -> None:
 
         response_str = ""
 
-        for attacker_monodict in cfg.attackers:
-            attacker_name = list(attacker_monodict.keys())[0]
-            attacker_ip = containers_ips[attacker_name]
-            response = requests.post(f"http://{attacker_ip}:8000/stop")
-            response_str += f"Replay from {attacker_name} answered with status code: {response.status_code}\n"
-            if response.json() is not None:
-                response_str += f"message: {response.json()['message']}\n"
-
-
-        for honeypot_monodict in cfg.honeypots:
-            honeypot_name = list(honeypot_monodict.keys())[0]
-            honeypot_ip = containers_ips[honeypot_name]
-            response = requests.post(f"http://{honeypot_ip}:8000/stop")
-            response_str += f"Replay from {honeypot_name} answered with status code: {response.status_code}\n"
+        for hostname, host_info in traffic_dict.items():
+            node_ip = host_info['src_ip']
+            response = requests.post(f"http://{node_ip}:8000/stop")
+            response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
                 response_str += f"message: {response.json()['message']}\n"
         
@@ -370,23 +349,14 @@ def main(cfg: DictConfig) -> None:
 
         response_str = ""
 
-        for attacker_monodict in cfg.attackers:
-            attacker_name = list(attacker_monodict.keys())[0]
-            attacker_ip = containers_ips[attacker_name]
-            response = requests.get(f"http://{attacker_ip}:8000/replay_status")
-            response_str += f"Replay from {attacker_name} answered with status code: {response.status_code}\n"
+        for hostname, host_info in traffic_dict.items():
+            node_ip = host_info['src_ip']
+            response = requests.get(f"http://{node_ip}:8000/replay_status")
+            response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
                 response_str += f"message: {response.json()['message']}\n"
 
 
-        for honeypot_monodict in cfg.honeypots:
-            honeypot_name = list(honeypot_monodict.keys())[0]
-            honeypot_ip = containers_ips[honeypot_name]
-            response = requests.get(f"http://{honeypot_ip}:8000/replay_status")
-            response_str += f"Replay from {honeypot_name} answered with status code: {response.status_code}\n"
-            if response.json() is not None:
-                response_str += f"message: {response.json()['message']}\n"
-        
         return response_str
 
 
