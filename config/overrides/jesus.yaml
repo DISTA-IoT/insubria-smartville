@@ -2,10 +2,10 @@
 honeypots:
   - victim-0:
       pattern: 'doorlock'
-      destination: 'victim-1'
+      destination: 'victim-0'
   - victim-1:
       pattern: 'echo'
-      destination: 'victim-2'
+      destination: 'victim-1'
 
 attackers:
   - attacker-0:
