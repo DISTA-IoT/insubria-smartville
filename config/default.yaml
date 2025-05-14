@@ -159,7 +159,7 @@ rewards:
     - doorlock: 0.01
     - gafgyt: -0.5
     - muhstik: -0.6
-    - h_Scan: -0.7
+    - h_scan: -0.7
     - okiru: -0.8
     - generic_ddos: -0.9
     - torii: -0.51
