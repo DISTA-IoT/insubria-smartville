@@ -513,8 +513,8 @@ def main(cfg: DictConfig) -> None:
     CONTROLLER_START_COMMAND = args.contr_start
     ENV_STR = args.env_vars
     
-    ATTACKER_NODE_COUNT = len(cfg.honeypots)
-    VICTIM_NODE_COUNT = len(cfg.attackers)
+    ATTACKER_NODE_COUNT = len(cfg.attackers)
+    VICTIM_NODE_COUNT = len(cfg.honeypots)
     
     if USE_GNS3_FILE:
         server = Server(*read_local_gns3_config(GNS3_CONFIG_PATH))
