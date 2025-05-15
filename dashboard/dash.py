@@ -210,7 +210,7 @@ def init_traffic_stuff(cfg):
     
 
 def append_ips_to_no_proxy():
-    no_proxy_ips = ','.join(containers_internal_ips.values())
+    no_proxy_ips = ','.join(containers_external_ips.values())
     os.environ['no_proxy'] = os.environ['no_proxy']+','+no_proxy_ips
     # get the current value of no_proxy
     current_no_proxy = subprocess.check_output("echo $no_proxy", shell=True).decode('utf-8').strip()
