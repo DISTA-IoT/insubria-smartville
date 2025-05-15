@@ -60,6 +60,7 @@ intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
   device: 'cpu'  # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
+  agent: DDQN
   ai_debug: true  # A boolean flag for a verbose version of ML related code
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   use_packet_feats: true  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
@@ -70,7 +71,7 @@ intrusion_detection:
   flow_buff_len: 10  # Indicates the flowstats time-window size to build feature vectors
   node_features: false  # Use node features to build the feature vectors
   metric_buffer_len: 10  # If 'node_features'=True, node features time-window size to build feature vectors
-  inference_freq_secs: 5  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
+  inference_freq_secs: 1  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
   grafana_user: 'admin'  # Username for the Grafana dashboard (Must coincide with grafana config files, default config files are at usr/share/grafana in the controller)
   grafana_password: 'admin'  # Password for the Grafana dashboard
   max_kafka_conn_retries: 5 #(int, optional): max. num. of connections attempts to the kafka broker. Default is 5.
@@ -80,23 +81,23 @@ intrusion_detection:
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
   flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. Default is 5.
   dropout: 0.6 # Dropout rate for the neural network. Default is 0.6
-  init_k_shot: 5 #  Initial value for k_shot in k_shot learning. Default is 5. 
-  batch_size: 20 # Batch size for the neural network. Default is 20
+  init_k_shot: 4 #  Initial value for k_shot in k_shot learning. Default is 5. 
+  batch_size: 16 # Batch size for the neural network. Default is 20
   kernel_regression: True
   report_step_freq: 50 # Frequency of reporting the training step. Default is 50
   use_neural_AD: True
   use_neural_KR: True
   online_evaluation: True
-  blocked_benign_cost_factor: 4
-  online_evaluation_rounds: 50
+  blocked_benign_cost_factor: 40
+  online_evaluation_rounds: 10
   pretrained_inference: True
   h_dim: 800
   min_budget: -10
-  max_budget: 20
+  max_budget: 25
   intelligence_episode_steps: 50
-  max_episode_steps: 70
+  max_episode_steps: 750
   tiger_init_budget: 1
-  cti_price_factor: 20
+  cti_price_factor: 4
   replay_batch_size: 32
   pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   replay_buffer_max_capacity: 1000
@@ -105,7 +106,7 @@ intrusion_detection:
   attractive_weight: 1
   kernel_regressor_heads: 2
   clustering_loss_backprop: True
-
+  greedy_decay: 0.999
 
 honeypots:
   - victim-0:
