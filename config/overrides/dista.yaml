@@ -1,3 +1,6 @@
+intrusion_detection:
+    use_packet_feats: false
+    
 topology_creator:
   use_gns3_config_file: false
   env_vars: |
