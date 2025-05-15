@@ -278,11 +278,11 @@ def main(cfg: DictConfig) -> None:
 
             container_info = client.api.inspect_container(container.id)
             img_name = container_info['Config']['Image']
-            if img_name != 'openvswitch:latest':
-                container_name = container_info['Config']['Hostname']
-                container_name = container_name.split('(')[0]            
-                containers_dict[container_name] = container
+            container_name = container_info['Config']['Hostname']
+            container_name = container_name.split('(')[0] 
+            containers_dict[container_name] = container
 
+            if img_name != 'openvswitch:latest':
                 try:
                     return_str += f'{container_name}:\n'
                     exec_result = container.exec_run("ifconfig")
