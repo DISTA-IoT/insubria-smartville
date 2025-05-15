@@ -204,7 +204,7 @@ def mountNAT(templates):
         connector=gns3_server_connector, 
         name=NAT_IMG_NAME, 
         template_id= NAT_template_id,
-        x=0,
+        x=-100,
         y=-350)
 
     # Add the node to the project
@@ -222,8 +222,8 @@ def mountCloud(templates):
         connector=gns3_server_connector, 
         name=CLOUD_IMG_NAME, 
         template_id= cloud_template_id,
-        x=0,
-        y=+350)
+        x=+100,
+        y=-350)
 
     # Add the node to the project
     cloud_node.create()
@@ -324,46 +324,49 @@ def connect_all(cfg, main_switch_node_name, edge_switch_node_name,controller_nod
     create_link(server, project,str(nat_id),0,str(edge_switch_id),1)
 
     controller_id = get_node_id_by_name(server, project, controller_node_name)
-    create_link(server, project,str(edge_switch_id),2,str(controller_id),1)
+    create_link(server, project,str(edge_switch_id),3,str(controller_id),1)
 
     for idx, host_name in enumerate(host_names):
         host_id = get_node_id_by_name(server, project, host_name)
-        create_link(server, project,str(edge_switch_id),3+idx,str(host_id),1)
+        create_link(server, project,str(edge_switch_id),4+idx,str(host_id),1)
 
     cloud_id = get_node_id_by_name(server, project, CLOUD_IMG_NAME)
-    main_switch_id = get_node_id_by_name(server, project, main_switch_node_name)
 
+    """
     if fixed_ips:
-        # interrupt execution, asking the user to place the correct bridge in the GNS3 GUI
-        print("---------------------------------------------------------------------------------------")
-        print("-------------------------IMPORTANT:----------------------------------------------------")
-        print("---------------------------------------------------------------------------------------")
-        print(f"Setting the gns3 bridge in you host, we might need root permissions!!!!")
-        setup_gns3_bridge(cfg)
+    
+    # interrupt execution, asking the user to place the correct bridge in the GNS3 GUI
+    print("---------------------------------------------------------------------------------------")
+    print("-------------------------IMPORTANT:----------------------------------------------------")
+    print("---------------------------------------------------------------------------------------")
+    print(f"Setting the gns3 bridge in you host, we might need root permissions!!!!")
+    setup_gns3_bridge(cfg)
 
-        print(f"Please locate the \"{CLOUD_IMG_NAME}\" node in your topology using the STANDALONE GNS3 GUI")
-        print("and make sure to put the \"gns3-bridge\" in the first (or only) place in the interface list.")
-        print("Then press ENTER to continue...")
-        print("If you are using the GNS3 Web GUI, you might not found the \"gns3-bridge\" in the list of available interfaces.")
-        input()
-        create_link(server, project, str(cloud_id),0,str(main_switch_id),1)
+    print(f"Please locate the \"{CLOUD_IMG_NAME}\" node in your topology using the STANDALONE GNS3 GUI")
+    print("and make sure to put the \"gns3-bridge\" in the first (or only) place in the interface list.")
+    print("Then press ENTER to continue...")
+    print("If you are using the GNS3 Web GUI, you might not found the \"gns3-bridge\" in the list of available interfaces.")
+    input()
+    create_link(server, project, str(cloud_id),0,str(main_switch_id),1)
 
     else:
-        cloud_node = gfy.Node(node_id=str(cloud_id), connector=gns3_server_connector, project_id=project.id)
-        cloud_node.get()
-        portnames = [port['name'] for port in cloud_node.ports]
-        # ask the user to select the correct port
-        print("Please select the correct port for the cloud node:")
-        for i, portname in enumerate(portnames):
-            print(f"{i}: {portname}")
-        port_index = int(input("Enter the index of the port: "))
-        # check if the index is valid
-        if port_index < 0 or port_index >= len(portnames):
-            print("Invalid index. Exiting.")
-            exit(1)
-        
-        create_link(server, project, str(cloud_id),0,str(main_switch_id),1, port_number_1=port_index)
-        print(f"Created a link from {CLOUD_IMG_NAME} port  to {main_switch_node_name} on port eth0")
+    """
+   
+    cloud_node = gfy.Node(node_id=str(cloud_id), connector=gns3_server_connector, project_id=project.id)
+    cloud_node.get()
+    portnames = [port['name'] for port in cloud_node.ports]
+    # ask the user to select the correct port
+    print("Please select the correct port for the cloud node:")
+    for i, portname in enumerate(portnames):
+        print(f"{i}: {portname}")
+    port_index = int(input("Enter the index of the port: "))
+    # check if the index is valid
+    if port_index < 0 or port_index >= len(portnames):
+        print("Invalid index. Exiting.")
+        exit(1)
+    
+    create_link(server, project, str(cloud_id),0,str(edge_switch_id),2, port_number_1=port_index)
+    print(f"Created a link from {CLOUD_IMG_NAME} port  to {main_switch_node_name} on port eth0")
 
 
 def start_all():
