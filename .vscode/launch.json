@@ -68,6 +68,17 @@
             "args": [
                 "override=jesus"
                 ]
+        },
+        {
+            "name": "DistaDash",
+            "type": "python",
+            "request": "launch",
+            "program": "dash.py",
+            "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
+            "justMyCode": true,
+            "args": [
+                "override=dista"
+                ]
         }
     ]
 }
