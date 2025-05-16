@@ -1,5 +1,10 @@
 intrusion_detection:
-    use_packet_feats: false
+    # batch_size: 8 # Batch size for the neural network. Default is 20
+    # init_k_shot: 3
+    # wb_tracking: true
+    # wb_run_name: 'MSA Tiger'
+    online_evaluation: false
+
     
 topology_creator:
   use_gns3_config_file: false

@@ -364,9 +364,8 @@ def main(cfg: DictConfig) -> None:
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
             response = requests.get(f"http://{node_external_ip}:8000/replay_status")
-            response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
-                response_str += f"message: {response.json()['message']}\n"
+                response_str += f"{hostname}: {response.json()['message']}\n"
 
 
         return response_str
@@ -438,6 +437,7 @@ def main(cfg: DictConfig) -> None:
 
     refresh_containers() 
     init_traffic_stuff(cfg)
+    attach_controller()
 
     # Run the Flask app
     app.run(host='0.0.0.0',port=cfg['base_params']['dashboard_port'])
