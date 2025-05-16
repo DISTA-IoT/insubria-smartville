@@ -196,7 +196,7 @@ knowledge:
         - okiru
         - cc_heartbeat
         - generic_ddos
-        - echo
+        
 
     G2s:
         - mirai
@@ -205,5 +205,6 @@ knowledge:
         - h_scan
         - muhstik
         - doorlock
+        - echo
 
 
