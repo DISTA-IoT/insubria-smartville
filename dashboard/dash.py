@@ -333,9 +333,8 @@ def main(cfg: DictConfig) -> None:
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
             response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
-            response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
-                response_str += f"message: {response.json()['message']}\n"
+                response_str += f"{hostname}:{response.status_code} - {response.json()['message']}\n"
 
         
         return response_str
@@ -349,9 +348,8 @@ def main(cfg: DictConfig) -> None:
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
             response = requests.post(f"http://{node_external_ip}:8000/stop")
-            response_str += f"Replay from {hostname} answered with status code: {response.status_code}\n"
             if response.json() is not None:
-                response_str += f"message: {response.json()['message']}\n"
+                response_str += f"{hostname}:({response.status_code}) {response.json()['message']}\n"
         
         return response_str
 
