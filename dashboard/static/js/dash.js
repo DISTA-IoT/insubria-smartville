@@ -11,13 +11,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const checkTrafficButton = document.getElementById("check-traffic");
 
     const initControllerButton = document.getElementById("init-controller");
-    const getFlowrewardsButton = document.getElementById("get-flow-rewards");
-
-
-    const startExperimentButton = document.getElementById("start-experiment");
-    const startMitigationButton = document.getElementById("start-mitigation");
-    const stopMitigationButton = document.getElementById("stop-mitigation");
+    const stopControllerButton = document.getElementById("stop-controller");
     
+    const initBasicControllerButton = document.getElementById("init-basic-controller");
+    const stopBasicController = document.getElementById("stop-basic-controller");
+
 
     refreshContainersButton.addEventListener("click", function() {
         fetch("/refresh_containers", {method: "POST"})
@@ -70,13 +68,24 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(data => alert(data.msg));
     });
 
-    getFlowrewardsButton.addEventListener("click", function() {
-        fetch("/flow_rewards", {method: "GET"})
-          .then(response => response.text())
-          .then(data => console.log(data));
+    stopControllerButton.addEventListener("click", function() {
+        fetch("/stop_controller", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
     });
   
-  
+    initBasicControllerButton.addEventListener("click", function() {
+        fetch("/initialize_basic_controller", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+    stopBasicController.addEventListener("click", function() {
+        fetch("/stop_basic_controller", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+    /*
     startAttackButtons.forEach(button => {
         button.addEventListener("click", function() {
             fetch("/start-attack", {
@@ -90,7 +99,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
             .then(data => console.log(data));
         });
     });
-  
+    
     stopAttackButtons.forEach(button => {
         button.addEventListener("click", function() {
             fetch("/stop-attack", {
@@ -106,24 +115,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
             .then(data => console.log(data));
         });
     });
-  
-    startExperimentButton.addEventListener("click", function() {
-      fetch("/start-experiment", {method: "POST"})
-        .then(response => response.text())
-        .then(data => console.log(data));
-    });
-  
-  
-    startMitigationButton.addEventListener("click", function() {
-        fetch("/start-mitigation", {method: "POST"})
-          .then(response => response.text())
-          .then(data => console.log(data));
-    });
-    
-    stopMitigationButton.addEventListener("click", function() {
-        fetch("/stop-mitigation", {method: "POST"})
-          .then(response => response.text())
-          .then(data => console.log(data));
-    });
+   */
+
     
   });

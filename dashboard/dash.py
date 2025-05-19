@@ -401,6 +401,14 @@ def main(cfg: DictConfig) -> None:
         return response.json()
 
 
+    @app.route('/stop_controller', methods=['POST'])
+    def stop_controller():
+        controller_external_ip = containers_external_ips['pox-controller']
+        response = requests.post(f"http://{controller_external_ip}:8000/stop")
+        response = response.json()
+        app.logger.info(f"Replay from controller answered with status code: {response['status_code']}")
+        return response
+
     @app.route('/attach_controller',  methods=['POST'])
     def  attach_controller():
         switch_container = containers_dict['openvswitch-1']

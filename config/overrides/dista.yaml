@@ -2,8 +2,9 @@ intrusion_detection:
     # batch_size: 8 # Batch size for the neural network. Default is 20
     # init_k_shot: 3
     # wb_tracking: true
-    # wb_run_name: 'MSA Tiger'
+    # wb_run_name: 'No packet feats'
     online_evaluation: false
+    use_packet_feats: false  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
 
     
 topology_creator:
