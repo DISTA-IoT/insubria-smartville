@@ -1,10 +1,11 @@
 intrusion_detection:
-   # batch_size: 10 # Batch size for the neural network. Default is 20
-   #  init_k_shot: 4
-    # wb_tracking: true
-    # wb_run_name: 'MSA-DQN'
-    online_evaluation: false
-    # agent: DQN
+  # batch_size: 10 # Batch size for the neural network. Default is 20
+  # init_k_shot: 4
+  wb_tracking: true
+  wb_run_name: 'DAI_H20'
+  agent: DAI
+  h_dim: 20
+  use_packet_feats: false  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
 
     
 topology_creator:
