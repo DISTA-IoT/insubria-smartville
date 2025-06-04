@@ -160,11 +160,11 @@ attackers:
 
 
 rewards:
-    - echo: 0.02
+    - echo: 0.2
     - hakai: -0.20
     - mirai: -0.40
     - hajime: -0.26
-    - doorlock: 0.01
+    - doorlock: 0.4
     - gafgyt: -0.5
     - muhstik: -0.6
     - h_scan: -0.7
@@ -172,7 +172,7 @@ rewards:
     - generic_ddos: -0.9
     - torii: -0.51
     - cc_heartbeat: -0.61
-    - hue: 0.05
+    - hue: 0.5
 
 
 knowledge:
