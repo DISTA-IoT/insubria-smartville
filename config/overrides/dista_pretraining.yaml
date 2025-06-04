@@ -1,6 +1,4 @@
 intrusion_detection:
-  batch_size: 10 # Batch size for the neural network. Default is 20
-  init_k_shot: 4
   wb_tracking: true
   wb_run_name: 'PT_H20_R2'
   h_dim: 20
@@ -8,7 +6,6 @@ intrusion_detection:
   epistemic_agency: false
   online_evaluation: true
   save_models: true
-  use_packet_feats: false  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
 
     
 topology_creator:
