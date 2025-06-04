@@ -3,7 +3,6 @@ intrusion_detection:
   init_k_shot: 4
   wb_tracking: true
   wb_run_name: 'PT_H20_R2'
-  agent: DAI
   h_dim: 20
   pretrained_inference: false
   epistemic_agency: false
