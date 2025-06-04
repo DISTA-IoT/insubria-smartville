@@ -91,6 +91,7 @@ intrusion_detection:
   online_evaluation_rounds: 10
   pretrained_inference: True
   h_dim: 800
+  recurrent_layers: 2
   max_budget: 25
   max_episode_steps: 750
   min_budget: -10
