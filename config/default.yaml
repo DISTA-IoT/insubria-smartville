@@ -78,7 +78,7 @@ intrusion_detection:
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
   wb_project_name:  'TIGER' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
-  flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. Default is 5.
+  flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. 
   dropout: 0.1 # Dropout rate for the neural network. Default is 0.6
   init_k_shot: 4 #  Initial value for k_shot in k_shot learning. Default is 5. 
   batch_size: 16 # Batch size for the neural network. Default is 20
