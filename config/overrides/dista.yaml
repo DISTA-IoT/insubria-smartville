@@ -5,7 +5,8 @@ intrusion_detection:
   wb_run_name: 'DAI_H20'
   agent: DAI
   h_dim: 20
-    
+  max_episode_steps: 3000
+
 topology_creator:
   use_gns3_config_file: false
   env_vars: |
