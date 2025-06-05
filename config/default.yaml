@@ -60,7 +60,7 @@ intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
   device: 'cpu'  # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
-  agent: DAI  # can be DQN, DDQN or DAI
+  agent: DDQN  # can be DQN, DDQN or DAI
   ai_debug: true  # A boolean flag for a verbose version of ML related code
   use_packet_feats: true  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
   packet_buffer_len: 1  # If 'use_packet_feats'=True, indicates how many packets are retained from each flow to build feature vectors
@@ -91,7 +91,7 @@ intrusion_detection:
   online_evaluation_rounds: 10
   pretrained_inference: True
   h_dim: 800
-  recurrent_layers: 2
+  recurrent_layers: 1
   max_budget: 25
   max_episode_steps: 750
   min_budget: -10
