@@ -1,6 +1,11 @@
 intrusion_detection:
   wb_tracking: true
-  wb_run_name: 'DDQN'
+  wb_run_name: 'DAI_noTmodel'
+  agent: DAI
+  h_dim: 200
+  inference_freq_secs: 0.1
+  flowstats_freq_secs: 0.5
+
 
 topology_creator:
   use_gns3_config_file: false
@@ -14,4 +19,4 @@ topology_creator:
 base_params: 
   # container_manager_replay_from_file : false
   disable_proxy: true
-
+  replay_speed: 10 # Replay speed factor
