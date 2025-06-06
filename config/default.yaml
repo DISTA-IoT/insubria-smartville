@@ -53,7 +53,7 @@ base_params:
   terminal_issuer_path: './terminal_issuer.sh'     
   disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
   dashboard_port: 7777 # Port of the Flask dashboard in the host machine
-
+  replay_speed: 1 # Replay speed factor
 
 
 intrusion_detection:
@@ -116,7 +116,6 @@ intrusion_detection:
   save_models: false # overwritte models on disk.
   use_encoder: false
   kr_type: 'dist' # can be 'dist' or 'dotprod'
-
 
 
 honeypots:
