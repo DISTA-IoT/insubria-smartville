@@ -114,6 +114,10 @@ intrusion_detection:
   agent_discount_rate: 0.99
   epistemic_agency: true # activates the management agent, false to only pretrain the inference modules.
   save_models: false # overwritte models on disk.
+  use_encoder: false
+  kr_type: 'dist' # can be 'dist' or 'dotprod'
+
+
 
 honeypots:
   - victim-0:
