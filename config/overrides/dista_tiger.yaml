@@ -15,3 +15,18 @@ topology_creator:
 base_params: 
   # container_manager_replay_from_file : false
   disable_proxy: true
+
+rewards:
+    - echo: 0.02
+    - hakai: -0.20
+    - mirai: -0.40
+    - hajime: -0.26
+    - doorlock: 0.01
+    - gafgyt: -0.5
+    - muhstik: -0.6
+    - h_scan: -0.7
+    - okiru: -0.8
+    - generic_ddos: -0.9
+    - torii: -0.51
+    - cc_heartbeat: -0.61
+    - hue: 0.05
