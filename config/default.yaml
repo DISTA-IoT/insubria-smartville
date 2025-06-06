@@ -116,7 +116,7 @@ intrusion_detection:
   save_models: false # overwritte models on disk.
   use_encoder: false
   kr_type: 'dist' # can be 'dist' or 'dotprod'
-
+  bad_classif_penalisation: easy # can be easy or hard
 
 honeypots:
   - victim-0:
