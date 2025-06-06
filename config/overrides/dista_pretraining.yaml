@@ -1,14 +1,14 @@
 intrusion_detection:
   wb_tracking: true
-  wb_run_name: 'PT_H200_noenc_distkr_R1_fast'
+  wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
   h_dim: 200
   pretrained_inference: false
   epistemic_agency: false
   online_evaluation: true
   save_models: true
   report_step_freq: 10
-  inference_freq_secs: 0.1
-  flowstats_freq_secs: 0.5
+  inference_freq_secs: 0.05
+  flowstats_freq_secs: 0.25
 
   
 topology_creator:
@@ -23,4 +23,4 @@ topology_creator:
 base_params: 
   # container_manager_replay_from_file : false
   disable_proxy: true
-  replay_speed: 10 # Replay speed factor
+  replay_speed: 20 # Replay speed factor
