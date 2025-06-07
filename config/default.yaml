@@ -118,6 +118,17 @@ intrusion_detection:
   kr_type: 'dist' # can be 'dist' or 'dotprod'
   bad_classif_penalisation: easy # can be easy or hard
 
+
+  #
+  # for the DAI Agent:
+  #
+  use_transition_model: false
+  # for the transition model of the DAI agent:
+  leakyrelu_alpha: 0.2
+   
+
+
+
 honeypots:
   - victim-0:
       pattern: 'doorlock'
