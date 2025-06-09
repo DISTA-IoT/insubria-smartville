@@ -1,11 +1,11 @@
 intrusion_detection:
   wb_tracking: true
-  wb_run_name: 'DAI_noTmodel'
+  wb_run_name: 'DAI_h200'
   agent: DAI
   h_dim: 200
-  inference_freq_secs: 0.1
-  flowstats_freq_secs: 0.5
-
+  inference_freq_secs: 0.05
+  flowstats_freq_secs: 0.25
+  use_transition_model: true
 
 topology_creator:
   use_gns3_config_file: false
@@ -19,4 +19,4 @@ topology_creator:
 base_params: 
   # container_manager_replay_from_file : false
   disable_proxy: true
-  replay_speed: 10 # Replay speed factor
+  replay_speed: 20 # Replay speed factor
