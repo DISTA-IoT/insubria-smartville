@@ -35,7 +35,7 @@
             "request": "launch",
             "program": "utils/star_topology.py",
             "args": [
-                "override=dista"
+                "override=dista_dai"
             ],
             "justMyCode": true
         },
