@@ -118,7 +118,7 @@ intrusion_detection:
   use_encoder: false
   kr_type: 'dist' # can be 'dist' or 'dotprod'
   bad_classif_penalisation: easy # can be easy or hard
-  no_confidence_penalty: 3 # this is a penalty (abs value) given each time the management module discards the closed-set inferences of the decision module.
+  no_confidence_penalty: 0 # this is a penalty (abs value) given each time the management module discards the closed-set inferences of the decision module.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   useless_epistemic_penalty: 0 # Cost of taking a useless epistemic action
   epistemic_is_blocking: true
