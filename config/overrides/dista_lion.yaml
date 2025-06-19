@@ -1,19 +1,9 @@
 intrusion_detection:
   wb_tracking: true
-  wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
+  wb_project_name:  'ACID'
   wb_run_name: 'DDQN'
-  agent: DDQN
-  h_dim: 200
   inference_freq_secs: 0.5
-  flowstats_freq_secs: 1
-  bad_classif_penalisation: hard
-  use_transition_model: false
-  max_budget: 300
-  min_budget: -60
-  # cti_price_factor: 8
-  useless_epistemic_penalty: 7
-  epistemic_is_blocking: false
-  hard_bad_classif_cost_factor: 8
+  flowstats_freq_secs: 0.5
 
 topology_creator:
   use_gns3_config_file: false
@@ -28,3 +18,4 @@ base_params:
   # container_manager_replay_from_file : false
   disable_proxy: true
   replay_speed: 20 # Replay speed factor
+
