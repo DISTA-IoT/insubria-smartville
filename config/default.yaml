@@ -88,6 +88,7 @@ intrusion_detection:
   use_neural_KR: True
   online_evaluation: false
   bad_classif_cost_factor: 40
+  hard_bad_classif_cost_factor: 3
   online_evaluation_rounds: 10
   pretrained_inference: True
   h_dim: 800
