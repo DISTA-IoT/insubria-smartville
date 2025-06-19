@@ -83,7 +83,7 @@ intrusion_detection:
   init_k_shot: 4 #  Initial value for k_shot in k_shot learning. Default is 5. 
   batch_size: 16 # Batch size for the neural network. Default is 20
   kernel_regression: True
-  report_step_freq: 50 # Frequency of reporting the training step. Default is 50
+  report_step_freq: 50 # Frequency of reporting the training step (and uptading target models). Default is 50
   use_neural_AD: True
   use_neural_KR: True
   online_evaluation: false
@@ -129,7 +129,7 @@ intrusion_detection:
   variational_tmodel: false
   # for the transition model of the DAI agent:
   leakyrelu_alpha: 0.2
-  actor_train_interval_steps: 100 # how many episodes to wait to train the policy net
+  actor_train_interval_steps: 100 # how many STEPS to wait to train the policy net
 
    
 
