@@ -128,6 +128,7 @@ intrusion_detection:
   use_transition_model: false
   variational_tmodel: false
   epistemic_regularisation_factor: 0.05
+  transitionnet_kl_divergence_regularisation_factor: 1.0
   # for the transition model of the DAI agent:
   leakyrelu_alpha: 0.2
   actor_train_interval_steps: 100 # how many STEPS to wait to train the policy net
