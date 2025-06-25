@@ -127,7 +127,7 @@ intrusion_detection:
   #
   use_transition_model: false
   variational_tmodel: false
-  epistemic_regularisation_factor: 0.05
+  epistemic_regularisation_factor: 0.1
   transitionnet_kl_divergence_regularisation_factor: 1.0
   variational_variational_transition_loss: false
   # for the transition model of the DAI agent:
