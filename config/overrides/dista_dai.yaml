@@ -10,7 +10,6 @@ intrusion_detection:
   use_transition_model: true
   max_budget: 300
   min_budget: -60
-  # cti_price_factor: 8
   useless_epistemic_penalty: 7
   epistemic_is_blocking: false
   hard_bad_classif_cost_factor: 8
