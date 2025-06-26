@@ -13,9 +13,9 @@ intrusion_detection:
   useless_epistemic_penalty: 7
   epistemic_is_blocking: false
   hard_bad_classif_cost_factor: 8
-  variational_tmodel: false
-  epistemic_regularisation_factor: 0.1
-
+  # epistemic_regularisation_factor: 0.05
+  # entropy_reg_coefficient: 0
+  
 topology_creator:
   use_gns3_config_file: false
   env_vars: |
