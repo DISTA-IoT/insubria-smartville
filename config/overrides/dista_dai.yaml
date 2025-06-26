@@ -1,7 +1,7 @@
 intrusion_detection:
   wb_tracking: true
   wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
-  wb_run_name: 'DAIDT_0.1'
+  wb_run_name: 'DAIDT'
   agent: DAI
   h_dim: 200
   inference_freq_secs: 0.5
