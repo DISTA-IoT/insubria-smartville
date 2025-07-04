@@ -1,7 +1,7 @@
 intrusion_detection:
   wb_tracking: true
   wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
-  wb_run_name: 'DAIDT'
+  wb_run_name: 'DAIDT_prec1'
   agent: DAI
   h_dim: 200
   inference_freq_secs: 0.5
@@ -15,7 +15,8 @@ intrusion_detection:
   hard_bad_classif_cost_factor: 8
   # epistemic_regularisation_factor: 0.05
   # entropy_reg_coefficient: 0
-  
+  temperature_for_action_sampling: 1.0
+
 topology_creator:
   use_gns3_config_file: false
   env_vars: |
