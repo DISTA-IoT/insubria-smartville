@@ -135,8 +135,8 @@ intrusion_detection:
   actor_train_interval_steps: 100 # how many STEPS to wait to train the policy net
   entropy_reg_coefficient: 1
   temperature_for_action_sampling: 1.0
-   
-
+  surrogate_policy_consistency: false
+  use_critic_to_act: true
 
 
 honeypots:

@@ -15,6 +15,8 @@ intrusion_detection:
   hard_bad_classif_cost_factor: 8
   # epistemic_regularisation_factor: 0.05
   # entropy_reg_coefficient: 0
+  # surrogate_policy_consistency: true
+  # use_critic_to_act: false
 
 topology_creator:
   use_gns3_config_file: false
