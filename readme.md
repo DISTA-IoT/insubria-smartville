@@ -29,6 +29,14 @@
         note = {Accessed: YYYY-MM-DD} 
         }
 
+    @misc{cevallos2025acid,
+        title = {ACID: beta-testing ACtive Inference for active cyber-Defence.},
+        author = {Cevallos, Jesus and Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
+        year = {2025}, 
+        url = {https://github.com/DISTA-IoT/smartville},
+        note = {Accessed: YYYY-MM-DD} 
+        }
+
 ## Overview:
 
 
@@ -144,12 +152,17 @@ Modify the line 21 in file *controller.dockerfile* and insert your wandb API key
 ## Usage
 
 ### Build topology
-To start the *star topology* execute star_topology.py:
+To start the *star topology* execute star_topology.py: (GNS3 MUST BE OPENED!)
 
 
     python3 utils/star_topology.py
 
-You will get in the GNS3 GUI a new project with this scenario.
+You will get in the GNS3 GUI a new project with this scenario. 
+Note: WE USE OUR OWN MECHANISM FOR CONFIG OVERRIDING BASED ON THE HYDRA LIBRARY -> use an override configuration for different topologies, e.g, for the latest config:
+
+
+    python3 utils/star_topology.py override=acid
+
 
 
 ![alt text](./readme_imgs/topology.png)
@@ -159,11 +172,28 @@ Each node can communicate with eachother and everyone has Internet connection av
 
 ### Container Manager
 
-Execute the container_manager script and it will guide you through the rest!
+Execute the dash script and it will guide you through the rest! (use overrides if you want the last version!)
 
-    python3 utils/container_manager.py
+    python3 dashboard/dash.py override=acid
+
+You can now control everthing from your dashboard, usually runnin at http://localhost:7777, but it depends on your configs!
+
+### Smart Controller
+
+For ease-of-experimenting, out current release of the smart controller node does not run automatically at the container's boot, so youll need to issue from your host:
+
+    # to open a terminal
+    docker exec -it <controller_container_name_or_id> /bin/bash
+
+    # to run the server that accepts commands:
+    ../../pox.py smartController.tiger_server.py
+
+    # Wait for the server to be ready before sending the initialisation command from the dashboard!!
+    
 
 Stay tuned for a full walk-through tutorial!
+
+
 
 ### Modify nodes
 Each node can be modified or replaced by manipulating the *node.dockerfile* and *star_topology.py* to fit the desired requirements.
