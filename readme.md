@@ -180,16 +180,31 @@ You can now control everthing from your dashboard, usually runnin at http://loca
 
 ### Smart Controller
 
-For ease-of-experimenting, out current release of the smart controller node does not run automatically at the container's boot, so youll need to issue from your host:
+For ease-of-experimenting, our current release of the smart controller node does not run automatically at the container's boot, so youll need to issue from your host:
 
     # to open a terminal
     docker exec -it <controller_container_name_or_id> /bin/bash
 
-    # to run the server that accepts commands:
+    # in the container shell, run this to run the server that accepts commands:
     ../../pox.py smartController.tiger_server.py
 
+    # notice you could use Vscode debug functionalities, the configs for this are actually versioned...
+
     # Wait for the server to be ready before sending the initialisation command from the dashboard!!
-    
+    # you should see something like:
+
+            POX 0.7.0 (gar) / Copyright 2011-2020 James McCauley, et al.
+            [version                ] Support for Python 3 is experimental.
+            [core                   ] POX 0.7.0 (gar) is up.
+            [openflow.of_01         ] [8a-20-7b-fd-e3-4e 1] connected
+            [TigerServer            ] Connection is UP
+            [TigerServer            ] TigerServer API is starting...
+            INFO:     Started server process [1168169]
+            INFO:     Waiting for application startup.
+            INFO:     Application startup complete.
+            INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+
+    # Then you can issue the initialisation command from the dashboard, and the start stop traffic commands... (do it AFTER initialisation!)
 
 Stay tuned for a full walk-through tutorial!
 
