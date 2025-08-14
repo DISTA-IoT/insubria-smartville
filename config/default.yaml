@@ -122,6 +122,7 @@ intrusion_detection:
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   useless_epistemic_penalty: 0 # Cost of taking a useless epistemic action
   epistemic_is_blocking: true
+  boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   #
   # for the DAI Agent:
   #

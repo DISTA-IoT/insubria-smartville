@@ -1,6 +1,7 @@
 intrusion_detection:
   wb_tracking: true
   wb_run_name: 'DDQN'
+  boltzmann_sampling: false
 
 topology_creator:
   use_gns3_config_file: false
