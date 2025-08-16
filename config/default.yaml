@@ -138,6 +138,7 @@ intrusion_detection:
   temperature_for_action_sampling: 1.0
   surrogate_policy_consistency: false
   use_critic_to_act: true
+  greedy_update: false
 
 
 honeypots:
