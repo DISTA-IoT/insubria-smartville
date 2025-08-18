@@ -18,6 +18,7 @@ intrusion_detection:
   # entropy_reg_coefficient: 0
   # surrogate_policy_consistency: true
   # use_critic_to_act: false
+  # variational_tmodel: true
 
 topology_creator:
   use_gns3_config_file: false
