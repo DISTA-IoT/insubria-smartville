@@ -12,7 +12,7 @@ gns3_thesis/*
 gns3-thesis
 venv
 smartville_venv
-
+wandb/*
 
 AttackerNode/bening_traffic/*
 AttackerNode/muhstik_old/*
