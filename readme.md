@@ -75,19 +75,6 @@ Start the server either via GUI or by running
 the server will run on *localhost:3080* as default
 ### Dependencies
 
-Sure! Here’s a Markdown formatted text that you can include in your `README.md` file for creating a virtual environment (venv) and installing requirements for your project:
-
----
-
-# Project Title
-
-Brief description of what your project does and its purpose.
-
-## Getting Started
-
-Follow these instructions to set up your development environment and get the project running on your local machine.
-
-### Prerequisites
 
 Make sure you have Python installed. You can download it from [python.org](https://www.python.org/downloads/).
 
@@ -111,13 +98,6 @@ Make sure you have Python installed. You can download it from [python.org](https
 
 3. **Activate the Virtual Environment**:
    
-   - **On Windows**:
-     
-     ```sh
-     smartville_venv\Scripts\activate
-     ```
-
-   - **On macOS and Linux**:
      
      ```sh
      source smartville_venv/bin/activate
