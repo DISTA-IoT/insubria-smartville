@@ -1,4 +1,4 @@
-# Smartville | TIGER | ACID
+# Smartville | ASAP | TIGER | ACID
 ![alt text](./readme_imgs/smartville.png)
 
 **This is the official (1) the SmartVille repository, it also contains the official implementation of (2) the TIGER environment, the (3) ASAP framework and the (4) ACID agents that test Deep Active Inference for Active Defence! If you find our repository useful, please cite us!**
