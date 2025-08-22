@@ -1,6 +1,8 @@
 override: ""
 # SmartVille Configuration
 
+smart_switch_log_level: info
+
 topology_creator:
   # Topology creation configuration
   project: SmartVille
@@ -54,6 +56,7 @@ base_params:
   disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
   dashboard_port: 7777 # Port of the Flask dashboard in the host machine
   replay_speed: 1 # Replay speed factor
+  
 
 
 intrusion_detection:

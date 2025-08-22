@@ -1,0 +1,30 @@
+
+smart_switch_log_level: debug
+
+
+intrusion_detection:
+  wb_tracking: false
+  wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
+  h_dim: 200
+  pretrained_inference: false
+  epistemic_agency: false
+  online_evaluation: true
+  save_models: false
+  report_step_freq: 10
+  inference_freq_secs: 1
+  flowstats_freq_secs: 60
+
+  
+topology_creator:
+  use_gns3_config_file: false
+  env_vars: |
+    https_proxy=http://proxy.uninsubria.it:3128
+    HTTPS_PROXY=http://proxy.uninsubria.it:3128
+    HTTP_PROXY=http://proxy.uninsubria.it:3128
+    http_proxy=http://proxy.uninsubria.it:3128
+    no_proxy=localhost,127.0.0.1,192.168.122.1
+    
+base_params: 
+  # container_manager_replay_from_file : false
+  disable_proxy: true
+  replay_speed: 1 # Replay speed factor
