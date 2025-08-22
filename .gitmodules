@@ -1,12 +1,16 @@
 [submodule "BotMasterNode"]
 	path = BotMasterNode
 	url = https://github.com/DISTA-IoT/smartville-botmaster
+	branch = new_smartville
 [submodule "poxController"]
 	path = poxController
 	url = https://github.com/DISTA-IoT/smartville-controller
+	branch = new_smartville
 [submodule "AttackerNode"]
 	path = AttackerNode
 	url = https://github.com/DISTA-IoT/smartville_attacker
+	branch = new_smartville
 [submodule "VictimNode"]
 	path = VictimNode
 	url = https://github.com/DISTA-IoT/smartville_victim
+	branch = new_smartville
