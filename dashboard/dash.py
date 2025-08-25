@@ -493,19 +493,12 @@ def main(cfg: DictConfig) -> None:
             app.logger.info(f"Grafana stop answered with status code: {response.status_code}")
             return response
 
-        while not zookeeper_ok:
-            zookeeper_response = stop_zookeeper()
-            zookeeper_ok = zookeeper_response.status_code in [200, 202]
+        while not grafana_ok:
+            grafana_response = stop_grafana()
+            grafana_ok = grafana_response.status_code in [200, 202]
             time.sleep(1)
 
-        response_message += json.loads(zookeeper_response.content)['msg'] + "\n"
-
-        while not kafka_ok:
-            kafka_response = stop_kafka()
-            kafka_ok = kafka_response.status_code in [200, 202]
-            time.sleep(1)
-
-        response_message += json.loads(kafka_response.content)['msg'] + "\n"
+        response_message += json.loads(grafana_response.content)['msg']
 
         while not prometheus_ok:
             prometheus_response = stop_prometheus()
@@ -514,12 +507,20 @@ def main(cfg: DictConfig) -> None:
 
         response_message += json.loads(prometheus_response.content)['msg'] + "\n"
 
-        while not grafana_ok:
-            grafana_response = stop_grafana()
-            grafana_ok = grafana_response.status_code in [200, 202]
+        while not kafka_ok:
+            kafka_response = stop_kafka()
+            kafka_ok = kafka_response.status_code in [200, 202]
             time.sleep(1)
 
-        response_message += json.loads(grafana_response.content)['msg']
+        response_message += json.loads(kafka_response.content)['msg'] + "\n"
+
+        while not zookeeper_ok:
+            zookeeper_response = stop_zookeeper()
+            zookeeper_ok = zookeeper_response.status_code in [200, 202]
+            time.sleep(1)
+
+        response_message += json.loads(zookeeper_response.content)['msg'] + "\n"
+        
 
         return {"msg": response_message, "status_code": 200}
     
