@@ -244,3 +244,64 @@ knowledge:
         - echo
 
 
+prometheus:
+    global:
+        scrape_interval:     5s 
+        evaluation_interval: 5s 
+        external_labels:
+            monitor: 'example'
+
+    alerting:
+        alertmanagers:
+        - static_configs:
+            - targets: ['localhost:9093']
+
+    rule_files:
+
+    scrape_configs:
+        - job_name: 'prometheus'
+          scrape_interval: 5s
+          scrape_timeout: 5s
+          static_configs:
+            - targets: ['localhost:9090']
+
+        - job_name: 'system_metrics'
+          static_configs:
+            - targets: ['localhost:8000']
+
+zookeeper:
+    dataDir: /tmp/zookeeper
+    # the port at which the clients will connect
+    clientPort: 2181
+    # disable the per-ip limit on the number of connections since this is a non-production config
+    maxClientCnxns: 0
+    # Disable the adminserver by default to avoid port conflicts.
+    # Set the port to something non-conflicting if choosing to enable this
+    admin:
+        enableServer: false
+        # serverPort: 2181
+
+
+kafka:
+    broker.id: 0
+    listeners: PLAINTEXT://192.168.1.1:9092
+    #advertised.listeners: PLAINTEXT://your.host.name:9092
+    #listener.security.protocol.map: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+    num.network.threads: 3
+    num.io.threads: 8
+    socket.send.buffer.bytes: 102400
+    socket.receive.buffer.bytes: 102400
+    socket.request.max.bytes: 104857600
+    log.dirs: /tmp/kafka-logs
+    num.partitions: 1
+    num.recovery.threads.per.data.dir: 1
+    offsets.topic.replication.factor: 1
+    transaction.state.log.replication.factor: 1
+    transaction.state.log.min.isr: 1
+    #log.flush.interval.messages: 10000
+    #log.flush.interval.ms: 1000
+    log.retention.hours: 168
+    log.retention.check.interval.ms: 300000
+    zookeeper.connect: localhost:2181  # change accordingly to zookeeper's port!
+    zookeeper.connection.timeout.ms: 18000
+    group.initial.rebalance.delay.ms: 0

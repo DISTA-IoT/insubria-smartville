@@ -384,6 +384,119 @@ def main(cfg: DictConfig) -> None:
         return merged_rewards
 
 
+    @app.route('/start_services', methods=['POST'])
+    def start_services():
+
+        zookeeper_ok = False
+        kafka_ok = False
+        prometheus_ok = False
+        grafana_ok = False
+
+        response_message = ""
+        
+
+        def start_zookeeper():
+            zookeeper_args = OmegaConf.to_container(cfg.zookeeper)
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/start_zookeeper", json=zookeeper_args)
+            app.logger.info(f"Zookeeper start answered with status code: {response.status_code}")
+            return response
+        
+
+        def start_kafka():
+            kafka_args = OmegaConf.to_container(cfg.kafka)
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/start_kafka", json=kafka_args)
+            app.logger.info(f"Kafka start answered with status code: {response.status_code}")
+            return response
+        
+
+        def start_prometheus():
+            prometheus_args = OmegaConf.to_container(cfg.prometheus)
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/start_prometheus", json=prometheus_args)
+            app.logger.info(f"Prometheus start answered with status code: {response.status_code}")
+            return response
+        
+        
+        while not zookeeper_ok:
+            zookeeper_response = start_zookeeper()
+            zookeeper_ok = zookeeper_response.status_code == 200
+            time.sleep(1)
+
+        response_message += json.loads(zookeeper_response.content)['msg'] + "\n"
+
+        while not kafka_ok:
+            kafka_response = start_kafka()
+            kafka_ok = kafka_response.status_code == 200
+            time.sleep(1)
+
+        response_message += json.loads(kafka_response.content)['msg'] + "\n"
+
+        while not prometheus_ok:
+            prometheus_response = start_prometheus()
+            prometheus_ok = prometheus_response.status_code == 200
+            time.sleep(1)
+
+        response_message += json.loads(prometheus_response.content)['msg'] + "\n"
+
+        return {"msg": response_message, "status_code": 200}
+    
+
+    @app.route('/stop_services', methods=['POST'])
+    def stop_services():
+        
+        zookeeper_ok = False
+        kafka_ok = False
+        prometheus_ok = False
+        grafana_ok = False
+
+        response_message = ""
+    
+        def stop_zookeeper():
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/stop_zookeeper")
+            app.logger.info(f"Zookeeper stop answered with status code: {response.status_code}")
+            return response
+        
+
+        def stop_kafka():
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/stop_kafka")
+            app.logger.info(f"Kafka stop answered with status code: {response.status_code}")
+            return response
+
+        def stop_prometheus():
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/stop_prometheus")
+            app.logger.info(f"Prometheus stop answered with status code: {response.status_code}")
+            return response
+        
+
+        while not zookeeper_ok:
+            zookeeper_response = stop_zookeeper()
+            zookeeper_ok = zookeeper_response.status_code in [200, 202]
+            time.sleep(1)
+
+        response_message += json.loads(zookeeper_response.content)['msg'] + "\n"
+
+        while not kafka_ok:
+            kafka_response = stop_kafka()
+            kafka_ok = kafka_response.status_code in [200, 202]
+            time.sleep(1)
+
+        response_message += json.loads(kafka_response.content)['msg'] + "\n"
+
+        while not prometheus_ok:
+            prometheus_response = stop_prometheus()
+            prometheus_ok = prometheus_response.status_code in [200, 202]
+            time.sleep(1)
+
+        response_message += json.loads(prometheus_response.content)['msg'] + "\n"
+
+        return {"msg": response_message, "status_code": 200}
+    
+    
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg)

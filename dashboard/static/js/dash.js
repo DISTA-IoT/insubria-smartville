@@ -12,9 +12,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     const initControllerButton = document.getElementById("init-controller");
     const stopControllerButton = document.getElementById("stop-controller");
-    
-    const initBasicControllerButton = document.getElementById("init-basic-controller");
-    const stopBasicController = document.getElementById("stop-basic-controller");
+
+    const startMSButton = document.getElementById("start-services");
+    const stopMSButton = document.getElementById("stop-services");
+
 
 
     refreshContainersButton.addEventListener("click", function() {
@@ -73,18 +74,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(response => response.json())
           .then(data => alert(data.msg));
     });
-  
-    initBasicControllerButton.addEventListener("click", function() {
-        fetch("/initialize_basic_controller", {method: "POST"})
+
+
+    startMSButton.addEventListener("click", function() {
+        fetch("/start_services", {method: "POST"})
           .then(response => response.json())
           .then(data => alert(data.msg));
     });
 
-    stopBasicController.addEventListener("click", function() {
-        fetch("/stop_basic_controller", {method: "POST"})
+    stopMSButton.addEventListener("click", function() {
+        fetch("/stop_services", {method: "POST"})
           .then(response => response.json())
           .then(data => alert(data.msg));
     });
+
     /*
     startAttackButtons.forEach(button => {
         button.addEventListener("click", function() {
