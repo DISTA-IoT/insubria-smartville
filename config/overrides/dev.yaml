@@ -1,6 +1,4 @@
 
-smart_switch_log_level: debug
-
 
 intrusion_detection:
   wb_tracking: false
@@ -12,7 +10,7 @@ intrusion_detection:
   save_models: false
   report_step_freq: 10
   inference_freq_secs: 1
-  flowstats_freq_secs: 60
+  flowstats_freq_secs: 6
 
   
 topology_creator:
@@ -28,3 +26,71 @@ base_params:
   # container_manager_replay_from_file : false
   disable_proxy: true
   replay_speed: 1 # Replay speed factor
+
+
+honeypots:
+  - victim-0:
+      pattern: 'doorlock'
+      destination: 'attacker-1'
+
+
+attackers:
+  - attacker-1:
+      pattern: 'cc_heartbeat'
+      destination: 'victim-0'
+
+rewards:
+    - echo: 0.02
+    - hakai: -0.20
+    - mirai: -0.40
+    - hajime: -0.26
+    - doorlock: 0.01
+    - gafgyt: -0.5
+    - muhstik: -0.6
+    - h_scan: -0.7
+    - okiru: -0.8
+    - generic_ddos: -0.9
+    - torii: -0.51
+    - cc_heartbeat: -0.61
+    - hue: 0.05
+
+
+knowledge:
+
+    bening_patterns: 
+        - echo
+        - doorlock
+        - hue
+
+    malicious_patterns:
+        - hakai
+        - mirai
+        - hajime
+        - gafgyt
+        - muhstik
+        - h_scan
+        - okiru
+        - generic_ddos
+        - torii
+        - cc_heartbeat
+
+    Knowns:
+        - doorlock
+        - hakai
+        - cc_heartbeat
+
+    G1s:
+        - okiru
+        - torii
+        - generic_ddos 
+        
+
+    G2s:
+        - mirai
+        - gafgyt
+        - hajime
+        - h_scan
+        - muhstik
+        - hue
+        - echo
+
