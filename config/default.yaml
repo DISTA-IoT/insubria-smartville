@@ -305,3 +305,37 @@ kafka:
     zookeeper.connect: localhost:2181  # change accordingly to zookeeper's port!
     zookeeper.connection.timeout.ms: 18000
     group.initial.rebalance.delay.ms: 0
+
+
+grafana:
+    apiVersion: 1
+
+    deleteDatasources:
+      - name: prometheus
+        orgId: 1
+
+    datasources:
+      - name: prometheus
+        type: prometheus
+        access: proxy
+        orgId: 1
+        uid: my_unique_uid
+        url: http://localhost:9090/24):9090
+        # user:
+        # database:
+        # basicAuth:
+        # basicAuthUser:
+        # withCredentials:
+        # isDefault:
+        jsonData:
+            graphiteVersion: '1.1'
+            tlsAuth: false
+            tlsAuthWithCACert: false
+        secureJsonData:
+            tlsCACert: '...'
+            tlsClientCert: '...'
+            tlsClientKey: '...'
+            # password:
+            # basicAuthPassword:
+        version: 1
+        editable: false

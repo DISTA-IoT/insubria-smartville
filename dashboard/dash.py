@@ -418,6 +418,14 @@ def main(cfg: DictConfig) -> None:
             app.logger.info(f"Prometheus start answered with status code: {response.status_code}")
             return response
         
+
+        def start_grafana():
+            grafana_args = OmegaConf.to_container(cfg.grafana)
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/start_grafana", json=grafana_args)
+            app.logger.info(f"Grafana start answered with status code: {response.status_code}")
+            return response
+        
         
         while not zookeeper_ok:
             zookeeper_response = start_zookeeper()
@@ -439,6 +447,13 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
 
         response_message += json.loads(prometheus_response.content)['msg'] + "\n"
+
+        while not grafana_ok:
+            grafana_response = start_grafana()
+            grafana_ok = grafana_response.status_code == 200
+            time.sleep(1)
+
+        response_message += json.loads(grafana_response.content)['msg']
 
         return {"msg": response_message, "status_code": 200}
     
@@ -472,6 +487,11 @@ def main(cfg: DictConfig) -> None:
             app.logger.info(f"Prometheus stop answered with status code: {response.status_code}")
             return response
         
+        def stop_grafana():
+            controller_external_ip = containers_external_ips['pox-controller']
+            response = requests.post(f"http://{controller_external_ip}:8000/stop_grafana")
+            app.logger.info(f"Grafana stop answered with status code: {response.status_code}")
+            return response
 
         while not zookeeper_ok:
             zookeeper_response = stop_zookeeper()
@@ -493,6 +513,13 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
 
         response_message += json.loads(prometheus_response.content)['msg'] + "\n"
+
+        while not grafana_ok:
+            grafana_response = stop_grafana()
+            grafana_ok = grafana_response.status_code in [200, 202]
+            time.sleep(1)
+
+        response_message += json.loads(grafana_response.content)['msg']
 
         return {"msg": response_message, "status_code": 200}
     
