@@ -6,55 +6,68 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="{{ url_for('static', filename='/js/dash.js') }}"></script>
     
-    <title>SmartVille TIGER</title>
+    <title>SmartVille</title>
 </head>
 <body>
-    <h1>SmartVille TIGER</h1>
+    <h1>SmartVille</h1>
     <div class="containerForGroup">
-        <h2>Node Manager</h2>
+        <h2>Network Manager</h2>
         <nav>
-            <button id="refresh-containers">Refresh containers</button>
+            <button id="refresh-containers" class="lightblue small">Refresh containers</button>
         </nav>
         <nav>
             <button id="create-topology">Create topology</button>
             <button id="delete-project" class="stop">Delete GNS3 Project</button>
         </nav>
+    </div>
+    <div class="containerForGroup">
+      <h2>Controller Manager</h2>
         <nav>
-            <button id="start-traffic">Start Traffic</button>
-            <button id="check-traffic" class="blue">Check Traffic</button>
-            <button id="stop-traffic" class="stop">Stop Traffic</button>
-        </nav>
-        <nav>
-            <button id="attach-controller">Attach Controller</button>
+            <button id="attach-controller" class="lightblue small">Attach Controller</button>
         </nav>
         <nav>
             <button id="init-controller" class="blue">Initialize Controller</button>
             <button id="stop-controller" class="stop">Stop Controller</button>
         </nav>
-         <nav>
+    </div>
+    <div class="containerForGroup">
+     <h2>Monitoring Services</h2>
+       <nav>
             <button id="start-services" >Start MS</button>
             <button id="stop-services" class="stop">Stop MS</button>
         </nav>
-        
-
+        <nav>
+            <button id="start-zookeeper" class="small" >Start Zookeeper</button>
+            <button id="stop-zookeeper" class="stop small">Stop Zookeeper</button>
+        </nav>
+        <nav>
+            <button id="start-kafka" class="small">Start Kafka</button>
+            <button id="stop-kafka" class="stop small">Stop Kafka</button>
+        </nav>
+        <nav>
+            <button id="start-prometheus" class="small">Start Prometheus</button>
+            <button id="stop-prometheus" class="stop small">Stop Prometheus</button>
+        </nav>
+        <nav>
+            <button id="start-grafana" class="small">Start Grafana</button>
+            <button id="stop-grafana" class="stop small">Stop Grafana</button>
+        </nav>
     </div>
     <div class="containerForGroup">
         <h2>Bot Master</h2>
-        <nav>
-            <button id="start-automatic-attacks">Start Automatic Attacks</button>
-            <button id="stop-automatic-attacks" class="stop">Stop Automatic Attacks</button>
+       <nav>
+            <button id="start-traffic">Start Traffic</button>
+            <button id="check-traffic" class="blue">Check Traffic</button>
+            <button id="stop-traffic" class="stop">Stop Traffic</button>
         </nav>
         <nav>
-            <button id="start-preconf-attack">Start Preconfigured Attack</button>
-            <button id="stop-preconf-attack" class="stop">Stop Preconfigured Attack</button>
-        </nav>
-        <!--
-        {% for button in rendering_params.botmaster_buttons %}
+            {% for button in rendering_params.traffic_buttons %}
             <nav>
-                <button id="{{ button }}_start_attack">attack from {{ button }}</button>
-                <button id="{{ button }}_end_attack" class="stop">stop attacking from {{ button }}</button>
+                <button id="{{ button }}_start_traffic" class="small">replay from {{ button }}</button>
+                <button id="{{ button }}_stop_traffic" class="stop small">stop replau from {{ button }}</button>
             </nav>
         {% endfor %}
-        -->
+        </nav>
+    </div>
 </body>
 </html>

@@ -4,6 +4,9 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const startTrafficButton = document.getElementById("start-traffic");
     const stopTrafficButton = document.getElementById("stop-traffic");
 
+    const startTrafficButtons = Array.from(document.querySelectorAll('[id$="_start_traffic"]'));
+    const stopTrafficButtons = Array.from(document.querySelectorAll('[id$="_stop_traffic"]'))
+
     const createTopologyButton = document.getElementById("create-topology");
     const deleteProjectButton = document.getElementById("delete-project");
 
@@ -15,6 +18,18 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     const startMSButton = document.getElementById("start-services");
     const stopMSButton = document.getElementById("stop-services");
+
+    const startZookeeperButton = document.getElementById("start-zookeeper");
+    const stopZookeeperButton = document.getElementById("stop-zookeeper");
+
+    const startKafkaButton = document.getElementById("start-kafka");
+    const stopKafkaButton = document.getElementById("stop-kafka");
+
+    const startPrometheusButton = document.getElementById("start-prometheus");
+    const stopPrometheusButton = document.getElementById("stop-prometheus");
+
+    const startGrafanaButton = document.getElementById("start-grafana");
+    const stopGrafanaButton = document.getElementById("stop-grafana");
 
 
 
@@ -35,6 +50,36 @@ window.addEventListener('DOMContentLoaded', (event) => {
         fetch("/stop_traffic", {method: "POST"})
           .then(response => response.text())
           .then(data => alert(data));
+    });
+
+    startTrafficButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            fetch("/launch_traffic_single", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ hostname: button.id })
+            })
+            .then(response => response.text())
+            .then(data => alert(data));
+        });
+    });
+
+    stopTrafficButtons.forEach(button => {
+        button.addEventListener("click", function() {
+            fetch("/stop_traffic_single", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ hostname: button.id,
+                                        origin: "MANUALLY"
+                                        })
+            })
+            .then(response => response.text())
+            .then(data => alert(data));
+        });
     });
   
   
@@ -88,37 +133,56 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(data => alert(data.msg));
     });
 
-    /*
-    startAttackButtons.forEach(button => {
-        button.addEventListener("click", function() {
-            fetch("/start-attack", {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ vehicle_name: button.id })
-            })
-            .then(response => response.text())
-            .then(data => console.log(data));
-        });
-    });
-    
-    stopAttackButtons.forEach(button => {
-        button.addEventListener("click", function() {
-            fetch("/stop-attack", {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ vehicle_name: button.id,
-                                        origin: "MANUALLY"
-                                      })
-            })
-            .then(response => response.text())
-            .then(data => console.log(data));
-        });
-    });
-   */
 
+    startZookeeperButton.addEventListener("click", function() {
+        fetch("/start_zookeeper", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+    stopZookeeperButton.addEventListener("click", function() {
+        fetch("/stop_zookeeper", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+
+    startKafkaButton.addEventListener("click", function() {
+        fetch("/start_kafka", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+    stopKafkaButton.addEventListener("click", function() {
+        fetch("/stop_kafka", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+
+    startPrometheusButton.addEventListener("click", function() {
+        fetch("/start_prometheus", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+    stopPrometheusButton.addEventListener("click", function() {
+        fetch("/stop_prometheus", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+
+    startGrafanaButton.addEventListener("click", function() {
+        fetch("/start_grafana", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
+
+    stopGrafanaButton.addEventListener("click", function() {
+        fetch("/stop_grafana", {method: "POST"})
+          .then(response => response.json())
+          .then(data => alert(data.msg));
+    });
     
   });

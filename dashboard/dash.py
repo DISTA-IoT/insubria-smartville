@@ -25,7 +25,7 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 import json
 import requests
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import os
 import ipaddress
 
@@ -37,102 +37,6 @@ traffic_dict = {}
 
 TERMINAL_ISSUER_PATH = None
 internal_subnet = None
-
-start_zookeeper_command = "zookeeper-server-start.sh pox/smartController/zookeeper.properties"
-start_kafka_command = "kafka-server-start.sh pox/smartController/kafka_server.properties"
-start_prometheus_command = "prometheus --config.file=pox/smartController/prometheus.yml --storage.tsdb.path=pox/smartController/PrometheusLogs/"
-start_grafana_command = "grafana-server -homepath /usr/share/grafana"
-start_training_command = "./pox.py samples.pretty_log smartController.smartController"
-
-
-# Function to continuously print output of a command
-def print_output(container, command, thread_name):
-    # Execute the command in the container and stream the output
-    return_tuple = container.exec_run(command, stream=True, tty=True, stdin=True)
-    for line in return_tuple[1]:
-        print(thread_name+": "+line.decode().strip())  # Print the output line by line
-
-
-def launch_detached_command(command):
-    # Run the command on a new pseudo TTY
-    try:
-        # Run the command and capture the output
-        output = subprocess.check_output(command, stderr=subprocess.STDOUT)
-        print(output.decode('utf-8'))  # Decode the output bytes to UTF-8 and print it
-    except subprocess.CalledProcessError as e:
-        # Handle errors if the command exits with a non-zero status
-        print("Error:", e)
-
-
-def launch_prometheus(controller_container):
-    print(run_command_in_container(controller_container, "python3 pox/smartController/set_prometheus.py"))
-    time.sleep(1)
-    output_thread = threading.Thread(
-        target=print_output, 
-        args=(controller_container, start_prometheus_command, 'PROMETHEUS'))
-    output_thread.start()
-
-
-def launch_prometheus_detached(controller_container):
-    # Build the command to execute your Bash script with its arguments
-    command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:PROMETHEUS:{start_prometheus_command}"]
-    launch_detached_command(command)
-
-
-def launch_grafana(controller_container):
-    output_thread = threading.Thread(
-        target=print_output, 
-        args=(controller_container, start_grafana_command, 'GRAFANA'))
-    output_thread.start()
-
-
-def launch_grafana_detached(controller_container):
-    # Build the command to execute your Bash script with its arguments
-    command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:GRAFANA:{start_grafana_command}"]
-    launch_detached_command(command)
-    print('Waiting for Grafana to start...')
-    time.sleep(10)
-    # print('Linking Grafana to Prometheus...')
-    # print(run_command_in_container(controller_container, "python3 pox/smartController/link_grafana_to_prometheus.py"))
-    time.sleep(1)
-
-
-def launch_zookeeper(controller_container):
-    output_thread = threading.Thread(
-        target=print_output, 
-        args=(controller_container, start_zookeeper_command, 'ZOOKEEPER'))
-    output_thread.start()
-
-
-def launch_zookeeper_detached(controller_container):
-    # Build the command to execute your Bash script with its arguments
-    command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:ZOOKEEPER:{start_zookeeper_command}"]
-    launch_detached_command(command)
-
-
-def launch_kafka(controller_container):
-    output_thread = threading.Thread(
-        target=print_output, 
-        args=(controller_container, start_kafka_command, 'KAFKA'))
-    output_thread.start()
-
-
-def launch_kafka_detached(controller_container):
-    delete_kafka_logs(controller_container)
-    time.sleep(2)
-    delete_kafka_logs(controller_container)
-    time.sleep(1)
-    # Build the command to execute your Bash script with its arguments
-    command = [TERMINAL_ISSUER_PATH, f"{controller_container.id}:KAFKA:{start_kafka_command}"]
-    launch_detached_command(command)
-
-
-
-def get_cmd_line_args(config_dict):
-    args_str = ""
-    for key, value in config_dict.items():
-        args_str += f" --{key}={value}"
-    return args_str
 
 
 
@@ -258,9 +162,11 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/', methods=['GET'])
     def home():
-        rendering_params = {'foo': 'bar'}
+        rendering_params = {'traffic_buttons': []}
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
+        for hostname, host_info in traffic_dict.items():
+            rendering_params["traffic_buttons"].append(hostname)
         return render_template('index.html', rendering_params=rendering_params)
 
 
@@ -341,7 +247,14 @@ def main(cfg: DictConfig) -> None:
         
         return response_str
 
-    
+    @app.post('/launch_traffic_single')
+    def launch_traffic_single():
+        hostname = request.json['hostname'].split('_')[0]
+        node_external_ip = containers_external_ips[hostname]
+        host_info = traffic_dict[hostname]
+        response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
+        return f"{hostname}:{response.status_code} - {response.json()['message']}"
+
     @app.route('/stop_traffic', methods=['POST'])
     def stop_traffic():
 
@@ -355,6 +268,12 @@ def main(cfg: DictConfig) -> None:
         
         return response_str
 
+    @app.post('/stop_traffic_single')
+    def stop_traffic_single():
+        hostname = request.json['hostname'].split('_')[0]
+        node_external_ip = containers_external_ips[hostname]
+        response = requests.post(f"http://{node_external_ip}:8000/stop")
+        return f"{hostname}:({response.status_code}) {response.json()['message']}"
     
     @app.route('/check_traffic', methods=['POST'])
     def check_traffic():
