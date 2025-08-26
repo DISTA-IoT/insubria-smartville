@@ -42,7 +42,8 @@ internal_subnet = None
 monitoring_services_lock = Lock()
 ms_healthcheck_thread = None
 stop_services_function = None
-
+NODE_FEATURES = None
+KAFKA_PORT = None
 
 def launch_metrics():
     for container_name, container_obj in containers_dict.items():
@@ -123,7 +124,7 @@ def append_ips_to_no_proxy():
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global containers_dict, containers_internal_ips, TERMINAL_ISSUER_PATH, internal_subnet
-    global monitoring_services, stop_services_function
+    global monitoring_services, stop_services_function, NODE_FEATURES, KAFKA_PORT
 
     NAME = 'SmartVille'
     app = Flask(NAME)
@@ -148,8 +149,14 @@ def main(cfg: DictConfig) -> None:
    
 
     TERMINAL_ISSUER_PATH = cfg['base_params']['terminal_issuer_path'] 
-    
-    
+    NODE_FEATURES = cfg.intrusion_detection.node_features
+    if NODE_FEATURES:
+        try:
+            KAFKA_PORT = int(cfg.kafka.listeners.split(':')[-1]) 
+        except (ValueError, IndexError):
+            app.logger.error('Error parsing Kafka port from the configuration file. Kafka port should be in the format "PLAINTEXT://0.0.0.0:9092"')
+            assert 1 == 0
+
     # transform cfg.attackers, which is  a list of dicts, into a dict of dicts. the key's of the outer dict should be the unique key of the inner dict
     # the value of the outer dict should be the inner dict
     cfg.attackers = {list(attacker.keys())[0]: attacker[list(attacker.keys())[0]] for attacker in cfg.attackers}
@@ -233,10 +240,14 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/launch_traffic', methods=['POST'])
     def launch_traffic():
+        global NODE_FEATURES, KAFKA_PORT
+        
         response_str = ""
-
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
+            host_info['node_features'] = NODE_FEATURES
+            host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
+            host_info['health_params'] = cfg.health
             response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
             if response.json() is not None:
                 response_str += f"{hostname}:{response.status_code} - {response.json()['message']}\n"
@@ -244,13 +255,20 @@ def main(cfg: DictConfig) -> None:
         
         return response_str
 
+
     @app.post('/launch_traffic_single')
     def launch_traffic_single():
+        global NODE_FEATURES, KAFKA_PORT
+
         hostname = request.json['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
+        host_info['node_features'] = NODE_FEATURES
+        host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
+        host_info['health_params'] = OmegaConf.to_container(cfg.health)
         response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"
+
 
     @app.route('/stop_traffic', methods=['POST'])
     def stop_traffic():
@@ -265,6 +283,7 @@ def main(cfg: DictConfig) -> None:
         
         return response_str
 
+
     @app.post('/stop_traffic_single')
     def stop_traffic_single():
         hostname = request.json['hostname'].split('_')[0]
@@ -272,6 +291,7 @@ def main(cfg: DictConfig) -> None:
         response = requests.post(f"http://{node_external_ip}:8000/stop")
         return f"{hostname}:({response.status_code}) {response.json()['message']}"
     
+
     @app.route('/check_traffic', methods=['POST'])
     def check_traffic():
 
