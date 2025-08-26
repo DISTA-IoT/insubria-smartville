@@ -26,6 +26,7 @@ for image in "${TARGET_IMAGES[@]}"; do
     for container in $containers; do
         container_name=$(docker inspect --format='{{.Name}}' "$container" | sed 's/\///')
         echo "Switching to branch $BRANCH in container $container_name ($container)..."
+        docker exec -it "$container" /bin/bash -c "git fetch"
         docker exec -it "$container" /bin/bash -c "git checkout $BRANCH"
     done
 
