@@ -223,7 +223,7 @@ def main(cfg: DictConfig) -> None:
                 except Exception as e:
                     return_str += f"Failed to get IP for {container_name}: {str(e)}\n"
             
-            
+        containers_internal_ips['all'] = [entry[1] for entry in containers_internal_ips.items() if entry[1] != '' and entry[0] != 'pox-controller']   
             
 
         if cfg['base_params']['disable_proxy']:
