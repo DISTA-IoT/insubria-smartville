@@ -11,6 +11,7 @@ intrusion_detection:
   report_step_freq: 10
   inference_freq_secs: 1
   flowstats_freq_secs: 6
+  node_features: true
 
   
 topology_creator:

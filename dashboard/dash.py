@@ -27,6 +27,9 @@ import requests
 from flask import Flask, render_template, request, Response
 import os
 import ipaddress
+import atexit
+import signal
+from threading import Lock, Thread 
 
 containers_dict = {}
 containers_external_ips = {}
@@ -36,15 +39,9 @@ traffic_dict = {}
 
 TERMINAL_ISSUER_PATH = None
 internal_subnet = None
-
-
-
-def delete_kafka_logs(controller_container):
-    print('Deleting Kafka logs...')
-    return run_command_in_container(
-        controller_container, 
-        "rm -rf /opt/kafka/logs")
-
+monitoring_services_lock = Lock()
+ms_healthcheck_thread = None
+stop_services_function = None
 
 
 def launch_metrics():
@@ -126,6 +123,7 @@ def append_ips_to_no_proxy():
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global containers_dict, containers_internal_ips, TERMINAL_ISSUER_PATH, internal_subnet
+    global monitoring_services, stop_services_function
 
     NAME = 'SmartVille'
     app = Flask(NAME)
@@ -306,7 +304,7 @@ def main(cfg: DictConfig) -> None:
         zookeeper_args = OmegaConf.to_container(cfg.zookeeper)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_zookeeper", json=zookeeper_args)
-        app.logger.info(f"Zookeeper start answered with status code: {response.status_code}")
+        app.logger.debug(f"Zookeeper start answered with status code: {response.status_code}")
         return Response(
             response.content,
             status=response.status_code,
@@ -318,7 +316,7 @@ def main(cfg: DictConfig) -> None:
         kafka_args = OmegaConf.to_container(cfg.kafka)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_kafka", json=kafka_args)
-        app.logger.info(f"Kafka start answered with status code: {response.status_code}")
+        app.logger.debug(f"Kafka start answered with status code: {response.status_code}")
         return Response(
             response.content,
             status=response.status_code,
@@ -330,7 +328,7 @@ def main(cfg: DictConfig) -> None:
         prometheus_args = OmegaConf.to_container(cfg.prometheus)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_prometheus", json=prometheus_args)
-        app.logger.info(f"Prometheus start answered with status code: {response.status_code}")
+        app.logger.debug(f"Prometheus start answered with status code: {response.status_code}")
         return Response(
             response.content,
             status=response.status_code,
@@ -343,7 +341,7 @@ def main(cfg: DictConfig) -> None:
         grafana_args = OmegaConf.to_container(cfg.grafana)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_grafana", json=grafana_args)
-        app.logger.info(f"Grafana start answered with status code: {response.status_code}")
+        app.logger.debug(f"Grafana start answered with status code: {response.status_code}")
         return Response(
             response.content,
             status=response.status_code,
@@ -401,87 +399,98 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/start_services', methods=['POST'])
     def start_services():
+        global monitoring_services, monitoring_services_lock, ms_healthcheck_thread
 
-        zookeeper_ok = False
-        kafka_ok = False
-        prometheus_ok = False
-        grafana_ok = False
+        with monitoring_services_lock:
+            monitoring_services = True
+            
+            zookeeper_ok = False
+            kafka_ok = False
+            prometheus_ok = False
+            grafana_ok = False
 
-        response_message = ""
-        
-        while not zookeeper_ok:
-            zookeeper_response = start_zookeeper()
-            zookeeper_ok = zookeeper_response.status_code == 200
-            time.sleep(1)
+            response_message = ""
+            
+            while not zookeeper_ok:
+                zookeeper_response = start_zookeeper()
+                zookeeper_ok = zookeeper_response.status_code == 200
+                time.sleep(5)
 
-        response_message += json.loads(zookeeper_response.data)['msg'] + "\n"
+            response_message += json.loads(zookeeper_response.data)['msg'] + "\n"
 
-        while not kafka_ok:
-            kafka_response = start_kafka()
-            kafka_ok = kafka_response.status_code == 200
-            time.sleep(1)
+            while not kafka_ok:
+                kafka_response = start_kafka()
+                kafka_ok = kafka_response.status_code == 200
+                time.sleep(3)
 
-        response_message += json.loads(kafka_response.data)['msg'] + "\n"
+            response_message += json.loads(kafka_response.data)['msg'] + "\n"
 
-        while not prometheus_ok:
-            prometheus_response = start_prometheus()
-            prometheus_ok = prometheus_response.status_code == 200
-            time.sleep(1)
+            while not prometheus_ok:
+                prometheus_response = start_prometheus()
+                prometheus_ok = prometheus_response.status_code == 200
+                time.sleep(2)
 
-        response_message += json.loads(prometheus_response.data)['msg'] + "\n"
+            response_message += json.loads(prometheus_response.data)['msg'] + "\n"
 
-        while not grafana_ok:
-            grafana_response = start_grafana()
-            grafana_ok = grafana_response.status_code == 200
-            time.sleep(1)
+            while not grafana_ok:
+                grafana_response = start_grafana()
+                grafana_ok = grafana_response.status_code == 200
+                time.sleep(3)
 
-        response_message += json.loads(grafana_response.data)['msg']
+            response_message += json.loads(grafana_response.data)['msg']
 
-        return {"msg": response_message, "status_code": 200}
+            ms_healthcheck_thread = Thread(target=ms_health_thread_function, daemon=True)
+            ms_healthcheck_thread.start()
+            return {"msg": response_message, "status_code": 200}
     
 
     @app.route('/stop_services', methods=['POST'])
     def stop_services():
+        global monitoring_services, monitoring_services_lock
+
+        with monitoring_services_lock:
+            monitoring_services = False
         
-        zookeeper_ok = False
-        kafka_ok = False
-        prometheus_ok = False
-        grafana_ok = False
+            zookeeper_ok = False
+            kafka_ok = False
+            prometheus_ok = False
+            grafana_ok = False
 
-        response_message = ""
+            response_message = ""
 
-        while not grafana_ok:
-            grafana_response = stop_grafana()
-            grafana_ok = grafana_response.status_code in [200, 202]
-            time.sleep(1)
+            while not grafana_ok:
+                grafana_response = stop_grafana()
+                grafana_ok = grafana_response.status_code in [200, 202]
+                time.sleep(1)
 
-        response_message += json.loads(grafana_response.data)['msg']
+            response_message += json.loads(grafana_response.data)['msg'] + "\n"
 
-        while not prometheus_ok:
-            prometheus_response = stop_prometheus()
-            prometheus_ok = prometheus_response.status_code in [200, 202]
-            time.sleep(1)
+            while not prometheus_ok:
+                prometheus_response = stop_prometheus()
+                prometheus_ok = prometheus_response.status_code in [200, 202]
+                time.sleep(1)
 
-        response_message += json.loads(prometheus_response.data)['msg'] + "\n"
+            response_message += json.loads(prometheus_response.data)['msg'] + "\n"
 
-        while not kafka_ok:
-            kafka_response = stop_kafka()
-            kafka_ok = kafka_response.status_code in [200, 202]
-            time.sleep(1)
+            while not kafka_ok:
+                kafka_response = stop_kafka()
+                kafka_ok = kafka_response.status_code in [200, 202]
+                time.sleep(1)
 
-        response_message += json.loads(kafka_response.data)['msg'] + "\n"
+            response_message += json.loads(kafka_response.data)['msg'] + "\n"
 
-        while not zookeeper_ok:
-            zookeeper_response = stop_zookeeper()
-            zookeeper_ok = zookeeper_response.status_code in [200, 202]
-            time.sleep(1)
+            while not zookeeper_ok:
+                zookeeper_response = stop_zookeeper()
+                zookeeper_ok = zookeeper_response.status_code in [200, 202]
+                time.sleep(1)
 
-        response_message += json.loads(zookeeper_response.data)['msg'] + "\n"
-        
+            response_message += json.loads(zookeeper_response.data)['msg'] + "\n"
+            
 
-        return {"msg": response_message, "status_code": 200}
+            return {"msg": response_message, "status_code": 200}
     
-    
+    stop_services_function = stop_services
+
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg)
@@ -524,30 +533,115 @@ def main(cfg: DictConfig) -> None:
             return {'status_code':500, 'msg':'Error attaching the switch to the controller!'}
 
 
-    @app.route('/launch_controller_processes', methods=['POST'])
-    def launch_controller_processes(controller_container):
-        launch_zookeeper_detached(controller_container)
-        print('Zookeeper launched on controller! please wait...')
-        time.sleep(1)
-        launch_prometheus_detached(controller_container)
-        print('Prometheus launched on controller! please wait...')
-        time.sleep(1)
-        launch_grafana_detached(controller_container)
-        print('Grafana launched on controller! please wait...')
-        time.sleep(1)
-        launch_kafka_detached(controller_container)
-        print('Kafka launched on controller! please wait...')
-        time.sleep(1)
-        print('Launching Grafanfa dashboard on host...')
-        launch_browser_consoles(cfg, controller_container)
+
+    def ms_health_thread_function():
+        global monitoring_services_lock, monitoring_services
+
+        while monitoring_services:
+            controller_external_ip = containers_external_ips['pox-controller']
+            with monitoring_services_lock:
+                if monitoring_services:
+                    response = requests.get(f"http://{controller_external_ip}:8000/check_zookeeper")
+                    response_content = json.loads(response.content)
+                    if response.status_code == 200:
+                        if not response_content['running']:
+                            app.logger.debug(f"Zookeeper died with exitcode {response_content['last_exit_status']}. Now restarting...")
+                            restart_response = start_zookeeper()
+                            if restart_response.status_code == 200:
+                                app.logger.debug(f"Zookeeper restarted")
+                            else:
+                                app.logger.error(f"Zookeeper restart failed with status code: {restart_response.status_code}")
+                        else:
+                            app.logger.debug(f"Zookeeper running healthy with pid: {response_content['pid']}")
+                    else:
+                        app.logger.error(f"Zookeeper check failed with status code: {response.status_code}")
+
+            time.sleep(1)
+            with monitoring_services_lock:
+                if monitoring_services:
+                    response = requests.get(f"http://{controller_external_ip}:8000/check_kafka")
+                    response_content = json.loads(response.content)
+                    if response.status_code == 200:
+                        if not response_content['running']:
+                            app.logger.debug(f"Kafka died with exitcode {response_content['last_exit_status']}. Now restarting...")
+                            restart_response = start_kafka()
+                            if restart_response.status_code == 200:
+                                app.logger.debug(f"Kafka restarted")
+                            else:
+                                app.logger.error(f"Kafka restart failed with status code: {restart_response.status_code}")
+                        else:
+                            app.logger.debug(f"Kafka running healthy with pid: {response_content['pid']}")
+                    else:
+                        app.logger.error(f"Kafka check failed with status code: {response.status_code}")
+
+            time.sleep(1)
+            with monitoring_services_lock:
+                if monitoring_services:
+                    response = requests.get(f"http://{controller_external_ip}:8000/check_grafana")
+                    response_content = json.loads(response.content)
+                    if response.status_code == 200:
+                        if not response_content['running']:
+                            app.logger.debug(f"Grafana died with exitcode {response_content['last_exit_status']}. Now restarting...")
+                            restart_response = start_grafana()
+                            if restart_response.status_code == 200:
+                                app.logger.debug(f"Grafana restarted")
+                            else:
+                                app.logger.error(f"Grafana restart failed with status code: {restart_response.status_code}")
+                        else:
+                            app.logger.debug(f"Grafana running healthy with pid: {response_content['pid']}")
+                    else:
+                        app.logger.error(f"Grafana check failed with status code: {response.status_code}")
+
+            time.sleep(1)
+            with monitoring_services_lock:
+                if monitoring_services:
+                    response = requests.get(f"http://{controller_external_ip}:8000/check_prometheus")
+                    response_content = json.loads(response.content)
+                    if response.status_code == 200:
+                        if not response_content['running']:
+                            app.logger.debug(f"Prometheus died with exitcode {response_content['last_exit_status']}. Now restarting...")
+                            restart_response = start_prometheus()
+                            if restart_response.status_code == 200:
+                                app.logger.debug(f"Prometheus restarted")
+                            else:
+                                app.logger.error(f"Prometheus restart failed with status code: {restart_response.status_code}")
+                        else:
+                            app.logger.debug(f"Prometheus running healthy with pid: {response_content['pid']}")
+                    else:
+                        app.logger.error(f"Prometheus check failed with status code: {response.status_code}")
+
+            time.sleep(5)
+
+        app.logger.debug(f"Monitoring services stopped")
+        
+            
 
     refresh_containers() 
     init_traffic_stuff(cfg)
-    attach_controller()
+    attach_controller()    
 
     # Run the Flask app
     app.run(host='0.0.0.0',port=cfg['base_params']['dashboard_port'])
 
 
+def cleanup():
+    global ms_healthcheck_thread, monitoring_services
+    print("Cleaning up before exit")
+    if ms_healthcheck_thread is not None:
+        with monitoring_services_lock:
+            monitoring_services = False
+            print("Stopping monitoring services...")
+            stop_services_function()
+        ms_healthcheck_thread.join()
+
+
+def handle_sigterm(signum, frame):
+      cleanup()
+      os._exit(0)
+
 if __name__ == "__main__":
     main()
+
+    atexit.register(cleanup)
+    signal.signal(signal.SIGTERM, handle_sigterm)
+    signal.signal(signal.SIGINT, handle_sigterm)
