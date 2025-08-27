@@ -296,7 +296,7 @@ zookeeper:
 
 kafka:
     broker.id: 0
-    listeners: PLAINTEXT://localhost:9092
+    listeners: PLAINTEXT://192.168.1.1:9092
     #advertised.listeners: PLAINTEXT://your.host.name:9092
     #listener.security.protocol.map: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
     num.network.threads: 3
