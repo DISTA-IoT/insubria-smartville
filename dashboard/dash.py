@@ -152,9 +152,9 @@ def main(cfg: DictConfig) -> None:
     NODE_FEATURES = cfg.intrusion_detection.node_features
     if NODE_FEATURES:
         try:
-            KAFKA_PORT = int(cfg.kafka.listeners.split(':')[-1]) 
+            KAFKA_PORT = int(cfg.kafka.port) 
         except (ValueError, IndexError):
-            app.logger.error('Error parsing Kafka port from the configuration file. Kafka port should be in the format "PLAINTEXT://0.0.0.0:9092"')
+            app.logger.error('Error parsing Kafka port from the configuration file."')
             assert 1 == 0
 
     # transform cfg.attackers, which is  a list of dicts, into a dict of dicts. the key's of the outer dict should be the unique key of the inner dict
@@ -321,7 +321,7 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/start_zookeeper')
     def start_zookeeper():
-        zookeeper_args = OmegaConf.to_container(cfg.zookeeper)
+        zookeeper_args = OmegaConf.to_container(cfg.zookeeper.config_file)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_zookeeper", json=zookeeper_args)
         app.logger.debug(f"Zookeeper start answered with status code: {response.status_code}")
@@ -333,7 +333,7 @@ def main(cfg: DictConfig) -> None:
     
     @app.post('/start_kafka')
     def start_kafka():
-        kafka_args = OmegaConf.to_container(cfg.kafka)
+        kafka_args = OmegaConf.to_container(cfg.kafka.config_file)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_kafka", json=kafka_args)
         app.logger.debug(f"Kafka start answered with status code: {response.status_code}")
@@ -358,7 +358,7 @@ def main(cfg: DictConfig) -> None:
     
     @app.post('/start_grafana')
     def start_grafana():
-        grafana_args = OmegaConf.to_container(cfg.grafana)
+        grafana_args = OmegaConf.to_container(cfg.grafana.config_file)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_grafana", json=grafana_args)
         app.logger.debug(f"Grafana start answered with status code: {response.status_code}")
