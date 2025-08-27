@@ -42,7 +42,7 @@ internal_subnet = None
 monitoring_services_lock = Lock()
 ms_healthcheck_thread = None
 stop_services_function = None
-NODE_FEATURES = None
+HEALTH_MONITORING = None
 KAFKA_PORT = None
 
 def launch_metrics():
@@ -87,8 +87,8 @@ def launch_browser_consoles(cfg, controller_container):
 def init_traffic_stuff(cfg):
     global traffic_dict
 
-    honeypots_dict = OmegaConf.to_container(cfg.honeypots)
-    attackers_dict = OmegaConf.to_container(cfg.attackers)
+    honeypots_dict = OmegaConf.to_container(cfg.honeypots, resolve=True)
+    attackers_dict = OmegaConf.to_container(cfg.attackers, resolve=True)
 
     for honeypot_name, honeypot_info in honeypots_dict.items():
         honeypot_info['dest_ip'] = containers_internal_ips[honeypot_info['destination']]
@@ -124,7 +124,7 @@ def append_ips_to_no_proxy():
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global containers_dict, containers_internal_ips, TERMINAL_ISSUER_PATH, internal_subnet
-    global monitoring_services, stop_services_function, NODE_FEATURES, KAFKA_PORT
+    global monitoring_services, stop_services_function, HEALTH_MONITORING, KAFKA_PORT
 
     NAME = 'SmartVille'
     app = Flask(NAME)
@@ -149,8 +149,8 @@ def main(cfg: DictConfig) -> None:
    
 
     TERMINAL_ISSUER_PATH = cfg['base_params']['terminal_issuer_path'] 
-    NODE_FEATURES = cfg.intrusion_detection.node_features
-    if NODE_FEATURES:
+    HEALTH_MONITORING = cfg.intrusion_detection.node_features
+    if HEALTH_MONITORING:
         try:
             KAFKA_PORT = int(cfg.kafka.port) 
         except (ValueError, IndexError):
@@ -240,12 +240,12 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/launch_traffic', methods=['POST'])
     def launch_traffic():
-        global NODE_FEATURES, KAFKA_PORT
+        global HEALTH_MONITORING, KAFKA_PORT
         
         response_str = ""
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
-            host_info['node_features'] = NODE_FEATURES
+            host_info['node_features'] = HEALTH_MONITORING
             host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
             host_info['health_params'] = cfg.health
             response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
@@ -258,14 +258,14 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/launch_traffic_single')
     def launch_traffic_single():
-        global NODE_FEATURES, KAFKA_PORT
+        global HEALTH_MONITORING, KAFKA_PORT
 
         hostname = request.json['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
-        host_info['node_features'] = NODE_FEATURES
+        host_info['node_features'] = HEALTH_MONITORING
         host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
-        host_info['health_params'] = OmegaConf.to_container(cfg.health)
+        host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
         response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"
 
@@ -321,7 +321,7 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/start_zookeeper')
     def start_zookeeper():
-        zookeeper_args = OmegaConf.to_container(cfg.zookeeper.config_file)
+        zookeeper_args = OmegaConf.to_container(cfg.zookeeper.config_file, resolve=True)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_zookeeper", json=zookeeper_args)
         app.logger.debug(f"Zookeeper start answered with status code: {response.status_code}")
@@ -333,7 +333,7 @@ def main(cfg: DictConfig) -> None:
     
     @app.post('/start_kafka')
     def start_kafka():
-        kafka_args = OmegaConf.to_container(cfg.kafka.config_file)
+        kafka_args = OmegaConf.to_container(cfg.kafka.config_file, resolve=True)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_kafka", json=kafka_args)
         app.logger.debug(f"Kafka start answered with status code: {response.status_code}")
@@ -345,7 +345,7 @@ def main(cfg: DictConfig) -> None:
     
     @app.post('/start_prometheus')
     def start_prometheus():
-        prometheus_args = OmegaConf.to_container(cfg.prometheus)
+        prometheus_args = OmegaConf.to_container(cfg.prometheus, resolve=True)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_prometheus", json=prometheus_args)
         app.logger.debug(f"Prometheus start answered with status code: {response.status_code}")
@@ -358,7 +358,7 @@ def main(cfg: DictConfig) -> None:
     
     @app.post('/start_grafana')
     def start_grafana():
-        grafana_args = OmegaConf.to_container(cfg.grafana.config_file)
+        grafana_args = OmegaConf.to_container(cfg.grafana.config_file, resolve=True)
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/start_grafana", json=grafana_args)
         app.logger.debug(f"Grafana start answered with status code: {response.status_code}")
@@ -513,7 +513,7 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
-        init_args = OmegaConf.to_container(cfg)
+        init_args = OmegaConf.to_container(cfg, resolve=True)
         init_args['container_ips'] = containers_internal_ips
         init_args['ips_containers'] = internal_ips_containers
         del init_args['topology_creator']
@@ -521,7 +521,7 @@ def main(cfg: DictConfig) -> None:
         del init_args['honeypots']
         del init_args['attackers']
         init_args['traffic_dict'] = traffic_dict
-        rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards), {}).copy()
+        rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards, resolve=True), {}).copy()
         del init_args['rewards']
         init_args['rewards'] = rewards
         controller_external_ip = containers_external_ips['pox-controller']

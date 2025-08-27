@@ -2,6 +2,7 @@ override: ""
 # SmartVille Configuration
 
 smart_switch_log_level: info
+health_monitoring: false
 
 topology_creator:
   # Topology creation configuration
@@ -71,8 +72,8 @@ intrusion_detection:
   anonymize_transport_ports: true
   flow_feat_dim: 4
   flow_buff_len: 10  # Indicates the flowstats time-window size to build feature vectors
-  node_features: false  # Use node features to build the feature vectors
-  metric_buffer_len: 10  # If 'node_features'=True, node features time-window size to build feature vectors
+  node_features: ${health_monitoring}  # Use node features to build the feature vectors
+  
   inference_freq_secs: 1  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
@@ -148,6 +149,7 @@ health:
   ping_host: 'www.google.com'
   ping_thread_timeout: 5
   probe_frequency_seconds: 3
+  node_features_time_window: 10  
   probe_metrics:
     - CPU
     - RAM
@@ -256,72 +258,6 @@ knowledge:
         - echo
 
 
-prometheus:
-    global:
-        scrape_interval:     5s 
-        evaluation_interval: 5s 
-        external_labels:
-            monitor: 'example'
-
-    alerting:
-        alertmanagers:
-        - static_configs:
-            - targets: ['localhost:9093']
-
-    rule_files:
-
-    scrape_configs:
-        - job_name: 'prometheus'
-          scrape_interval: 5s
-          scrape_timeout: 5s
-          static_configs:
-            - targets: ['localhost:9090']
-
-        - job_name: 'system_metrics'
-          static_configs:
-            - targets: ['localhost:8000']
-
-zookeeper:
-    port: 2181
-    config_file:
-        dataDir: /tmp/zookeeper
-        # the port at which the clients will connect
-        clientPort: 2181
-        # disable the per-ip limit on the number of connections since this is a non-production config
-        maxClientCnxns: 0
-        # Disable the adminserver by default to avoid port conflicts.
-        # Set the port to something non-conflicting if choosing to enable this
-        admin:
-            enableServer: false
-            serverPort: ${zookeeper.port}
-
-
-kafka:
-    port: 9092
-    config_file:
-        broker.id: 0
-        listeners: PLAINTEXT://${topology_creator.controller_ip}:${kafka.port}
-        #advertised.listeners: PLAINTEXT://your.host.name:9092
-        #listener.security.protocol.map: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
-        num.network.threads: 3
-        num.io.threads: 8
-        socket.send.buffer.bytes: 102400
-        socket.receive.buffer.bytes: 102400
-        socket.request.max.bytes: 104857600
-        log.dirs: /tmp/kafka-logs
-        num.partitions: 1
-        num.recovery.threads.per.data.dir: 1
-        offsets.topic.replication.factor: 1
-        transaction.state.log.replication.factor: 1
-        transaction.state.log.min.isr: 1
-        #log.flush.interval.messages: 10000
-        #log.flush.interval.ms: 1000
-        log.retention.hours: 168
-        log.retention.check.interval.ms: 300000
-        zookeeper.connect: ${topology_creator.controller_ip}:${zookeeper.port}  # change accordingly to zookeeper's port!
-        zookeeper.connection.timeout.ms: 18000
-        group.initial.rebalance.delay.ms: 0
-
 
 grafana:
     # Username and pass for grafana dashboard. if you change the default admin admin, you should
@@ -330,6 +266,8 @@ grafana:
     user: 'admin'  
     password: 'admin'
     port: 9090
+    host: ${topology_creator.controller_ip}
+    datasource_url: http://${grafana.host}:${grafana.port}${topology_creator.netmask}):${grafana.port} # don't know why but only this strange pattern works...
     # this is only the datasources config_file, not the grafana config file.... we are not touching the grafana config file...
     config_file:
         apiVersion: 1
@@ -344,7 +282,7 @@ grafana:
             access: proxy
             orgId: 1
             uid: my_unique_uid
-            url: http://${topology_creator.controller_ip}:${grafana.port}${topology_creator.netmask}):${grafana.port}
+            url: ${grafana.datasource_url}
             # user:
             # database:
             # basicAuth:
@@ -363,3 +301,78 @@ grafana:
                 # basicAuthPassword:
             version: 1
             editable: false
+
+
+prometheus:
+    clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
+    clienthost: ${topology_creator.controller_ip}
+    serverhost: ${topology_creator.controller_ip}
+    config_file:
+        global:
+            scrape_interval:     5s 
+            evaluation_interval: 5s 
+            external_labels:
+                monitor: 'example'
+
+        alerting:
+            alertmanagers:
+            - static_configs:
+                - targets: ['${prometheus.serverhost}:9093']
+
+        rule_files:
+
+        scrape_configs:
+            - job_name: 'prometheus'
+              scrape_interval: 5s
+              scrape_timeout: 5s
+              static_configs:
+                - targets: ['${grafana.host}:${grafana.port}']
+
+            - job_name: 'system_metrics'
+              static_configs:
+                - targets: ['${prometheus.clienthost}:${prometheus.clientport}']
+
+
+zookeeper:
+    clientport: 2181
+    config_file:
+        dataDir: /tmp/zookeeper
+        # the port at which the clients will connect
+        clientPort: ${zookeeper.clientport}
+        # disable the per-ip limit on the number of connections since this is a non-production config
+        maxClientCnxns: 0
+        # Disable the adminserver by default to avoid port conflicts.
+        # Set the port to something non-conflicting if choosing to enable this
+        admin:
+            enableServer: false
+            serverPort: 8080
+
+
+kafka:
+    host: ${topology_creator.controller_ip}
+    port: 9092
+    endpoint: ${kafka.host}:${kafka.port}
+    config_file:
+        broker.id: 0
+        listeners: PLAINTEXT://${kafka.host}:${kafka.port}
+        #advertised.listeners: PLAINTEXT://your.host.name:9092
+        #listener.security.protocol.map: PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
+        num.network.threads: 3
+        num.io.threads: 8
+        socket.send.buffer.bytes: 102400
+        socket.receive.buffer.bytes: 102400
+        socket.request.max.bytes: 104857600
+        log.dirs: /tmp/kafka-logs
+        num.partitions: 1
+        num.recovery.threads.per.data.dir: 1
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+        transaction.state.log.min.isr: 1
+        #log.flush.interval.messages: 10000
+        #log.flush.interval.ms: 1000
+        log.retention.hours: 168
+        log.retention.check.interval.ms: 300000
+        zookeeper.connect: ${topology_creator.controller_ip}:${zookeeper.clientport}  # change accordingly to zookeeper's port!
+        zookeeper.connection.timeout.ms: 18000
+        group.initial.rebalance.delay.ms: 0
+
