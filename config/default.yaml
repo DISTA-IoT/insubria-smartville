@@ -13,6 +13,7 @@ topology_creator:
   switch_docker: openvswitch
   victim_docker: victim
   attacker_docker: attacker
+  monitor_docker: monitor
   # STANDALONE IMAGES (OPTIONAL, NOT USED RIGHT NOW)
   zookeeper_docker: confluentinc/cp-zookeeper
   kafka_docker: confluentinc/cp-kafka
@@ -25,17 +26,21 @@ topology_creator:
   controller_ip: 192.168.1.1
   main_switch_ip: 192.168.1.2
   bridge_ip: 192.168.1.100
-  monitor_ip: 192.168.1.101
-  zookeeper_ip: ${monitor_ip}
-  kafka_ip: ${monitor_ip}
-  grafana_ip: ${monitor_ip}
-  prometheus_ip: ${monitor_ip}
+  monitor_hostname: monitor # this guy will be dynamically assigned an ip on the host network (not the subnet)
+  
+  monitor:
+    SERVER_PORT: 8000
 
   ####### STANDALONE MONITORING NODES
   # these configuration variables are applied only when 
   # the monitoring nodes are standalone ones:
 
   # These are used only if the monitorning nodes are standalone ones:
+  zookeeper_ip: ${monitor_hostname}
+  kafka_ip: ${monitor_hostname}
+  grafana_ip: ${monitor_hostname}
+  prometheus_ip: ${monitor_hostname}
+
   grafana_start: "run.sh"
   zookeeper_start: "/etc/confluent/docker/run"
   kafka_start: "/etc/confluent/docker/run"
@@ -62,7 +67,7 @@ topology_creator:
 
   # Controller configuration
   contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.tiger_server"
-  
+  monitor_start: "python monitor_server.py"
   # GNS3 Configuration
   use_gns3_config_file: true
   gns3_config_path: ~/.config/GNS3/2.2/gns3_server.conf
@@ -306,7 +311,7 @@ grafana:
     user: 'admin'  
     password: 'admin'
     port: 9090
-    host: ${topology_creator.monitor_ip}
+    host: ${topology_creator.monitor_hostname}
     datasource_url: http://${grafana.host}:${grafana.port}${topology_creator.netmask}):${grafana.port} # don't know why but only this strange pattern works...
     # this is only the datasources config_file, not the grafana config file.... we are not touching the grafana config file...
     config_file:
@@ -345,8 +350,8 @@ grafana:
 
 prometheus:
     clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
-    clienthost: ${topology_creator.monitor_ip}
-    serverhost: ${topology_creator.monitor_ip}
+    clienthost: ${topology_creator.monitor_hostname}
+    serverhost: ${topology_creator.monitor_hostname}
     config_file:
         global:
             scrape_interval:     5s 
@@ -389,7 +394,7 @@ zookeeper:
 
 
 kafka:
-    host: ${topology_creator.monitor_ip}
+    host: ${topology_creator.monitor_hostname}
     port: 9092
     endpoint: ${kafka.host}:${kafka.port}
     config_file:
@@ -412,7 +417,7 @@ kafka:
         #log.flush.interval.ms: 1000
         log.retention.hours: 168
         log.retention.check.interval.ms: 300000
-        zookeeper.connect: ${topology_creator.monitor_ip}:${zookeeper.clientport}  # change accordingly to zookeeper's port!
+        zookeeper.connect: ${topology_creator.monitor_hostname}:${zookeeper.clientport}  # change accordingly to zookeeper's port!
         zookeeper.connection.timeout.ms: 18000
         group.initial.rebalance.delay.ms: 0
 

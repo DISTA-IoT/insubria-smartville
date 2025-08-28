@@ -33,6 +33,7 @@ ATTACKER_NODE_COUNT = None
 VICTIM_NODE_COUNT = None
 ATTACKER_SERVER_COMMAND = 'python attacker_server.py'
 HONEYPOT_SERVER_COMMAND = 'python honeypot_server.py'
+MONITOR_SERVER_COMMAND = 'python monitor_server.py'
 ATTACH_CONTROLLER_COMMAND = 'ovs-vsctl set-controller br0 tcp:192.168.1.1:6633 & sh'
 CONTROLLER_IMG_NAME = None
 SWITCH_IMG_NAME = None
@@ -42,6 +43,8 @@ ZOOKEEPER_IMG_NAME = None
 KAFKA_IMG_NAME = None
 GRAFANA_IMG_NAME = None
 PROMETHEUS_IMG_NAME = None
+MONITOR_IMG_NAME = None
+MONITOR_HOSTNAME = None
 NAT_IMG_NAME = "NAT"
 CLOUD_IMG_NAME = "smartville-cloud-bridge"
 CONTROLLER_START_COMMAND=None
@@ -199,6 +202,30 @@ def mountController(templates, switch_name, ip=None):
     node_ids.append(controller_id)
     print(f"{CONTROLLER_IMG_NAME}: started")
     return controller_name
+
+
+def mount_monitor(templates):
+    template_id = get_template_id_from_name(templates, MONITOR_IMG_NAME)
+    
+    monitor_name = MONITOR_IMG_NAME
+
+    monitor_id = get_node_id_by_name(server,project,monitor_name)
+    if(monitor_id is not None):
+        delete_node(server,project,monitor_id)
+        print("Old monitor node deleted")
+
+    monitor = create_node(server, project, 0, 180, template_id, monitor_name)
+    monitor_id = monitor['node_id']
+    print(f"new {MONITOR_IMG_NAME} monitor created ")
+    time.sleep(2)
+
+    set_dhcp_node_network_interfaces(server, project, monitor_id, "eth0", MONITOR_HOSTNAME)
+    print(f"{MONITOR_IMG_NAME}: DHCP on eth0")
+
+    node_ids.append(monitor_id)
+    print(f"{MONITOR_IMG_NAME}: started")
+    return monitor_name
+
 
 def mount_zookeeper(templates, switch_name, ip=None):
     template_id = get_template_id_from_name(templates, ZOOKEEPER_IMG_NAME)
@@ -475,6 +502,7 @@ def connect_all(
         main_switch_node_name, 
         edge_switch_node_name,
         controller_node_name,
+        monitor_node_name,
         host_names, 
         zookeeper_node_name,
         kafka_node_name,
@@ -488,6 +516,9 @@ def connect_all(
 
     controller_id = get_node_id_by_name(server, project, controller_node_name)
     create_link(server, project,str(edge_switch_id),3,str(controller_id),1)
+
+    montor_id = get_node_id_by_name(server, project, monitor_node_name)
+    create_link(server, project,str(edge_switch_id),4,str(montor_id),0)
 
     if zookeeper_node_name is not None:
         zookeeper_id = get_node_id_by_name(server, project, zookeeper_node_name)
@@ -560,6 +591,7 @@ def starTopology(cfg, templates):
     edge_switch_node_name = mount_edge_switch(templates)
     controller_ip = cfg.topology_creator.controller_ip + cfg.topology_creator.netmask
     controller_node_name = mountController(templates, main_switch_node_name, ip=controller_ip)
+    monitor_node_name = mount_monitor(templates)
     """
     zookeeper_ip = cfg.topology_creator.zookeeper_ip + cfg.topology_creator.netmask
     zookeeper_node_name = mount_zookeeper(templates, main_switch_node_name, ip=zookeeper_ip)
@@ -582,6 +614,7 @@ def starTopology(cfg, templates):
         main_switch_node_name, 
         edge_switch_node_name,
         controller_node_name,
+        monitor_node_name,
         host_names,
         zookeeper_node_name,
         kafka_node_name,
@@ -639,6 +672,21 @@ def update_controller_template(args, templates):
 
     create_docker_template(server, CONTROLLER_IMG_NAME, CONTROLLER_START_COMMAND, str(CONTROLLER_IMG_NAME+":latest"),environment=ENV_STR)
 
+
+def update_monitor_template(args, templates):
+    global project
+
+    MONITOR_ENV_STR = ""
+
+    monitor_template_id = get_template_id_from_name(templates, MONITOR_IMG_NAME)
+    if(monitor_template_id is not None):
+        delete_template(server,project,monitor_template_id)
+        print(f"old MONITOR template {MONITOR_IMG_NAME} deleted")
+
+    for key, value in OmegaConf.to_container(args.monitor, resolve=True).items():
+        MONITOR_ENV_STR += f"{key}={value}\n"
+
+    create_docker_template(server, MONITOR_IMG_NAME, MONITOR_START_COMMAND, str(MONITOR_IMG_NAME+":latest"),environment=MONITOR_ENV_STR)
 
 def update_zookeeper_template(args, templates):
     global project
@@ -719,6 +767,7 @@ def update_templates(args, templates):
     update_edge_switch_template(templates)
     update_main_switch_template(templates)
     update_controller_template(args, templates)
+    update_monitor_template(args, templates)
     """
     update_zookeeper_template(args, templates)
     update_kafka_template(args, templates)
@@ -736,9 +785,9 @@ def update_templates(args, templates):
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global PROJECT_NAME, GNS3_HOST, GNS3_PORT, GNS3_AUTH, GNS3_USERNAME, GNS3_PASSWORD
-    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME
-    global ZOOKEEPER_IMG_NAME, KAFKA_IMG_NAME, GRAFANA_IMG_NAME, PROMETHEUS_IMG_NAME
-    global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT
+    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME, MONITOR_HOSTNAME
+    global ZOOKEEPER_IMG_NAME, KAFKA_IMG_NAME, GRAFANA_IMG_NAME, PROMETHEUS_IMG_NAME, MONITOR_IMG_NAME
+    global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT, MONITOR_START_COMMAND
     global GRAFANA_START_COMMAND, PROMETHEUS_START_COMMAND, ZOOKEEPER_START_COMMAND, KAFKA_START_COMMAND
     global gns3_server_connector, logger, server, project, node_ids, template_ids
     global ENV_STR
@@ -780,6 +829,8 @@ def main(cfg: DictConfig) -> None:
     GNS3_CONFIG_PATH = args.gns3_config_path
 
     CONTROLLER_IMG_NAME = args.controller_docker
+    MONITOR_IMG_NAME = args.monitor_docker
+    MONITOR_HOSTNAME = args.monitor_hostname
     SWITCH_IMG_NAME = args.switch_docker
     VICTIM_IMG_NAME = args.victim_docker
     ATTACKER_IMG_NAME = args.attacker_docker
@@ -788,6 +839,7 @@ def main(cfg: DictConfig) -> None:
     PROMETHEUS_IMG_NAME = args.prometheus_docker
     GRAFANA_IMG_NAME = args.grafana_docker
     CONTROLLER_START_COMMAND = args.contr_start
+    MONITOR_START_COMMAND = args.monitor_start
     GRAFANA_START_COMMAND = args.grafana_start
     PROMETHEUS_START_COMMAND = args.prometheus_start
     KAFKA_START_COMMAND = args.kafka_start
