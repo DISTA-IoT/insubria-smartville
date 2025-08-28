@@ -14,3 +14,7 @@
 	path = VictimNode
 	url = https://github.com/DISTA-IoT/smartville_victim
 	branch = new_smartville
+[submodule "MonitorNode"]
+	path = MonitorNode
+	url = https://github.com/DISTA-IoT/smartville_monitor
+	branch = master
