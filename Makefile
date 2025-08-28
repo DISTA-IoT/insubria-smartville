@@ -24,3 +24,19 @@ build-botmaster:
 
 build-openvswitch:
 	docker build -t openvswitch -f openvswitch.Dockerfile openSwitch/.
+
+# Zookeeper node (uses prebuilt Confluent image)
+build-zookeeper:
+	docker pull confluentinc/cp-zookeeper:latest
+
+# Kafka node (uses prebuilt Confluent image)
+build-kafka:
+	docker pull confluentinc/cp-kafka:latest
+
+# Prometheus node (official image)
+build-prometheus:
+	docker pull prom/prometheus:latest
+
+# Grafana node (official image)
+build-grafana:
+	docker pull grafana/grafana:latest

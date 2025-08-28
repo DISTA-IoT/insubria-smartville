@@ -13,6 +13,11 @@ topology_creator:
   switch_docker: openvswitch
   victim_docker: victim
   attacker_docker: attacker
+  # STANDALONE IMAGES (OPTIONAL, NOT USED RIGHT NOW)
+  zookeeper_docker: confluentinc/cp-zookeeper
+  kafka_docker: confluentinc/cp-kafka
+  prometheus_docker: prom/prometheus
+  grafana_docker: grafana/grafana
 
   # important ips.
   subnet: 192.168.1.0
@@ -20,10 +25,44 @@ topology_creator:
   controller_ip: 192.168.1.1
   main_switch_ip: 192.168.1.2
   bridge_ip: 192.168.1.100
-  
-  # Controller configuration
-  contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.smartController"
+  monitor_ip: 192.168.1.101
+  zookeeper_ip: ${monitor_ip}
+  kafka_ip: ${monitor_ip}
+  grafana_ip: ${monitor_ip}
+  prometheus_ip: ${monitor_ip}
 
+  ####### STANDALONE MONITORING NODES
+  # these configuration variables are applied only when 
+  # the monitoring nodes are standalone ones:
+
+  # These are used only if the monitorning nodes are standalone ones:
+  grafana_start: "run.sh"
+  zookeeper_start: "/etc/confluent/docker/run"
+  kafka_start: "/etc/confluent/docker/run"
+  prometheus_start: "/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus --web.console.libraries=/usr/share/prometheus/console_libraries --web.console.templates=/usr/share/prometheus/consoles"
+
+  zookeeper:
+    ZOOKEEPER_SERVER_ID: 1
+    ZOOKEEPER_CLIENT_PORT: 2181
+    ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    KAFKA_BROKER_ID: 1  # Unique identifier for this Kafka broker
+    KAFKA_ZOOKEEPER_CONNECT: ${topology_creator.zookeeper_ip}:2181  # Address to connect to Zookeeper
+    KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:19092  # Listeners for internal and external communication
+    KAFKA_LISTENERS: INSIDE://0.0.0.0:9092,OUTSIDE://0.0.0.0:19092  # Ports to bind Kafka to for listening
+    KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE  # Listener for internal Kafka broker communication
+    KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT  # Security protocol mappings for each listener
+    KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1  # Replication factor for internal Kafka topics
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'  # Automatically create topics when required
+    KAFKA_PROCESS_ROLES: 'broker,controller'
+    CLUSTER_ID: '1'
+  ####### END OF STANDALONE MONITORING NODES
+
+
+  # Controller configuration
+  contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.tiger_server"
+  
   # GNS3 Configuration
   use_gns3_config_file: true
   gns3_config_path: ~/.config/GNS3/2.2/gns3_server.conf
@@ -144,16 +183,17 @@ intrusion_detection:
 
 health:
   max_conn_retries: 5 #(int, optional): max. num. of connections attempts to the kafka broker. Default is 5.
-  topic_num_partitions: 5
+  poll_timeout_seconds: 3 # consumer poll timeout in seconds.
+  max_failed_polls: 40 # max. num. of failed poll attempts after which the consuming task is aborted for each topic
   topic_replication_factor: 1
   ping_host: 'www.google.com'
   ping_thread_timeout: 5
   probe_frequency_seconds: 3
-  node_features_time_window: 10  
+  node_features_time_window: 10
   probe_metrics:
     - CPU
     - RAM
-    - MEMORY
+    - RTT
     - INBOUND
     - OUTBOUND
 
@@ -266,7 +306,7 @@ grafana:
     user: 'admin'  
     password: 'admin'
     port: 9090
-    host: ${topology_creator.controller_ip}
+    host: ${topology_creator.monitor_ip}
     datasource_url: http://${grafana.host}:${grafana.port}${topology_creator.netmask}):${grafana.port} # don't know why but only this strange pattern works...
     # this is only the datasources config_file, not the grafana config file.... we are not touching the grafana config file...
     config_file:
@@ -305,8 +345,8 @@ grafana:
 
 prometheus:
     clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
-    clienthost: ${topology_creator.controller_ip}
-    serverhost: ${topology_creator.controller_ip}
+    clienthost: ${topology_creator.monitor_ip}
+    serverhost: ${topology_creator.monitor_ip}
     config_file:
         global:
             scrape_interval:     5s 
@@ -349,7 +389,7 @@ zookeeper:
 
 
 kafka:
-    host: ${topology_creator.controller_ip}
+    host: ${topology_creator.monitor_ip}
     port: 9092
     endpoint: ${kafka.host}:${kafka.port}
     config_file:
@@ -372,7 +412,7 @@ kafka:
         #log.flush.interval.ms: 1000
         log.retention.hours: 168
         log.retention.check.interval.ms: 300000
-        zookeeper.connect: ${topology_creator.controller_ip}:${zookeeper.clientport}  # change accordingly to zookeeper's port!
+        zookeeper.connect: ${topology_creator.monitor_ip}:${zookeeper.clientport}  # change accordingly to zookeeper's port!
         zookeeper.connection.timeout.ms: 18000
         group.initial.rebalance.delay.ms: 0
 
