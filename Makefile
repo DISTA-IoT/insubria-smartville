@@ -6,9 +6,9 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: all build-controller build-attacker build-victim build-openvswitch
+.PHONY: all build-controller build-attacker build-victim build-openvswitch build-monitor
 
-all: build-controller build-attacker build-victim build-openvswitch
+all: build-controller build-attacker build-victim build-openvswitch build-monitor
 
 build-controller:
 	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
@@ -24,6 +24,9 @@ build-botmaster:
 
 build-openvswitch:
 	docker build -t openvswitch -f openvswitch.Dockerfile openSwitch/.
+
+build-monitor:
+	docker build -t monitor -f smartville-monitor/monitor.Dockerfile smartville-monitor/.
 
 # Zookeeper node (uses prebuilt Confluent image)
 build-zookeeper:
