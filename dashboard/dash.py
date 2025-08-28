@@ -111,6 +111,10 @@ def init_traffic_stuff(cfg):
     # fuse the honeypots and attackers dict into a unique dict
     traffic_dict = {**honeypots_dict, **attackers_dict}
     
+    # modify params for monitor ip:
+    cfg.grafana.host = containers_external_ips['monitor']
+    cfg.kafka.host = containers_external_ips['monitor']
+    cfg.prometheus.serverhost = containers_external_ips['monitor']
 
 def append_ips_to_no_proxy():
     no_proxy_ips = ','.join(containers_external_ips.values())
@@ -322,8 +326,8 @@ def main(cfg: DictConfig) -> None:
     @app.post('/start_zookeeper')
     def start_zookeeper():
         zookeeper_args = OmegaConf.to_container(cfg.zookeeper.config_file, resolve=True)
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/start_zookeeper", json=zookeeper_args)
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/start_zookeeper", json=zookeeper_args)
         app.logger.debug(f"Zookeeper start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -334,8 +338,8 @@ def main(cfg: DictConfig) -> None:
     @app.post('/start_kafka')
     def start_kafka():
         kafka_args = OmegaConf.to_container(cfg.kafka.config_file, resolve=True)
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/start_kafka", json=kafka_args)
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/start_kafka", json=kafka_args)
         app.logger.debug(f"Kafka start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -345,9 +349,9 @@ def main(cfg: DictConfig) -> None:
     
     @app.post('/start_prometheus')
     def start_prometheus():
-        prometheus_args = OmegaConf.to_container(cfg.prometheus, resolve=True)
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/start_prometheus", json=prometheus_args)
+        prometheus_args = OmegaConf.to_container(cfg.prometheus.config_file, resolve=True)
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/start_prometheus", json=prometheus_args)
         app.logger.debug(f"Prometheus start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -359,8 +363,8 @@ def main(cfg: DictConfig) -> None:
     @app.post('/start_grafana')
     def start_grafana():
         grafana_args = OmegaConf.to_container(cfg.grafana.config_file, resolve=True)
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/start_grafana", json=grafana_args)
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/start_grafana", json=grafana_args)
         app.logger.debug(f"Grafana start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -371,8 +375,8 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/stop_zookeeper')  
     def stop_zookeeper():
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/stop_zookeeper")
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/stop_zookeeper")
         app.logger.info(f"Zookeeper stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -383,8 +387,8 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/stop_kafka')
     def stop_kafka():
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/stop_kafka")
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/stop_kafka")
         app.logger.info(f"Kafka stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -395,8 +399,8 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/stop_prometheus')
     def stop_prometheus():
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/stop_prometheus")
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/stop_prometheus")
         app.logger.info(f"Prometheus stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -407,8 +411,8 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/stop_grafana')
     def stop_grafana():
-        controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/stop_grafana")
+        monitor_external_ip = containers_external_ips['monitor']
+        response = requests.post(f"http://{monitor_external_ip}:8000/stop_grafana")
         app.logger.info(f"Grafana stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -524,6 +528,7 @@ def main(cfg: DictConfig) -> None:
         rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards, resolve=True), {}).copy()
         del init_args['rewards']
         init_args['rewards'] = rewards
+        init_args['monitor_ip'] = containers_external_ips['monitor']
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:8000/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
@@ -558,10 +563,10 @@ def main(cfg: DictConfig) -> None:
         global monitoring_services_lock, monitoring_services
 
         while monitoring_services:
-            controller_external_ip = containers_external_ips['pox-controller']
+            monitor_external_ip = containers_external_ips['monitor']
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{controller_external_ip}:8000/check_zookeeper")
+                    response = requests.get(f"http://{monitor_external_ip}:8000/check_zookeeper")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:
@@ -579,7 +584,7 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{controller_external_ip}:8000/check_kafka")
+                    response = requests.get(f"http://{monitor_external_ip}:8000/check_kafka")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:
@@ -597,7 +602,7 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{controller_external_ip}:8000/check_grafana")
+                    response = requests.get(f"http://{monitor_external_ip}:8000/check_grafana")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:
@@ -615,7 +620,7 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{controller_external_ip}:8000/check_prometheus")
+                    response = requests.get(f"http://{monitor_external_ip}:8000/check_prometheus")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:

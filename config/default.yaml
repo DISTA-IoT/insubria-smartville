@@ -36,10 +36,10 @@ topology_creator:
   # the monitoring nodes are standalone ones:
 
   # These are used only if the monitorning nodes are standalone ones:
-  zookeeper_ip: ${monitor_hostname}
-  kafka_ip: ${monitor_hostname}
-  grafana_ip: ${monitor_hostname}
-  prometheus_ip: ${monitor_hostname}
+  zookeeper_ip: ${topology_creator.monitor_hostname}
+  kafka_ip: ${topology_creator.monitor_hostname}
+  grafana_ip: ${topology_creator.monitor_hostname}
+  prometheus_ip: ${topology_creator.monitor_hostname}
 
   grafana_start: "run.sh"
   zookeeper_start: "/etc/confluent/docker/run"
@@ -350,7 +350,7 @@ grafana:
 
 prometheus:
     clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
-    clienthost: ${topology_creator.monitor_hostname}
+    clienthost: ${topology_creator.controller_ip}
     serverhost: ${topology_creator.monitor_hostname}
     config_file:
         global:
