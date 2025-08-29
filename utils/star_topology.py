@@ -214,7 +214,7 @@ def mount_monitor(templates):
         delete_node(server,project,monitor_id)
         print("Old monitor node deleted")
 
-    monitor = create_node(server, project, 0, 180, template_id, monitor_name)
+    monitor = create_node(server, project, 0, -480, template_id, monitor_name)
     monitor_id = monitor['node_id']
     print(f"new {MONITOR_IMG_NAME} monitor created ")
     time.sleep(2)
