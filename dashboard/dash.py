@@ -115,6 +115,8 @@ def init_traffic_stuff(cfg):
     cfg.grafana.host = containers_external_ips['monitor']
     cfg.kafka.host = containers_external_ips['monitor']
     cfg.prometheus.serverhost = containers_external_ips['monitor']
+    cfg.prometheus.clienthost = containers_external_ips['pox-controller']
+
 
 def append_ips_to_no_proxy():
     no_proxy_ips = ','.join(containers_external_ips.values())
@@ -327,7 +329,7 @@ def main(cfg: DictConfig) -> None:
     def start_zookeeper():
         zookeeper_args = OmegaConf.to_container(cfg.zookeeper.config_file, resolve=True)
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/start_zookeeper", json=zookeeper_args)
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/start_zookeeper", json=zookeeper_args)
         app.logger.debug(f"Zookeeper start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -339,7 +341,7 @@ def main(cfg: DictConfig) -> None:
     def start_kafka():
         kafka_args = OmegaConf.to_container(cfg.kafka.config_file, resolve=True)
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/start_kafka", json=kafka_args)
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/start_kafka", json=kafka_args)
         app.logger.debug(f"Kafka start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -351,7 +353,7 @@ def main(cfg: DictConfig) -> None:
     def start_prometheus():
         prometheus_args = OmegaConf.to_container(cfg.prometheus.config_file, resolve=True)
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/start_prometheus", json=prometheus_args)
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/start_prometheus", json=prometheus_args)
         app.logger.debug(f"Prometheus start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -364,7 +366,7 @@ def main(cfg: DictConfig) -> None:
     def start_grafana():
         grafana_args = OmegaConf.to_container(cfg.grafana.config_file, resolve=True)
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/start_grafana", json=grafana_args)
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/start_grafana", json=grafana_args)
         app.logger.debug(f"Grafana start answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -376,7 +378,7 @@ def main(cfg: DictConfig) -> None:
     @app.post('/stop_zookeeper')  
     def stop_zookeeper():
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/stop_zookeeper")
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/stop_zookeeper")
         app.logger.info(f"Zookeeper stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -388,7 +390,7 @@ def main(cfg: DictConfig) -> None:
     @app.post('/stop_kafka')
     def stop_kafka():
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/stop_kafka")
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/stop_kafka")
         app.logger.info(f"Kafka stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -400,7 +402,7 @@ def main(cfg: DictConfig) -> None:
     @app.post('/stop_prometheus')
     def stop_prometheus():
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/stop_prometheus")
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/stop_prometheus")
         app.logger.info(f"Prometheus stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -412,7 +414,7 @@ def main(cfg: DictConfig) -> None:
     @app.post('/stop_grafana')
     def stop_grafana():
         monitor_external_ip = containers_external_ips['monitor']
-        response = requests.post(f"http://{monitor_external_ip}:8000/stop_grafana")
+        response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/stop_grafana")
         app.logger.info(f"Grafana stop answered with status code: {response.status_code}")
         return Response(
             response.content,
@@ -566,7 +568,7 @@ def main(cfg: DictConfig) -> None:
             monitor_external_ip = containers_external_ips['monitor']
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{monitor_external_ip}:8000/check_zookeeper")
+                    response = requests.get(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/check_zookeeper")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:
@@ -584,7 +586,7 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{monitor_external_ip}:8000/check_kafka")
+                    response = requests.get(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/check_kafka")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:
@@ -602,7 +604,7 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{monitor_external_ip}:8000/check_grafana")
+                    response = requests.get(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/check_grafana")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:
@@ -620,7 +622,7 @@ def main(cfg: DictConfig) -> None:
             time.sleep(1)
             with monitoring_services_lock:
                 if monitoring_services:
-                    response = requests.get(f"http://{monitor_external_ip}:8000/check_prometheus")
+                    response = requests.get(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/check_prometheus")
                     response_content = json.loads(response.content)
                     if response.status_code == 200:
                         if not response_content['running']:

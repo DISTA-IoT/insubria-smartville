@@ -26,6 +26,7 @@ for image in "${TARGET_IMAGES[@]}"; do
         echo "Updating code in container $container_name ($container)..."
         docker exec -it "$container" /bin/bash -c 'git fetch'
         docker exec -it "$container" /bin/bash -c 'git pull --rebase'
+        docker exec -it "$container" /bin/bash -c 'pip install -r requirements.txt'
     done
 
     echo "All containers image $image updated successfully!"

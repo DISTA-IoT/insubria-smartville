@@ -164,7 +164,7 @@ def mount_edge_switch(templates):
     return curr_switch_label
 
 
-def mountController(templates, switch_name, ip=None):
+def mount_controller(templates, switch_name, ip=None):
     """
     We did not add Gateways to node configuration in GNS3. If you need to do so, refer to the GNS3utils API.
     """
@@ -590,7 +590,7 @@ def starTopology(cfg, templates):
     main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=main_switch_ip)
     edge_switch_node_name = mount_edge_switch(templates)
     controller_ip = cfg.topology_creator.controller_ip + cfg.topology_creator.netmask
-    controller_node_name = mountController(templates, main_switch_node_name, ip=controller_ip)
+    controller_node_name = mount_controller(templates, main_switch_node_name, ip=controller_ip)
     monitor_node_name = mount_monitor(templates)
     """
     zookeeper_ip = cfg.topology_creator.zookeeper_ip + cfg.topology_creator.netmask
@@ -660,17 +660,20 @@ def update_main_switch_template(templates):
         server, SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count, start_command='')
 
 def update_controller_template(args, templates):
-    global project, ENV_STR
+    global project
 
+    CONTROLLER_ENV_VARS = ""
     controller_template_id = get_template_id_from_name(templates, CONTROLLER_IMG_NAME)
     if(controller_template_id is not None):
         delete_template(server,project,controller_template_id)
         print(f"old controller template {CONTROLLER_IMG_NAME} deleted")
 
-    for key, value in args.get('switch_args').items():
-        ENV_STR += f"{key}={value}\n"
+    for key, value in OmegaConf.to_container(args.controller, resolve=True).items():
+        CONTROLLER_ENV_VARS += f"{key}={value}\n"
 
-    create_docker_template(server, CONTROLLER_IMG_NAME, CONTROLLER_START_COMMAND, str(CONTROLLER_IMG_NAME+":latest"),environment=ENV_STR)
+    CONTROLLER_ENV_VARS += ENV_STR
+
+    create_docker_template(server, CONTROLLER_IMG_NAME, CONTROLLER_START_COMMAND, str(CONTROLLER_IMG_NAME+":latest"),environment=CONTROLLER_ENV_VARS)
 
 
 def update_monitor_template(args, templates):
@@ -685,6 +688,8 @@ def update_monitor_template(args, templates):
 
     for key, value in OmegaConf.to_container(args.monitor, resolve=True).items():
         MONITOR_ENV_STR += f"{key}={value}\n"
+
+    MONITOR_ENV_STR += ENV_STR
 
     create_docker_template(server, MONITOR_IMG_NAME, MONITOR_START_COMMAND, str(MONITOR_IMG_NAME+":latest"),environment=MONITOR_ENV_STR)
 
@@ -701,6 +706,8 @@ def update_zookeeper_template(args, templates):
     for key, value in OmegaConf.to_container(args.zookeeper, resolve=True).items():
         ZOOKEEPER_ENV_STR += f"{key}={value}\n"
 
+    ZOOKEEPER_ENV_STR += ENV_STR
+
     create_docker_template(server, ZOOKEEPER_IMG_NAME, ZOOKEEPER_START_COMMAND, str(ZOOKEEPER_IMG_NAME+":latest"),environment=ZOOKEEPER_ENV_STR)
 
 
@@ -715,6 +722,8 @@ def update_kafka_template(args, templates):
 
     for key, value in OmegaConf.to_container(args.kafka, resolve=True).items():
         KAFKA_ENV_STR += f"{key}={value}\n"
+
+    KAFKA_ENV_STR += ENV_STR
 
     create_docker_template(server, KAFKA_IMG_NAME, KAFKA_START_COMMAND, str(KAFKA_IMG_NAME+":latest"),environment=KAFKA_ENV_STR)
 
@@ -732,6 +741,8 @@ def update_grafana_template(args, templates):
     for key, value in args.get('switch_args').items():
         GRAFANA_ENV_STR += f"{key}={value}\n"
 
+    GRAFANA_ENV_STR += ENV_STR
+
     create_docker_template(server, GRAFANA_IMG_NAME, GRAFANA_START_COMMAND, str(GRAFANA_IMG_NAME+":latest"),environment=GRAFANA_ENV_STR)
 
 
@@ -747,6 +758,8 @@ def update_prometheus_template(args, templates):
     for key, value in args.get('switch_args').items():
         PROMETHEUS_ENV_STR += f"{key}={value}\n"
 
+    PROMETHEUS_ENV_STR += ENV_STR
+    
     create_docker_template(server, PROMETHEUS_IMG_NAME, PROMETHEUS_START_COMMAND, str(PROMETHEUS_IMG_NAME+":latest"),environment=PROMETHEUS_ENV_STR)
 
 
@@ -790,7 +803,7 @@ def main(cfg: DictConfig) -> None:
     global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT, MONITOR_START_COMMAND
     global GRAFANA_START_COMMAND, PROMETHEUS_START_COMMAND, ZOOKEEPER_START_COMMAND, KAFKA_START_COMMAND
     global gns3_server_connector, logger, server, project, node_ids, template_ids
-    global ENV_STR
+    
     logger = logging.getLogger("Topology Creator")
     logger.info("\nIMPORTANT: Parameters are read from the default.yaml file at the config dir. \n")
     if cfg.override != "":
@@ -845,7 +858,9 @@ def main(cfg: DictConfig) -> None:
     KAFKA_START_COMMAND = args.kafka_start
     ZOOKEEPER_START_COMMAND = args.zookeeper_start
 
-    ENV_STR = args.env_vars
+    ENV_STR = ""
+    for key, value in args.get('switch_args').items():
+        ENV_STR += f"{key}={value}\n"
     
     ATTACKER_NODE_COUNT = len(cfg.attackers)
     VICTIM_NODE_COUNT = len(cfg.honeypots)

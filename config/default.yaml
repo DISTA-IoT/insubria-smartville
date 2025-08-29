@@ -21,16 +21,22 @@ topology_creator:
   grafana_docker: grafana/grafana
 
   # important ips.
+  # PRIVATE SUBNET (INTERNAL NETWORK FOR GNS3 EMULATION)
   subnet: 192.168.1.0
   netmask: /24
-  controller_ip: 192.168.1.1
+  controller_ip: 192.168.1.1 # internal controller port (eth0)
   main_switch_ip: 192.168.1.2
   bridge_ip: 192.168.1.100
+
+  # PUBLIC SUBNET (HOST NETWORK, FOR SMARTVILLE WEBSERVICES)
+  controller_hostname: controller # this will be the hostname of the EXTERNAL controller port (eth1)
   monitor_hostname: monitor # this guy will be dynamically assigned an ip on the host network (not the subnet)
   
   monitor:
-    SERVER_PORT: 8000
+    SERVER_PORT: 5000
 
+  controller:
+    SERVER_PORT: 7777
   ####### STANDALONE MONITORING NODES
   # these configuration variables are applied only when 
   # the monitoring nodes are standalone ones:
@@ -86,7 +92,7 @@ topology_creator:
     max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
     arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
     
-  # Environment variables (newline separated)
+  # Additional Environment variables for all nodes (newline separated)
   env_vars: ''  # Format example: "VAR_ONE=value1\nVAR2=2\nBLABLABLA=something"
 
 
@@ -350,7 +356,7 @@ grafana:
 
 prometheus:
     clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
-    clienthost: ${topology_creator.controller_ip}
+    clienthost: ${topology_creator.controller_hostname}
     serverhost: ${topology_creator.monitor_hostname}
     config_file:
         global:
