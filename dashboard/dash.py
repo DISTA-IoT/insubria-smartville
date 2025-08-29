@@ -45,12 +45,6 @@ stop_services_function = None
 HEALTH_MONITORING = None
 KAFKA_PORT = None
 
-def launch_metrics():
-    for container_name, container_obj in containers_dict.items():
-        if container_name.startswith('victim'):
-            # Build the command to execute your Bash script with its arguments
-            command = [TERMINAL_ISSUER_PATH, f"{container_obj.id}:{container_name}-METRICS:python3 producer.py"]
-            launch_detached_command(command)
 
 
 def run_command_in_container(container, command):
@@ -254,7 +248,7 @@ def main(cfg: DictConfig) -> None:
             host_info['node_features'] = HEALTH_MONITORING
             host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
             host_info['health_params'] = cfg.health
-            response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
+            response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay", json=host_info)
             if response.json() is not None:
                 response_str += f"{hostname}:{response.status_code} - {response.json()['message']}\n"
 
@@ -272,7 +266,7 @@ def main(cfg: DictConfig) -> None:
         host_info['node_features'] = HEALTH_MONITORING
         host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
         host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
-        response = requests.post(f"http://{node_external_ip}:8000/replay", json=host_info)
+        response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"
 
 
@@ -283,7 +277,7 @@ def main(cfg: DictConfig) -> None:
 
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
-            response = requests.post(f"http://{node_external_ip}:8000/stop")
+            response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/stop")
             if response.json() is not None:
                 response_str += f"{hostname}:({response.status_code}) {response.json()['message']}\n"
         
@@ -294,7 +288,7 @@ def main(cfg: DictConfig) -> None:
     def stop_traffic_single():
         hostname = request.json['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
-        response = requests.post(f"http://{node_external_ip}:8000/stop")
+        response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/stop")
         return f"{hostname}:({response.status_code}) {response.json()['message']}"
     
 
@@ -305,7 +299,7 @@ def main(cfg: DictConfig) -> None:
 
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
-            response = requests.get(f"http://{node_external_ip}:8000/replay_status")
+            response = requests.get(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay_status")
             if response.json() is not None:
                 response_str += f"{hostname}: {response.json()['message']}\n"
 
@@ -532,7 +526,7 @@ def main(cfg: DictConfig) -> None:
         init_args['rewards'] = rewards
         init_args['monitor_ip'] = containers_external_ips['monitor']
         controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/initialize", json=init_args)
+        response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
         return response.json()
 
@@ -540,7 +534,7 @@ def main(cfg: DictConfig) -> None:
     @app.route('/stop_controller', methods=['POST'])
     def stop_controller():
         controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:8000/stop")
+        response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/stop")
         response = response.json()
         app.logger.info(f"Replay from controller answered with status code: {response['status_code']}")
         return response
