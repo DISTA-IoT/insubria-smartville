@@ -9,15 +9,25 @@ endif
 .PHONY: all build-controller build-attacker build-victim build-openvswitch build-monitor
 
 all: build-controller build-attacker build-victim build-openvswitch build-monitor
+allnocache: build-victim-no-cache build-attacker-no-cache build-controller-no-cache build-monitor-nocache
 
 build-controller:
 	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
 
+build-controller-no-cache:
+	docker build --no-cache --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
+
 build-attacker:
 	docker build -t attacker -f AttackerNode/attacker.Dockerfile AttackerNode/.
 
+build-attacker-no-cache:
+	docker build --no-cache -t attacker -f AttackerNode/attacker.Dockerfile AttackerNode/.
+
 build-victim:
 	docker build -t victim -f VictimNode/victim.Dockerfile VictimNode/.
+
+build-victim-no-cache:
+	docker build --no-cache -t victim -f VictimNode/victim.Dockerfile VictimNode/.
 
 build-botmaster:
 	docker build --build-arg GIT_USERNAME=$(GIT_USERNAME) --build-arg GIT_TOKEN=$(GIT_TOKEN) -t botmaster -f BotMasterNode/botmaster.Dockerfile BotMasterNode/.
@@ -27,6 +37,9 @@ build-openvswitch:
 
 build-monitor:
 	docker build -t monitor -f smartville-monitor/monitor.Dockerfile smartville-monitor/.
+
+build-monitor-nocache:
+	docker build --no-cache -t monitor -f smartville-monitor/monitor.Dockerfile smartville-monitor/.
 
 # Zookeeper node (uses prebuilt Confluent image)
 build-zookeeper:
