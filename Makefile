@@ -9,7 +9,7 @@ endif
 .PHONY: all build-controller build-attacker build-victim build-openvswitch build-monitor
 
 all: build-controller build-attacker build-victim build-openvswitch build-monitor
-allnocache: build-victim-no-cache build-attacker-no-cache build-controller-no-cache build-monitor-nocache
+allnocache: build-victim-nocache build-attacker-nocache build-controller-nocache build-monitor-nocache
 
 build-controller:
 	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
@@ -20,7 +20,7 @@ build-controller-no-cache:
 build-attacker:
 	docker build -t attacker -f AttackerNode/attacker.Dockerfile AttackerNode/.
 
-build-attacker-no-cache:
+build-attacker-nocache:
 	docker build --no-cache -t attacker -f AttackerNode/attacker.Dockerfile AttackerNode/.
 
 build-victim:
