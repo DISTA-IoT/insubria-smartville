@@ -234,6 +234,7 @@ honeypots:
       pattern: 'hue'
       destination: 'victim-0'
 
+
 attackers:
   - attacker-1:
       pattern: 'cc_heartbeat'
@@ -323,6 +324,36 @@ knowledge:
         - echo
 
 
+prometheus:
+    clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
+    clienthost: ${topology_creator.controller_hostname}
+    serverhost: ${topology_creator.monitor_hostname}
+    serverport: 9090
+    config_file:
+        global:
+            scrape_interval:     5s 
+            evaluation_interval: 5s 
+            external_labels:
+                monitor: 'example'
+
+        alerting:
+            alertmanagers:
+            - static_configs:
+                - targets: ['${prometheus.serverhost}:9093']
+
+        rule_files:
+
+        scrape_configs:
+            - job_name: 'prometheus'
+              scrape_interval: 5s
+              scrape_timeout: 5s
+              static_configs:
+                - targets: ['${prometheus.serverhost}:${prometheus.serverport}']
+
+            - job_name: 'system_metrics'
+              static_configs:
+                - targets: ['${prometheus.clienthost}:${prometheus.clientport}']
+
 
 grafana:
     # Username and pass for grafana dashboard. if you change the default admin admin, you should
@@ -330,9 +361,9 @@ grafana:
     # in the contianer, so maybe it is better to leave it like this :)
     user: 'admin'  
     password: 'admin'
-    port: 9090
+    port: 3000
     host: ${topology_creator.monitor_hostname}
-    datasource_url: http://${grafana.host}:${grafana.port}${topology_creator.netmask}):${grafana.port} # don't know why but only this strange pattern works...
+    datasource_url: http://${prometheus.serverhost}:${prometheus.serverport}
     # this is only the datasources config_file, not the grafana config file.... we are not touching the grafana config file...
     config_file:
         apiVersion: 1
@@ -365,37 +396,7 @@ grafana:
                 # password:
                 # basicAuthPassword:
             version: 1
-            editable: false
-
-
-prometheus:
-    clientport: 8001 # 8000 is used by the SmartSwitch server in the controller...(you cant change this from here...)
-    clienthost: ${topology_creator.controller_hostname}
-    serverhost: ${topology_creator.monitor_hostname}
-    config_file:
-        global:
-            scrape_interval:     5s 
-            evaluation_interval: 5s 
-            external_labels:
-                monitor: 'example'
-
-        alerting:
-            alertmanagers:
-            - static_configs:
-                - targets: ['${prometheus.serverhost}:9093']
-
-        rule_files:
-
-        scrape_configs:
-            - job_name: 'prometheus'
-              scrape_interval: 5s
-              scrape_timeout: 5s
-              static_configs:
-                - targets: ['${grafana.host}:${grafana.port}']
-
-            - job_name: 'system_metrics'
-              static_configs:
-                - targets: ['${prometheus.clienthost}:${prometheus.clientport}']
+            editable: true
 
 
 zookeeper:
