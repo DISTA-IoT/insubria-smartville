@@ -22,7 +22,7 @@ intrusion_detection:
 
 topology_creator:
   use_gns3_config_file: false
-  env_vars: |
+  ADDITIONAL_ENV_VARS: |
     https_proxy=http://proxy.uninsubria.it:3128
     HTTPS_PROXY=http://proxy.uninsubria.it:3128
     HTTP_PROXY=http://proxy.uninsubria.it:3128

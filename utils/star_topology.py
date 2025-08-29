@@ -738,7 +738,7 @@ def update_grafana_template(args, templates):
         delete_template(server,project,grafana_template_id)
         print(f"old controller template {GRAFANA_IMG_NAME} deleted")
 
-    for key, value in args.get('switch_args').items():
+    for key, value in OmegaConf.to_container(args.grafana, resolve=True).items():
         GRAFANA_ENV_STR += f"{key}={value}\n"
 
     GRAFANA_ENV_STR += ENV_STR
@@ -755,11 +755,11 @@ def update_prometheus_template(args, templates):
         delete_template(server,project,prometheus_template_id)
         print(f"old controller template {PROMETHEUS_IMG_NAME} deleted")
 
-    for key, value in args.get('switch_args').items():
+    for key, value in OmegaConf.to_container(args.prometheus, resolve=True).items():
         PROMETHEUS_ENV_STR += f"{key}={value}\n"
 
     PROMETHEUS_ENV_STR += ENV_STR
-    
+
     create_docker_template(server, PROMETHEUS_IMG_NAME, PROMETHEUS_START_COMMAND, str(PROMETHEUS_IMG_NAME+":latest"),environment=PROMETHEUS_ENV_STR)
 
 
@@ -859,7 +859,7 @@ def main(cfg: DictConfig) -> None:
     ZOOKEEPER_START_COMMAND = args.zookeeper_start
 
     ENV_STR = ""
-    for key, value in args.get('switch_args').items():
+    for key, value in args.get('ADDITIONAL_ENV_VARS').items():
         ENV_STR += f"{key}={value}\n"
     
     ATTACKER_NODE_COUNT = len(cfg.attackers)

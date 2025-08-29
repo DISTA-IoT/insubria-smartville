@@ -32,11 +32,43 @@ topology_creator:
   controller_hostname: controller # this will be the hostname of the EXTERNAL controller port (eth1)
   monitor_hostname: monitor # this guy will be dynamically assigned an ip on the host network (not the subnet)
   
+  ############# ENV VARS:
   monitor:
     SERVER_PORT: 5000
 
   controller:
     SERVER_PORT: 7777
+    flow_idle_timeout:  10 # Number of no-activity seconds  for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
+    arp_timeout: 120 # Number of seconds to delete and ARP entry in the switch. Default is 120
+    max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
+    max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
+    arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
+    
+
+  ############# EO ENV VARS
+
+
+  
+  # Controller configuration
+  contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.tiger_server"
+  monitor_start: "python monitor_server.py"
+  # GNS3 Configuration
+  use_gns3_config_file: true
+  gns3_config_path: ~/.config/GNS3/2.2/gns3_server.conf
+
+  # GNS3 Server settings (used when use_gns3_config_file is false)
+  gns3_host: localhost
+  gns3_port: 3080
+  gns3_auth: false
+  gns3_username: admin
+  gns3_password: admin
+
+    
+  # Additional Environment variables for all nodes (newline separated)
+  ADDITIONAL_ENV_VARS: ''  # Format example: "VAR_ONE=value1\nVAR2=2\nBLABLABLA=something"
+
+
+  ###################################################################################################################
   ####### STANDALONE MONITORING NODES
   # these configuration variables are applied only when 
   # the monitoring nodes are standalone ones:
@@ -68,32 +100,14 @@ topology_creator:
     KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'  # Automatically create topics when required
     KAFKA_PROCESS_ROLES: 'broker,controller'
     CLUSTER_ID: '1'
+
+  grafana:
+   BAR: 'foo'
+
+  prometheus:
+   BAR: 'foo'
   ####### END OF STANDALONE MONITORING NODES
-
-
-  # Controller configuration
-  contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.tiger_server"
-  monitor_start: "python monitor_server.py"
-  # GNS3 Configuration
-  use_gns3_config_file: true
-  gns3_config_path: ~/.config/GNS3/2.2/gns3_server.conf
-
-  # GNS3 Server settings (used when use_gns3_config_file is false)
-  gns3_host: localhost
-  gns3_port: 3080
-  gns3_auth: false
-  gns3_username: admin
-  gns3_password: admin
-
-  switch_args:
-    flow_idle_timeout:  10 # Number of no-activity seconds  for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
-    arp_timeout: 120 # Number of seconds to delete and ARP entry in the switch. Default is 120
-    max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
-    max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
-    arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
-    
-  # Additional Environment variables for all nodes (newline separated)
-  env_vars: ''  # Format example: "VAR_ONE=value1\nVAR2=2\nBLABLABLA=something"
+  ###################################################################################################################
 
 
 base_params:
