@@ -54,17 +54,6 @@ def run_command_in_container(container, command):
     return pid
 
 
-def launch_traffic_single(target_ip, command_to_run):
-    # send a get request to target_ip port 8000
-    response = requests.get(f"http://{target_ip}:8000")
-    if response.status_code == 200:
-        result = f"GET request to {target_ip} was successful."
-    else:
-        result = f"GET request to {target_ip} failed with status code: {response.status_code}"
-
-    return result
-
-
 def launch_browser_consoles(cfg, controller_container):
         ifconfig_output = run_command_in_container(
             controller_container, 
@@ -106,7 +95,7 @@ def init_traffic_stuff(cfg):
     traffic_dict = {**honeypots_dict, **attackers_dict}
     
     # modify params for monitor ip:
-    cfg.grafana.host = containers_external_ips['monitor']
+    cfg.grafana.host = '0.0.0.0'
     cfg.kafka.host = containers_external_ips['monitor']
     cfg.prometheus.serverhost = containers_external_ips['monitor']
     cfg.prometheus.clienthost = containers_external_ips['pox-controller']
@@ -246,9 +235,10 @@ def main(cfg: DictConfig) -> None:
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
             host_info['node_features'] = HEALTH_MONITORING
-            host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
+            host_info['kafka_endpoint'] = cfg.kafka.endpoint
             host_info['health_params'] = cfg.health
-            response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay", json=host_info)
+            port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
+            response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
             if response.json() is not None:
                 response_str += f"{hostname}:{response.status_code} - {response.json()['message']}\n"
 
@@ -264,9 +254,10 @@ def main(cfg: DictConfig) -> None:
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
         host_info['node_features'] = HEALTH_MONITORING
-        host_info['kafka_endpoint'] = containers_internal_ips['pox-controller']+":"+str(KAFKA_PORT)
+        host_info['kafka_endpoint'] = cfg.kafka.endpoint
         host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
-        response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay", json=host_info)
+        port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
+        response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"
 
 
@@ -277,7 +268,8 @@ def main(cfg: DictConfig) -> None:
 
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
-            response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/stop")
+            port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
+            response = requests.post(f"http://{node_external_ip}:{port}/stop")
             if response.json() is not None:
                 response_str += f"{hostname}:({response.status_code}) {response.json()['message']}\n"
         
@@ -288,7 +280,8 @@ def main(cfg: DictConfig) -> None:
     def stop_traffic_single():
         hostname = request.json['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
-        response = requests.post(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/stop")
+        port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
+        response = requests.post(f"http://{node_external_ip}:{port}/stop")
         return f"{hostname}:({response.status_code}) {response.json()['message']}"
     
 
