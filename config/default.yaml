@@ -69,7 +69,9 @@ topology_creator:
 
     
   # Additional Environment variables for all nodes (newline separated)
-  ADDITIONAL_ENV_VARS: ''  # Format example: "VAR_ONE=value1\nVAR2=2\nBLABLABLA=something"
+  ADDITIONAL_ENV_VARS:
+    FOO: bar
+    BAR: foo
 
 
   ###################################################################################################################
