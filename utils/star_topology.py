@@ -623,7 +623,7 @@ def starTopology(cfg, templates):
     start_all()
 
 
-def update_generic_template(templates, img_name, start_command):
+def update_generic_template(templates, img_name, start_command, env_vars):
     global project
 
     template_id = get_template_id_from_name(templates, img_name)
@@ -632,7 +632,7 @@ def update_generic_template(templates, img_name, start_command):
         print((f"{template_id}: deleting old template"))
         
     print((f"{template_id}: creating a new template using local image"))
-    create_docker_template(server, img_name, start_command, str(img_name+":latest"), environment=ENV_STR)
+    create_docker_template(server, img_name, start_command, str(img_name+":latest"), environment=env_vars)
 
 
 def update_edge_switch_template(templates):
@@ -658,6 +658,26 @@ def update_main_switch_template(templates):
     network_adapters_count = 10 + VICTIM_NODE_COUNT + ATTACKER_NODE_COUNT
     create_docker_template_switch(
         server, SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count, start_command='')
+
+
+def update_victim_template(args, templates):
+    VICTIM_ENV_VARS = ""
+    for key, value in OmegaConf.to_container(args.victim, resolve=True).items():
+        VICTIM_ENV_VARS += f"{key}={value}\n"
+
+    VICTIM_ENV_VARS += ENV_STR
+
+    update_generic_template(templates, VICTIM_IMG_NAME, HONEYPOT_SERVER_COMMAND, VICTIM_ENV_VARS)
+
+
+def update_attacker_template(args, templates):
+    ATTACKER_ENV_VARS = ""
+    for key, value in OmegaConf.to_container(args.attacker, resolve=True).items():
+        ATTACKER_ENV_VARS += f"{key}={value}\n"
+
+    ATTACKER_ENV_VARS += ENV_STR
+
+    update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND, ATTACKER_ENV_VARS)
 
 def update_controller_template(args, templates):
     global project
@@ -781,14 +801,14 @@ def update_templates(args, templates):
     update_main_switch_template(templates)
     update_controller_template(args, templates)
     update_monitor_template(args, templates)
+    update_victim_template(args, templates)
+    update_attacker_template(args, templates)
     """
     update_zookeeper_template(args, templates)
     update_kafka_template(args, templates)
     update_grafana_template(args, templates)
     update_prometheus_template(args, templates)
     """
-    update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND)
-    update_generic_template(templates, VICTIM_IMG_NAME, HONEYPOT_SERVER_COMMAND)
 
 
 

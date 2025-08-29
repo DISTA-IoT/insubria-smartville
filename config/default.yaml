@@ -44,7 +44,11 @@ topology_creator:
     max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
     arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
     
-
+  attacker:
+    SERVER_PORT: 7777
+  
+  victim:
+    SERVER_PORT: 7777
   ############# EO ENV VARS
 
 
@@ -122,7 +126,6 @@ base_params:
   dashboard_port: 7777 # Port of the Flask dashboard in the host machine
   replay_speed: 1 # Replay speed factor
   
-
 
 intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
