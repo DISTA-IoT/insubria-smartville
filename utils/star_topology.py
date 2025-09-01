@@ -880,10 +880,7 @@ def main(cfg: DictConfig) -> None:
     KAFKA_START_COMMAND = args.kafka_start
     ZOOKEEPER_START_COMMAND = args.zookeeper_start
 
-    ENV_STR = ""
-    for key, value in args.get('ADDITIONAL_ENV_VARS').items():
-        ENV_STR += f"{key}={value}\n"
-    
+    ENV_STR = args.get('ADDITIONAL_ENV_VARS')
     ATTACKER_NODE_COUNT = len(cfg.attackers)
     VICTIM_NODE_COUNT = len(cfg.honeypots)
     

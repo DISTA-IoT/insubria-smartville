@@ -68,10 +68,10 @@ topology_creator:
   gns3_password: admin
 
     
-  # Additional Environment variables for all nodes (newline separated)
+  # Additional Environment variables for all nodes (VAR=VALUE newline separated)
   ADDITIONAL_ENV_VARS: |
-    FOO: bar
-    BAR: foo
+    FOO=bar
+    BAR=foo
 
 
   ###################################################################################################################
