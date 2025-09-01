@@ -63,7 +63,7 @@ knowledge:
         - doorlock
         - hue
 
-    malicious_patterns:
+    attack_patterns:
         - hakai
         - mirai
         - hajime
