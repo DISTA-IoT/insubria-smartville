@@ -94,6 +94,15 @@ def append_ips_to_no_proxy():
     # Print the current value of no_proxy
     print(f"Current no_proxy value: {current_no_proxy}")
 
+def get_models_source():
+    # Read the model class from a Python file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    main_dir = os.path.dirname(current_dir)
+    code_dir = os.path.join(main_dir, 'models')
+    with open(code_dir+'/models.py', 'r') as f:
+        source_code = f.read()
+    
+    return source_code
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
@@ -503,6 +512,7 @@ def main(cfg: DictConfig) -> None:
         del init_args['rewards']
         init_args['rewards'] = rewards
         init_args['monitor_ip'] = containers_external_ips['monitor']
+        init_args['models'] = get_models_source()
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
