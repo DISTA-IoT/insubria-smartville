@@ -69,7 +69,7 @@ topology_creator:
 
     
   # Additional Environment variables for all nodes (newline separated)
-  ADDITIONAL_ENV_VARS:
+  ADDITIONAL_ENV_VARS: |
     FOO: bar
     BAR: foo
 
