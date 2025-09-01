@@ -36,7 +36,7 @@ containers_external_ips = {}
 containers_internal_ips = {}
 internal_ips_containers = {}
 traffic_dict = {}
-
+labelled_traffic_dict = {}
 TERMINAL_ISSUER_PATH = None
 internal_subnet = None
 monitoring_services_lock = Lock()
@@ -68,31 +68,37 @@ def launch_browser_consoles(cfg, controller_container):
 
 
 def init_traffic_stuff(cfg):
-    global traffic_dict
+    global traffic_dict, labelled_traffic_dict
 
     honeypots_dict = OmegaConf.to_container(cfg.honeypots, resolve=True)
     attackers_dict = OmegaConf.to_container(cfg.attackers, resolve=True)
-
-    for honeypot_name, honeypot_info in honeypots_dict.items():
-        honeypot_info['dest_ip'] = containers_internal_ips[honeypot_info['destination']]
-        honeypot_info['src_ip'] = containers_internal_ips[honeypot_name]
-        honeypot_info['benign'] = True
-        honeypot_info['speed_multiplier'] = cfg.base_params.replay_speed
-        if 'pattern' not in honeypot_info:
-            honeypot_info['pattern'] = random.choice(cfg.knowledge.bening_patterns)
             
 
     for attacker_name, attacker_info in attackers_dict.items():
         attacker_info['dest_ip'] = containers_internal_ips[attacker_info['destination']]
-        attacker_info['benign'] = False
         attacker_info['src_ip'] = containers_internal_ips[attacker_name]
         attacker_info['speed_multiplier'] = cfg.base_params.replay_speed
         if 'pattern' not in attacker_info:
-            attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns)
-            
+            attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns + cfg.knowledge.bening_patterns)
+        attacker_info['benign'] = attacker_info['pattern'] in cfg.knowledge.bening_patterns
+
+
+    for honeypot_name, honeypot_info in honeypots_dict.items():
+        if honeypot_info:
+            if 'destination' in honeypot_info:
+                assert honeypot_info['destination'] not in attackers_dict.keys(), \
+                    f"Honeypot {honeypot_name} has destination {honeypot_info['destination']}, which is an attacker! "+ \
+                    "A honeypot destination of a honeypot cannot be an attacker!"
+                honeypot_info['dest_ip'] = containers_internal_ips[honeypot_info['destination']]
+                honeypot_info['src_ip'] = containers_internal_ips[honeypot_name]
+                honeypot_info['benign'] = True
+                honeypot_info['speed_multiplier'] = cfg.base_params.replay_speed
+                if 'pattern' not in honeypot_info:
+                    honeypot_info['pattern'] = random.choice(cfg.knowledge.bening_patterns)
 
     # fuse the honeypots and attackers dict into a unique dict
     traffic_dict = {**honeypots_dict, **attackers_dict}
+    labelled_traffic_dict = attackers_dict
     
     # modify params for monitor ip:
     cfg.grafana.host = '0.0.0.0'
@@ -513,7 +519,7 @@ def main(cfg: DictConfig) -> None:
         del init_args['base_params']
         del init_args['honeypots']
         del init_args['attackers']
-        init_args['traffic_dict'] = traffic_dict
+        init_args['traffic_dict'] = labelled_traffic_dict
         rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards, resolve=True), {}).copy()
         del init_args['rewards']
         init_args['rewards'] = rewards
