@@ -13,8 +13,4 @@ typing_extensions==4.9.0
 urllib3==2.1.0
 PyYAML==6.0.1
 flask>=3.1.0
-confluent_kafka
-psutil
-grafana_api
-prometheus-api-client
-prometheus-client
+torch>=2.8.0
