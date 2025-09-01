@@ -16,16 +16,16 @@ intrusion_detection:
   
 topology_creator:
   use_gns3_config_file: false
-  #ADDITIONAL_ENV_VARS: |
-  #  https_proxy=http://proxy.uninsubria.it:3128
-  #  HTTPS_PROXY=http://proxy.uninsubria.it:3128
-  #  HTTP_PROXY=http://proxy.uninsubria.it:3128
-  #  http_proxy=http://proxy.uninsubria.it:3128
-  #  no_proxy=localhost,127.0.0.1,192.168.122.1
+  ADDITIONAL_ENV_VARS:
+    https_proxy: http://proxy.uninsubria.it:3128
+    HTTPS_PROXY: http://proxy.uninsubria.it:3128
+    HTTP_PROXY: http://proxy.uninsubria.it:3128
+    http_proxy: http://proxy.uninsubria.it:3128
+    no_proxy: localhost,127.0.0.1,192.168.122.1
     
 base_params: 
   # container_manager_replay_from_file : false
-  # disable_proxy: true
+  disable_proxy: true
   replay_speed: 1 # Replay speed factor
 
 
