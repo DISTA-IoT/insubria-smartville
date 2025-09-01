@@ -119,7 +119,7 @@ def generateIPList(ip_nr,network,netmask, starting_from=3):
     return ip_pool
 
 
-def mountSwitch(templates, curr_switch_label,ip=None,gateway=None):
+def mount_switch(templates, curr_switch_label,ip=None,gateway=None):
     template_id = get_template_id_from_name(templates, SWITCH_IMG_NAME)
     control_interface = 'eth0'
     if ip is not None:
@@ -127,8 +127,10 @@ def mountSwitch(templates, curr_switch_label,ip=None,gateway=None):
     else:
         switch1_node_name = curr_switch_label
 
-
-    openvswitch=create_node(server, project, 0, 100, template_id, switch1_node_name)
+    try:
+        openvswitch=create_node(server, project, 0, 100, template_id, switch1_node_name)
+    except Exception as e:
+        print(f"Error creating {curr_switch_label}: {e} Make sure you have built docker the images using make !")
     print(f"{curr_switch_label}: created")
     openvswitch_id = openvswitch['node_id']
     
@@ -587,7 +589,7 @@ def start_all():
 
 def starTopology(cfg, templates):
     main_switch_ip = cfg.topology_creator.main_switch_ip + cfg.topology_creator.netmask
-    main_switch_node_name = mountSwitch(templates, "openvswitch-1", ip=main_switch_ip)
+    main_switch_node_name = mount_switch(templates, "openvswitch-1", ip=main_switch_ip)
     edge_switch_node_name = mount_edge_switch(templates)
     controller_ip = cfg.topology_creator.controller_ip + cfg.topology_creator.netmask
     controller_node_name = mount_controller(templates, main_switch_node_name, ip=controller_ip)
@@ -641,8 +643,8 @@ def update_edge_switch_template(templates):
     switch_template_id = get_template_id_from_name(templates, 'edge-'+SWITCH_IMG_NAME)
     if(switch_template_id is not None):
         delete_template(server,project,switch_template_id)
-        print((f"{SWITCH_IMG_NAME}: old switch template deleted"))
-    print((f"{SWITCH_IMG_NAME}: creating a new template using local image"))
+        print((f"edge-{SWITCH_IMG_NAME}: old switch template deleted"))
+    print((f"edge-{SWITCH_IMG_NAME}: creating a new template using local image"))
     network_adapters_count = 10 + VICTIM_NODE_COUNT + ATTACKER_NODE_COUNT
     create_docker_template_switch(server, 'edge-'+SWITCH_IMG_NAME, str(SWITCH_IMG_NAME+":latest"), adapter_count=network_adapters_count)
 
