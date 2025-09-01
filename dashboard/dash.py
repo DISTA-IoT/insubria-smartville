@@ -46,27 +46,6 @@ HEALTH_MONITORING = None
 KAFKA_PORT = None
 
 
-
-def run_command_in_container(container, command):
-    # Run the command in the container shell to obtain the PID
-    exec_result = container.exec_run(f"sh -c '{command} & echo $!'")
-    pid = exec_result.output.decode("utf-8").strip()
-    return pid
-
-
-def launch_browser_consoles(cfg, controller_container):
-        ifconfig_output = run_command_in_container(
-            controller_container, 
-            "ifconfig")
-        accessible_ip = ifconfig_output.split('eth1')[1].split('inet ')[1].split(' ')[0]
-        # url = "http://"+accessible_ip+":9090"  # Prometheus
-        # subprocess.Popen([config_dict['base_params']['browser_path'], url])
-        url = "http://"+accessible_ip+":3000"  # Grafana
-        subprocess.Popen([cfg['base_params']['browser_path'], url])
-        time.sleep(5)
-        print('\nBrowser launched, press enter to continue\n')
-
-
 def init_traffic_stuff(cfg):
     global traffic_dict, labelled_traffic_dict
 
