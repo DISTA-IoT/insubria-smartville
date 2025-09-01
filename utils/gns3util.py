@@ -432,13 +432,9 @@ def open_project_if_closed(server: Server, project: Project):
     """If the GNS3 project is closed, open it."""
     req = requests.get(f"http://{server.addr}:{server.port}/v2/projects/{project.id}", auth=(server.user, server.password))
     req.raise_for_status()
-    if req.json()["status"] == "opened":
-        print(f"Project {project.name} is already open.")
-        return
-    req = requests.post(f"http://{server.addr}:{server.port}/v2/projects/{project.id}/open", auth=(server.user, server.password))
-    req.raise_for_status()
-    print(f"Project {project.name} {req.json()['status']}.")
-    assert req.json()["status"] == "opened"
+    assert req.json()["status"] == "opened","Error oppening project."
+    print(f"Project {project.name} is opened.")
+    return
 
 
 def get_all_templates(server: Server) -> List[Dict[str, Any]]:
