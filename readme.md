@@ -72,11 +72,16 @@ Start the server either via GUI or by running
 
     gns3server
 
-the server will run on *localhost:3080* as default
+the server will run on *localhost:3080* as default.
+
+- THIS PROJECT HAS BEEN TESTED ON GNS3 VERSION 2.2.54
+
 ### Dependencies
 
 
 Make sure you have Python installed. You can download it from [python.org](https://www.python.org/downloads/).
+
+- THIS PROJECT HAS BEEN TESTED ON PYTHON 3.12.3
 
 #### Setting up a Virtual Environment
 
