@@ -30,7 +30,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     const startGrafanaButton = document.getElementById("start-grafana");
     const stopGrafanaButton = document.getElementById("stop-grafana");
-
+    const openGrafanaButton = document.getElementById("open-grafana");
 
 
     refreshContainersButton.addEventListener("click", function() {
@@ -124,7 +124,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
     startMSButton.addEventListener("click", function() {
         fetch("/start_services", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => {
+            alert(data.msg);
+            openGrafanaButton.disabled = false;
+            openGrafanaButton.classList.remove("disabled");
+            openGrafanaButton.classList.add("blue");
+          }
+          );
     });
 
     stopMSButton.addEventListener("click", function() {
@@ -176,13 +182,24 @@ window.addEventListener('DOMContentLoaded', (event) => {
     startGrafanaButton.addEventListener("click", function() {
         fetch("/start_grafana", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => {
+            alert(data.msg);
+            openGrafanaButton.disabled = false;
+            openGrafanaButton.classList.remove("disabled");
+            openGrafanaButton.classList.add("blue");
+          });
     });
 
     stopGrafanaButton.addEventListener("click", function() {
         fetch("/stop_grafana", {method: "POST"})
           .then(response => response.json())
           .then(data => alert(data.msg));
+    });
+
+    openGrafanaButton.addEventListener("click", function() {
+        fetch("/open_grafana", {method: "GET"})
+          .then(response => response.json())
+          .then(data => log(data.msg));
     });
     
   });

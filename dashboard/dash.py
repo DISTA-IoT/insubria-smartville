@@ -94,6 +94,7 @@ def append_ips_to_no_proxy():
     # Print the current value of no_proxy
     print(f"Current no_proxy value: {current_no_proxy}")
 
+
 def get_models_source():
     # Read the model class from a Python file
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -103,6 +104,7 @@ def get_models_source():
         source_code = f.read()
     
     return source_code
+
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
@@ -355,6 +357,18 @@ def main(cfg: DictConfig) -> None:
             headers=dict(response.headers)
         )
     
+    @app.get('/open_grafana')
+    def open_grafana():
+        """
+        This wont work if you're running the server on SSH....
+        """
+        monitor_external_ip = containers_external_ips['monitor']
+        subprocess.Popen([
+            cfg.base_params.browser_path,
+            f"http://{monitor_external_ip}:{cfg.grafana.port}/"
+        ])
+        time.sleep(1)
+        return "Grafana dashboard opened in browser."
 
     @app.post('/stop_zookeeper')  
     def stop_zookeeper():
@@ -647,6 +661,7 @@ def cleanup():
 def handle_sigterm(signum, frame):
       cleanup()
       os._exit(0)
+
 
 if __name__ == "__main__":
     main()
