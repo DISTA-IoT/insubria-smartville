@@ -16,7 +16,7 @@ intrusion_detection:
   
 topology_creator:
   use_gns3_config_file: false
-
+  contr_start: "../../pox.py samples.pretty_log smartController.tiger_server"
     
 base_params: 
   # container_manager_replay_from_file : false
@@ -27,11 +27,11 @@ base_params:
 honeypots:
   - victim-0:
       pattern: 'doorlock'
-      destination: 'victim-0'
+      destination: 'victim-1'
 
   - victim-1:
       pattern: 'doorlock'
-      destination: 'victim-1'
+      destination: 'victim-0'
 
 
 attackers:
