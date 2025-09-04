@@ -125,20 +125,23 @@ Make sure you have Python installed. You can download it from [python.org](https
 
 
 ### Docker Images
+YOU NEED DOCKER TO RUN THIS PROJECT. 
+
+Before starting, create a file named .env in your projects home dir and put there your wandb api key:
+
+    ```contents of .env file at projects root directory (the same dir of this readme file)
+   WANDB_API_KEY=pastehereyourwandbapikey
+   ```
+The .gitignore file is already taking care of not versioning your .env file, don't worry.
+
 The docker images used to build the nodes can be obtained by running the Makefile
 
     make all
 
-### Setup
-Modify the line 21 in file *controller.dockerfile* and insert your wandb API key as:
-*your_wandb_api_key.txt*
-
-
-## Usage
+    - for developers: There is a cache point for building from the git cloning for some containers, just do: make build-scache
 
 ### Build topology
-To start the *star topology* execute star_topology.py: (GNS3 MUST BE OPENED!)
-
+After building the images, you can build the *star topology* execute star_topology.py: (GNS3 MUST BE OPENED!)
 
     python3 utils/star_topology.py
 
@@ -153,9 +156,19 @@ Note: WE USE OUR OWN MECHANISM FOR CONFIG OVERRIDING BASED ON THE HYDRA LIBRARY 
 ![alt text](./readme_imgs/topology.png)
 
 
-Each node can communicate with eachother and everyone has Internet connection available.
+Each node can communicate with eachother and everyone has Internet connection available. 
+If you need proxies or whatever like that, you can use the topology_creator.ADDITIONAL_ENV_VARS option in the config file, for example:
+topology_creator:
+  ADDITIONAL_ENV_VARS: |
+    https_proxy=http://proxy.uninsubria.it:3128
+    HTTPS_PROXY=http://proxy.uninsubria.it:3128
+    HTTP_PROXY=http://proxy.uninsubria.it:3128
+    http_proxy=http://proxy.uninsubria.it:3128
+    no_proxy=localhost,127.0.0.1,${topology_creator.bridge_ip}
 
-### Container Manager
+Note that such a parameter is a string and is formatted diversely comparted to yaml's default dicts...
+
+### Dashboard
 
 Execute the dash script and it will guide you through the rest! (use overrides if you want the last version!)
 
@@ -187,7 +200,7 @@ For ease-of-experimenting, our current release of the smart controller node does
             INFO:     Started server process [1168169]
             INFO:     Waiting for application startup.
             INFO:     Application startup complete.
-            INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+            INFO:     Uvicorn running on http://0.0.0.0:7777 (Press CTRL+C to quit)
 
     # Then you can issue the initialisation command from the dashboard, and the start stop traffic commands... (do it AFTER initialisation!)
 
