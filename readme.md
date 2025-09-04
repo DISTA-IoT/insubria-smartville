@@ -98,14 +98,14 @@ Make sure you have Python installed. You can download it from [python.org](https
    Use the `venv` module to create a virtual environment. Replace `venv` with your preferred name for the environment.
 
    ```sh
-   python -m venv smartville_venv
+   python -m venv .venv
    ```
 
 3. **Activate the Virtual Environment**:
    
      
      ```sh
-     source smartville_venv/bin/activate
+     source .venv/bin/activate
      ```
 
    After activation, your terminal should show the virtual environment name in the prompt, indicating it's active.
