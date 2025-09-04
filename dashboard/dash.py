@@ -230,7 +230,7 @@ def main(cfg: DictConfig) -> None:
             node_external_ip = containers_external_ips[hostname]
             host_info['node_features'] = HEALTH_MONITORING
             host_info['kafka_endpoint'] = cfg.kafka.endpoint
-            host_info['health_params'] = cfg.health
+            host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
             port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
             response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
             if response.json() is not None:
