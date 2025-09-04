@@ -56,6 +56,9 @@ topology_creator:
   # Controller configuration
   contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.tiger_server"
   monitor_start: "python monitor_server.py"
+  victim_start: "python honeypot_server.py"
+  attacker_start: "python attacker_server.py"
+  attach_controller_command: "ovs-vsctl set-controller br0 tcp:${topology_creator.controller_ip}:6633 & sh"
   # GNS3 Configuration
   use_gns3_config_file: true
   gns3_config_path: ~/.config/GNS3/2.2/gns3_server.conf

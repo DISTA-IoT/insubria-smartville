@@ -31,10 +31,9 @@ GNS3_PORT = None
 
 ATTACKER_NODE_COUNT = None
 VICTIM_NODE_COUNT = None
-ATTACKER_SERVER_COMMAND = 'python attacker_server.py'
-HONEYPOT_SERVER_COMMAND = 'python honeypot_server.py'
-MONITOR_SERVER_COMMAND = 'python monitor_server.py'
-ATTACH_CONTROLLER_COMMAND = 'ovs-vsctl set-controller br0 tcp:192.168.1.1:6633 & sh'
+ATTACKER_START_COMMAND = None
+VICTIM_START_COMMAND = None
+MONITOR_START_COMMAND = None
 CONTROLLER_IMG_NAME = None
 SWITCH_IMG_NAME = None
 VICTIM_IMG_NAME = None
@@ -669,7 +668,7 @@ def update_victim_template(args, templates):
 
     VICTIM_ENV_VARS += ENV_STR
 
-    update_generic_template(templates, VICTIM_IMG_NAME, HONEYPOT_SERVER_COMMAND, VICTIM_ENV_VARS)
+    update_generic_template(templates, VICTIM_IMG_NAME, VICTIM_START_COMMAND, VICTIM_ENV_VARS)
 
 
 def update_attacker_template(args, templates):
@@ -679,7 +678,7 @@ def update_attacker_template(args, templates):
 
     ATTACKER_ENV_VARS += ENV_STR
 
-    update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_SERVER_COMMAND, ATTACKER_ENV_VARS)
+    update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_START_COMMAND, ATTACKER_ENV_VARS)
 
 def update_controller_template(args, templates):
     global project
@@ -814,14 +813,11 @@ def update_templates(args, templates):
 
 
 
-
-
-
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global PROJECT_NAME, GNS3_HOST, GNS3_PORT, GNS3_AUTH, GNS3_USERNAME, GNS3_PASSWORD
-    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME, MONITOR_HOSTNAME
-    global ZOOKEEPER_IMG_NAME, KAFKA_IMG_NAME, GRAFANA_IMG_NAME, PROMETHEUS_IMG_NAME, MONITOR_IMG_NAME
+    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME, MONITOR_HOSTNAME, VICTIM_START_COMMAND
+    global ZOOKEEPER_IMG_NAME, KAFKA_IMG_NAME, GRAFANA_IMG_NAME, PROMETHEUS_IMG_NAME, MONITOR_IMG_NAME, ATTACKER_START_COMMAND
     global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT, MONITOR_START_COMMAND
     global GRAFANA_START_COMMAND, PROMETHEUS_START_COMMAND, ZOOKEEPER_START_COMMAND, KAFKA_START_COMMAND
     global gns3_server_connector, logger, server, project, node_ids, template_ids
@@ -874,6 +870,8 @@ def main(cfg: DictConfig) -> None:
     PROMETHEUS_IMG_NAME = args.prometheus_docker
     GRAFANA_IMG_NAME = args.grafana_docker
     CONTROLLER_START_COMMAND = args.contr_start
+    VICTIM_START_COMMAND = args.victim_start
+    ATTACKER_START_COMMAND = args.attacker_start
     MONITOR_START_COMMAND = args.monitor_start
     GRAFANA_START_COMMAND = args.grafana_start
     PROMETHEUS_START_COMMAND = args.prometheus_start
