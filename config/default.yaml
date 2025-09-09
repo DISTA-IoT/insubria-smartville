@@ -3,6 +3,7 @@ override: ""
 
 smart_switch_log_level: info
 health_monitoring: false
+use_packet_feats: true
 
 topology_creator:
   # Topology creation configuration
@@ -132,25 +133,36 @@ base_params:
   replay_speed: 1 # Replay speed factor
   
 
+wandb:
+  wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
+  wb_project_name:  'TIGER' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
+  wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
+
+
+
+
 intrusion_detection:
+  # neural modules:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
   device: 'cpu'  # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
+  kernel_regressor_heads: 2
+  learning_rate: 1e-3
+  pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
+  save_models: false # overwritte models on disk.
+  h_dim: 800
+  recurrent_layers: 1
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DDQN  # can be DQN, DDQN or DAI
   ai_debug: true  # A boolean flag for a verbose version of ML related code
-  use_packet_feats: true  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
+  use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
   packet_buffer_len: 1  # If 'use_packet_feats'=True, indicates how many packets are retained from each flow to build feature vectors
   packet_feat_dim: 64
   anonymize_transport_ports: true
   flow_feat_dim: 4
   flow_buff_len: 10  # Indicates the flowstats time-window size to build feature vectors
   node_features: ${health_monitoring}  # Use node features to build the feature vectors
-  
   inference_freq_secs: 1  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 
-  wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
-  wb_project_name:  'TIGER' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
-  wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
   flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. 
   dropout: 0.1 # Dropout rate for the neural network. Default is 0.6
   init_k_shot: 4 #  Initial value for k_shot in k_shot learning. Default is 5. 
@@ -164,8 +176,7 @@ intrusion_detection:
   hard_bad_classif_cost_factor: 1
   online_evaluation_rounds: 10
   pretrained_inference: True
-  h_dim: 800
-  recurrent_layers: 1
+
   max_budget: 25
   max_episode_steps: 750
   min_budget: -10
@@ -174,20 +185,16 @@ intrusion_detection:
   tiger_init_budget: 1
   cti_price_factor: 4
   replay_batch_size: 32
-  pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   replay_buffer_max_capacity: 1000
   agent_memory_size: 2000
-  learning_rate: 1e-3
   repulsive_weight: 1
   attractive_weight: 1
-  kernel_regressor_heads: 2
   clustering_loss_backprop: True
   init_epsilon_egreedy: 1.0
   greedy_min: 0.01
   greedy_decay: 0.999
   agent_discount_rate: 0.99
   epistemic_agency: true # activates the management agent, false to only pretrain the inference modules.
-  save_models: false # overwritte models on disk.
   use_encoder: false
   kr_type: 'dist' # can be 'dist' or 'dotprod'
   bad_classif_penalisation: easy # can be easy or hard

@@ -1,6 +1,8 @@
-intrusion_detection:
+wandb:
   wb_tracking: true
   wb_run_name: 'DDQN'
+
+intrusion_detection:
   boltzmann_sampling: false
 
 topology_creator:

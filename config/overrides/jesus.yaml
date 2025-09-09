@@ -1,6 +1,4 @@
-
-intrusion_detection:
-    use_packet_feats: false
+use_packet_feats: false
 
 honeypots:
   - victim-0:

@@ -1,7 +1,9 @@
-intrusion_detection:
+wandb:
   wb_tracking: true
   wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'DAI_P'
+
+intrusion_detection:
   agent: DAI_P
   h_dim: 200
   inference_freq_secs: 0.5
@@ -27,7 +29,7 @@ topology_creator:
     HTTPS_PROXY=http://proxy.uninsubria.it:3128
     HTTP_PROXY=http://proxy.uninsubria.it:3128
     http_proxy=http://proxy.uninsubria.it:3128
-    no_proxy=localhost,127.0.0.1,192.168.122.1
+    no_proxy=localhost,127.0.0.1
     
 base_params: 
   # container_manager_replay_from_file : false

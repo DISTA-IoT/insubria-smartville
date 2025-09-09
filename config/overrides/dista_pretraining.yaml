@@ -1,6 +1,8 @@
-intrusion_detection:
-  wb_tracking: true
-  wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
+wandb:
+ wb_tracking: true
+ wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
+
+intrusion_detection:  
   h_dim: 200
   pretrained_inference: false
   epistemic_agency: false
