@@ -44,7 +44,7 @@ ms_healthcheck_thread = None
 stop_services_function = None
 HEALTH_MONITORING = None
 KAFKA_PORT = None
-
+grafana_socat_proc = None
 
 def init_traffic_stuff(cfg):
     global traffic_dict, labelled_traffic_dict
@@ -104,6 +104,37 @@ def get_models_source():
         source_code = f.read()
     
     return source_code
+
+def kill_socat_grafana():
+    global grafana_socat_proc
+
+    if grafana_socat_proc is not None:
+        grafana_socat_proc.terminate()
+    try:
+        grafana_socat_proc.wait(timeout=2)
+    except subprocess.TimeoutExpired:
+        grafana_socat_proc.kill()
+    finally:
+        grafana_socat_proc = None
+
+
+def socat_grafana(cfg, logger):
+        global grafana_socat_proc
+
+        if grafana_socat_proc is not None:
+            kill_socat_grafana()
+
+        monitor_external_ip = containers_external_ips['monitor']
+        grafana_port = cfg.grafana.port
+        socat_cmd = [
+            "socat",
+            f"TCP-LISTEN:{grafana_port},reuseaddr,fork",
+            f"TCP:{monitor_external_ip}:{grafana_port}"
+        ]
+        
+        # Start socat in the background
+        grafana_socat_proc = subprocess.Popen(socat_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        logger.info(f"Grafana should be accessible at http://localhost:{grafana_port}")
 
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
@@ -343,14 +374,16 @@ def main(cfg: DictConfig) -> None:
             status=response.status_code,
             headers=dict(response.headers)
         )
-    
-    
+
+            
     @app.post('/start_grafana')
     def start_grafana():
         grafana_args = OmegaConf.to_container(cfg.grafana.config_file, resolve=True)
         monitor_external_ip = containers_external_ips['monitor']
         response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/start_grafana", json=grafana_args)
         app.logger.debug(f"Grafana start answered with status code: {response.status_code}")
+        if grafana_socat_proc is None:
+            socat_grafana(cfg, app.logger)
         return Response(
             response.content,
             status=response.status_code,
@@ -411,6 +444,7 @@ def main(cfg: DictConfig) -> None:
         monitor_external_ip = containers_external_ips['monitor']
         response = requests.post(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/stop_grafana")
         app.logger.info(f"Grafana stop answered with status code: {response.status_code}")
+        kill_socat_grafana()
         return Response(
             response.content,
             status=response.status_code,
@@ -650,6 +684,7 @@ def main(cfg: DictConfig) -> None:
 def cleanup():
     global ms_healthcheck_thread, monitoring_services
     print("Cleaning up before exit")
+    kill_socat_grafana()
     if ms_healthcheck_thread is not None:
         with monitoring_services_lock:
             monitoring_services = False
