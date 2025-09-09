@@ -31,73 +31,59 @@ base_params:
   replay_speed: 1 # Replay speed factor
 
 
-honeypots:
-  - victim-0:
-      pattern: 'doorlock'
-      destination: 'victim-1'
 
-  - victim-1:
-      pattern: 'doorlock'
-      destination: 'victim-0'
+# honeypots:
+#   - victim-0:
+#       pattern: 'doorlock'
+#       destination: 'victim-1'
 
-
-attackers:
-  - attacker-1:
-      pattern: 'cc_heartbeat'
-      destination: 'victim-0'
-
-rewards:
-    - echo: 0.02
-    - hakai: -0.20
-    - mirai: -0.40
-    - hajime: -0.26
-    - doorlock: 0.01
-    - gafgyt: -0.5
-    - muhstik: -0.6
-    - h_scan: -0.7
-    - okiru: -0.8
-    - generic_ddos: -0.9
-    - torii: -0.51
-    - cc_heartbeat: -0.61
-    - hue: 0.05
+#   - victim-1:
+#       pattern: 'doorlock'
+#       destination: 'victim-0'
 
 
-knowledge:
+# attackers:
+#   - attacker-1:
+#       pattern: 'cc_heartbeat'
+#       destination: 'victim-0'
 
-    bening_patterns: 
-        - echo
-        - doorlock
-        - hue
 
-    attack_patterns:
-        - hakai
-        - mirai
-        - hajime
-        - gafgyt
-        - muhstik
-        - h_scan
-        - okiru
-        - generic_ddos
-        - torii
-        - cc_heartbeat
+# knowledge:
 
-    Knowns:
-        - doorlock
-        - hakai
-        - cc_heartbeat
+#     bening_patterns: 
+#         - echo
+#         - doorlock
+#         - hue
 
-    G1s:
-        - okiru
-        - torii
-        - generic_ddos 
+#     attack_patterns:
+#         - hakai
+#         - mirai
+#         - hajime
+#         - gafgyt
+#         - muhstik
+#         - h_scan
+#         - okiru
+#         - generic_ddos
+#         - torii
+#         - cc_heartbeat
+
+#     Knowns:
+#         - doorlock
+#         - hakai
+#         - cc_heartbeat
+
+#     G1s:
+#         - okiru
+#         - torii
+#         - generic_ddos 
         
 
-    G2s:
-        - mirai
-        - gafgyt
-        - hajime
-        - h_scan
-        - muhstik
-        - hue
-        - echo
+#     G2s:
+#         - mirai
+#         - gafgyt
+#         - hajime
+#         - h_scan
+#         - muhstik
+#         - hue
+#         - echo
 
