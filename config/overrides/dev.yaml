@@ -33,58 +33,65 @@ base_params:
 
 
 
-# honeypots:
-#   - victim-0:
-#       pattern: 'doorlock'
-#       destination: 'victim-1'
+honeypots:
+  - victim-0:
+      pattern: 'doorlock'
+      destination: 'victim-1'
 
-#   - victim-1:
-#       pattern: 'doorlock'
-#       destination: 'victim-0'
-
-
-# attackers:
-#   - attacker-1:
-#       pattern: 'cc_heartbeat'
-#       destination: 'victim-0'
+  - victim-1:
+      pattern: 'doorlock'
+      destination: 'victim-0'
 
 
-# knowledge:
+attackers:
+  - attacker-1:
+      pattern: 'cc_heartbeat'
+      destination: 'victim-0'
 
-#     bening_patterns: 
-#         - echo
-#         - doorlock
-#         - hue
+  - attacker-2:
+      pattern: 'hakai'
+      destination: 'victim-1'
 
-#     attack_patterns:
-#         - hakai
-#         - mirai
-#         - hajime
-#         - gafgyt
-#         - muhstik
-#         - h_scan
-#         - okiru
-#         - generic_ddos
-#         - torii
-#         - cc_heartbeat
+  - benign-1:
+      pattern: 'doorlock'
+      destination: 'victim-1'  
 
-#     Knowns:
-#         - doorlock
-#         - hakai
-#         - cc_heartbeat
+knowledge:
 
-#     G1s:
-#         - okiru
-#         - torii
-#         - generic_ddos 
+    bening_patterns: 
+        - echo
+        - doorlock
+        - hue
+
+    attack_patterns:
+        - hakai
+        - mirai
+        - hajime
+        - gafgyt
+        - muhstik
+        - h_scan
+        - okiru
+        - generic_ddos
+        - torii
+        - cc_heartbeat
+
+    Knowns:
+        - doorlock
+        - hakai
+        - cc_heartbeat
+
+    G1s:
+        - okiru
+        - torii
+        - generic_ddos 
         
 
-#     G2s:
-#         - mirai
-#         - gafgyt
-#         - hajime
-#         - h_scan
-#         - muhstik
-#         - hue
-#         - echo
+    G2s:
+        - mirai
+        - gafgyt
+        - hajime
+        - h_scan
+        - muhstik
+        - hue
+        - echo
 
