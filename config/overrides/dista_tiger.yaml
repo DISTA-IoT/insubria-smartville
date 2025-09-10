@@ -1,7 +1,8 @@
 wandb:
   wb_tracking: true
   wb_run_name: 'DDQN'
-
+  wb_project_name:  'TIGER'
+   
 intrusion_detection:
   boltzmann_sampling: false
 

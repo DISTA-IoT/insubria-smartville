@@ -20,7 +20,6 @@
                 </nav>
                 <nav>
                     <button id="create-topology">Create topology</button>
-                    <button id="delete-project" class="stop">Delete GNS3 Project</button>
                 </nav>
             </div>
             <div class="containerForGroup">
@@ -29,6 +28,19 @@
                     <button id="attach-controller" class="lightblue small">Attach Controller</button>
                 </nav>
                 <nav>
+                    <label>W&B Run Name: 
+                        <input 
+                        type="text" 
+                        id="wandb-run-name-textbox"
+                        name="wandb-run-name-textbox" 
+                        value="My_new_run">
+                    </label>
+                    <label>
+                        <input 
+                            id="wandb-track-checkbox"
+                            type="checkbox" 
+                            name="wandb-track-checkbox"> Enable W&B Tracking
+                    </label>
                     <button id="init-controller" class="blue">Initialize Controller</button>
                     <button id="stop-controller" class="stop">Stop Controller</button>
                 </nav>
@@ -77,14 +89,65 @@
         <div class="content">
             <div class="tabs">
                 <button class="tablink active" onclick="openTab(event, 'gns3')">GNS3</button>
-                <button class="tablink" onclick="openTab(event, 'grafana')">Grafana</button>
+                <button class="tablink" onclick="openTab(event, 'config')">Configuration</button>
             </div>
             <div id="gns3" class="tabcontent" style="display:block;">
                 <iframe src="http://{{ rendering_params.host_ip }}:{{ rendering_params.gns3_web_gui_port }}"></iframe>
             </div>
             
-            <div id="grafana" class="tabcontent">
-                <iframe src="https://wandb.ai/jfcevallos/TIGER/reports/AGENT_budget-24-11-13-14-28-08---VmlldzoxMDE1NDE4Mw"></iframe>
+            <div id="config" class="tabcontent">
+                <form id="config-form">
+                    <h2>SmartVille Configuration</h2>
+
+                    <!-- Simple top-level fields -->
+                    <label>Log Level:
+                        <select name="smart_switch_log_level">
+                        <option value="info" selected>info</option>
+                        <option value="debug">debug</option>
+                        <option value="warn">warn</option>
+                        <option value="error">error</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <input type="checkbox" name="health_monitoring"> Health Monitoring
+                    </label>
+
+                    <label>
+                        <input type="checkbox" name="use_packet_feats" checked> Use Packet Features
+                    </label>
+
+                    <!-- Example of nested section -->
+                    <details>
+                        <summary>Topology Creator (Not working yet)</summary>
+                        <label>Project: <input type="text" name="topology_creator.project" value="SmartVille"></label>
+                        <label>Controller Docker: <input type="text" name="topology_creator.controller_docker" value="pox-controller"></label>
+                        <label>Switch Docker: <input type="text" name="topology_creator.switch_docker" value="openvswitch"></label>
+                        <label>Victim Docker: <input type="text" name="topology_creator.victim_docker" value="victim"></label>
+                        <label>Attacker Docker: <input type="text" name="topology_creator.attacker_docker" value="attacker"></label>
+                        <label>Monitor Docker: <input type="text" name="topology_creator.monitor_docker" value="monitor"></label>
+                        <label>Subnet: <input type="text" name="topology_creator.subnet" value="192.168.1.0"></label>
+                        <label>Netmask: <input type="text" name="topology_creator.netmask" value="/24"></label>
+                        <label>Controller IP: <input type="text" name="topology_creator.controller_ip" value="192.168.1.1"></label>
+                        <label>Main Switch IP: <input type="text" name="topology_creator.main_switch_ip" value="192.168.1.2"></label>
+                        <label>Bridge IP: <input type="text" name="topology_creator.bridge_ip" value="192.168.1.100"></label>
+                    </details>
+
+                    <!-- Another section example -->
+                    <details>
+                       <label>Replay Speed: <input type="number" name="base_params.replay_speed" value="1"></label>
+                    </details>
+
+                    <!-- Another section -->
+                    <details>
+                        <summary>WandB</summary>
+                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="SmartVille"></label>
+                    </details>
+
+                    <!-- Submit button -->
+                    <button type="submit" class="blue">Save Config</button>
+                    
+                </form>
             </div>
         </div>
     </div>

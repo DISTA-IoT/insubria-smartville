@@ -12,7 +12,10 @@ function openTab(evt, tabId) {
       evt.currentTarget.classList.add("active");
     }
 
+
 window.addEventListener('DOMContentLoaded', (event) => {
+
+    const configForm = document.getElementById("config-form");
 
     const refreshContainersButton = document.getElementById("refresh-containers");
     const startTrafficButton = document.getElementById("start-traffic");
@@ -22,7 +25,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const stopTrafficButtons = Array.from(document.querySelectorAll('[id$="_stop_traffic"]'))
 
     const createTopologyButton = document.getElementById("create-topology");
-    const deleteProjectButton = document.getElementById("delete-project");
 
     const attachControllerButton = document.getElementById("attach-controller");
     const checkTrafficButton = document.getElementById("check-traffic");
@@ -45,6 +47,22 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const startGrafanaButton = document.getElementById("start-grafana");
     const stopGrafanaButton = document.getElementById("stop-grafana");
     const openGrafanaButton = document.getElementById("open-grafana");
+
+
+    const WandBRunNameTextBox = document.getElementById("wandb-run-name-textbox");
+    const WandBTrackCheckBox = document.getElementById("wandb-track-checkbox");
+
+    var config = {};
+
+    configForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      formData.forEach((val, key) => {
+        config[key] = val;
+      });
+      alert("Configuration Saved!!");
+      // TODO: send config dict to backend with fetch/axios
+    });
 
 
     refreshContainersButton.addEventListener("click", function() {
@@ -96,19 +114,22 @@ window.addEventListener('DOMContentLoaded', (event) => {
         });
     });
   
-  
+    
     createTopologyButton.addEventListener("click", function() {
-        fetch("/create-topology", {method: "POST"})
+        fetch("/create_topology", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            config
+          })
+        })
           .then(response => response.text())
-          .then(data => console.log(data));
+          .then(data => alert(data));
     });
-  
-    deleteProjectButton.addEventListener("click", function() {
-        fetch("/delete-project", {method: "POST"})
-          .then(response => response.text())
-          .then(data => console.log(data));
-    });
-  
+    
+
     attachControllerButton.addEventListener("click", function() {
         fetch("/attach_controller", {method: "POST"})
           .then(response => response.json())
@@ -123,9 +144,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
   
   
     initControllerButton.addEventListener("click", function() {
-        fetch("/initialize_controller", {method: "POST"})
-          .then(response => response.json())
-          .then(data => alert(data.msg));
+        const wandbRunName = WandBRunNameTextBox.value;
+        const wandbTrack = WandBTrackCheckBox.checked;
+        fetch("/initialize_controller", {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              wandb_run_name: wandbRunName, 
+              wandb_track: wandbTrack 
+            })
+        })
+        .then(response => response.json())
+        .then(data => alert(data.msg));
     });
 
     stopControllerButton.addEventListener("click", function() {

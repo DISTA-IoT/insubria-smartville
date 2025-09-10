@@ -130,7 +130,7 @@ base_params:
 
 wandb:
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
-  wb_project_name:  'TIGER' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
+  wb_project_name:  'SmartVille' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
 
 

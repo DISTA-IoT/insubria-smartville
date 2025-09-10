@@ -191,6 +191,11 @@ def main(cfg: DictConfig) -> None:
             rendering_params["traffic_buttons"].append(hostname)
         return render_template('index.html', rendering_params=rendering_params)
 
+    @app.route('/create_topology', methods=['POST'])
+    def create_topology():
+        data = request.get_json(force=True)['config']
+        return "This function will be implemented in the future! \n" + \
+            "For now, please build your topology using the utils/star_topology script and the config files!"
 
     @app.route('/refresh_containers', methods=['POST'])
     def refresh_containers():
@@ -551,6 +556,10 @@ def main(cfg: DictConfig) -> None:
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg, resolve=True)
+
+        data = request.get_json(force=True)
+        init_args['wandb']['wb_tracking'] = data['wandb_track']
+        init_args['wandb']['wb_run_name'] = data['wandb_run_name']
         init_args['container_ips'] = containers_internal_ips
         init_args['ips_containers'] = internal_ips_containers
         del init_args['topology_creator']
@@ -590,7 +599,6 @@ def main(cfg: DictConfig) -> None:
             return {'status_code':200, 'msg':'Switch and controller attached!'}
         else:
             return {'status_code':500, 'msg':'Error attaching the switch to the controller!'}
-
 
 
     def ms_health_thread_function():
@@ -672,12 +680,11 @@ def main(cfg: DictConfig) -> None:
             time.sleep(5)
 
         app.logger.debug(f"Monitoring services stopped")
-        
-            
+          
 
     refresh_containers() 
-    init_traffic_stuff(cfg)
-    attach_controller()    
+    # init_traffic_stuff(cfg)
+    # attach_controller()    
 
     # Run the Flask app
     app.run(host='0.0.0.0',port=cfg['base_params']['dashboard_port'])
