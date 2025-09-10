@@ -35,7 +35,52 @@ class RecurrentModel(nn.Module):
         return F.relu(out[:, -1, :])
     
 
+class ConfidenceDecoder(nn.Module):
 
+    def __init__(
+            self,
+            device):
+
+        super(ConfidenceDecoder, self).__init__()
+        self.device = device
+
+
+    def forward(
+            self,
+            scores):
+
+        scores = (1 - scores.unsqueeze(-1)).min(1)[0]
+
+        unknown_indicators = torch.sigmoid(scores)
+        return unknown_indicators
+    
+
+class KernelRegressionLoss(nn.Module):
+
+    def __init__(
+            self,
+            repulsive_weigth: int = 1, 
+            attractive_weigth: int = 1,
+            device: str = "cpu"):
+        super(KernelRegressionLoss, self).__init__()
+        self.r_w = repulsive_weigth
+        self.a_w = attractive_weigth
+        self.device = device
+
+    def forward(self, baseline_kernel, predicted_kernel):
+        # REPULSIVE force
+        repulsive_CE_term = -(1 - baseline_kernel) * torch.log(1-predicted_kernel + 1e-10)
+        repulsive_CE_term = repulsive_CE_term.sum(dim=1)
+        repulsive_CE_term = repulsive_CE_term.mean()
+
+        # The following acts as an ATTRACTIVE force for the embedding learning:
+        attractive_CE_term = -(baseline_kernel * torch.log(predicted_kernel + 1e-10))
+        attractive_CE_term = attractive_CE_term.sum(dim=1)
+        attractive_CE_term = attractive_CE_term.mean()
+
+        return (self.r_w * repulsive_CE_term) + (self.a_w * attractive_CE_term)
+    
+    
 class SimmilarityNet(nn.Module):
     def __init__(
             self,
