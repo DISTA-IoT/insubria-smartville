@@ -37,7 +37,6 @@ containers_internal_ips = {}
 internal_ips_containers = {}
 traffic_dict = {}
 labelled_traffic_dict = {}
-TERMINAL_ISSUER_PATH = None
 internal_subnet = None
 monitoring_services_lock = Lock()
 ms_healthcheck_thread = None
@@ -139,7 +138,7 @@ def socat_grafana(cfg, logger):
 
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
-    global containers_dict, containers_internal_ips, TERMINAL_ISSUER_PATH, internal_subnet
+    global containers_dict, containers_internal_ips, internal_subnet
     global monitoring_services, stop_services_function, HEALTH_MONITORING, KAFKA_PORT
 
     NAME = 'SmartVille'
@@ -164,7 +163,6 @@ def main(cfg: DictConfig) -> None:
             "            - You might need to re-launch the app each time you restart your containers. \n\n\n")
    
 
-    TERMINAL_ISSUER_PATH = cfg['base_params']['terminal_issuer_path'] 
     HEALTH_MONITORING = cfg.intrusion_detection.node_features
     if HEALTH_MONITORING:
         try:
@@ -182,7 +180,11 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/', methods=['GET'])
     def home():
-        rendering_params = {'traffic_buttons': []}
+        rendering_params = {
+            'traffic_buttons': [],
+            'host_ip': cfg.base_params.host_ip,
+            'gns3_web_gui_port': cfg.base_params.gns3_web_gui_port,
+            'grafana_web_gui_port':cfg.grafana.port}
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         for hostname, host_info in traffic_dict.items():

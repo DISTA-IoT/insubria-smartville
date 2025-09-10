@@ -1,3 +1,17 @@
+function openTab(evt, tabId) {
+      // Hide all tabs
+      document.querySelectorAll(".tabcontent").forEach(tab => tab.style.display = "none");
+
+      // Remove 'active' class from all tab buttons
+      document.querySelectorAll(".tablink").forEach(btn => btn.classList.remove("active"));
+
+      // Show the selected tab
+      document.getElementById(tabId).style.display = "block";
+
+      // Mark the clicked button as active
+      evt.currentTarget.classList.add("active");
+    }
+
 window.addEventListener('DOMContentLoaded', (event) => {
 
     const refreshContainersButton = document.getElementById("refresh-containers");
@@ -195,11 +209,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(response => response.json())
           .then(data => alert(data.msg));
     });
-
-    openGrafanaButton.addEventListener("click", function() {
-        fetch("/open_grafana", {method: "GET"})
-          .then(response => response.json())
-          .then(data => log(data.msg));
-    });
     
+    
+
   });

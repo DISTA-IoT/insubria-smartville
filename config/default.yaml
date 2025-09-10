@@ -121,13 +121,8 @@ topology_creator:
 
 
 base_params:
-  # Recommended option is True. (adjust the json file according to your needs) 
-  browser_path: '/usr/bin/firefox' # Browser Exetubale Path change to your favourite
-  # terminal issuer path:
-  # we created a bash script in the utils dir to issue commands on separated pseudo TTYs to keep track
-  # of processes' status. If you do not like it, feel free to change it... 
-  # make sure to make the terminal_issuer script executable by running  +x terminal_issuer.sh (or whatever other issuer script you create)
-  terminal_issuer_path: './terminal_issuer.sh'     
+  host_ip: localhost
+  gns3_web_gui_port: 3080
   disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
   dashboard_port: 7777 # Port of the Flask dashboard in the host machine
   replay_speed: 1 # Replay speed factor
