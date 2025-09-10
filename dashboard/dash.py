@@ -683,8 +683,8 @@ def main(cfg: DictConfig) -> None:
           
 
     refresh_containers() 
-    # init_traffic_stuff(cfg)
-    # attach_controller()    
+    init_traffic_stuff(cfg)
+    attach_controller()    
 
     # Run the Flask app
     app.run(host='0.0.0.0',port=cfg['base_params']['dashboard_port'])
