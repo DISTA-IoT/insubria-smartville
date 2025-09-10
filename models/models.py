@@ -2,6 +2,15 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+"""
+CONFIDENCE_DECODER_CLASS_NAME = 'ConfidenceDecoder'
+KERNEL_REGRESSION_LOSS_CLASS_NAME = 'KernelRegressionLoss'
+ONE_STREAM_MULTICLASS_FLOW_CLASSIFIER_CLASS_NAME = 'OneStreamMulticlassFlowClassifier'
+TWO_STREAM_MULTICLASS_FLOW_CLASSIFIER_CLASS_NAME = 'TwoStreamMulticlassFlowClassifier'
+THREE_STREAM_MULTICLASS_FLOW_CLASSIFIER_CLASS_NAME = 'ThreeStreamMulticlassFlowClassifier'
+"""
+
+
 class MLP(nn.Module):
     def __init__(self, input_size, output_size, dropout):
         super(MLP, self).__init__()
@@ -137,7 +146,6 @@ class DistKernelRegressor(nn.Module):
 
 
 
-
 class DotProdKernelRegressor(nn.Module):
 
     def __init__(
@@ -156,6 +164,7 @@ class DotProdKernelRegressor(nn.Module):
         kernel = self.act(hiddens @ hiddens.T)
 
         return hiddens, kernel
+
 
 class MulticlassPrototypicalClassifier(nn.Module):
 
@@ -307,4 +316,82 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
         return logits, hiddens, predicted_kernel
  
 
+class TwoStreamMulticlassFlowClassifier(nn.Module):
+    def __init__(self, flow_input_size, second_stream_input_size, hidden_size, dropout_prob=0.2, kr_heads=8, device='cpu', kwargs=None):
+        super(TwoStreamMulticlassFlowClassifier, self).__init__()
+        self.device = device
+        self.flow_normalizer = nn.BatchNorm1d(flow_input_size)
+        flow_rnn_input_dim = flow_input_size
+        second_stream_rnn_input_dim = second_stream_input_size
+        self.use_encoder = False
+        if kwargs['use_encoder']:
+            self.use_encoder = True
+            flow_rnn_input_dim = hidden_size
+            second_stream_rnn_input_dim = hidden_size
+            self.flow_encoder = MLP(flow_input_size, hidden_size, dropout_prob)
+            self.second_stream_encoder = MLP(second_stream_input_size, hidden_size, dropout_prob)
+
+        self.flow_rnn = RecurrentModel(flow_rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
+        self.second_stream_normalizer = nn.BatchNorm1d(second_stream_input_size)
+        self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
+        kernel_regressor_class = DistKernelRegressor if kwargs['kr_type'] == 'dist' else DotProdKernelRegressor 
+        self.kernel_regressor = kernel_regressor_class(
+            {'device': self.device,
+            'dropout': dropout_prob,
+            'n_heads': kr_heads,
+            'in_features': hidden_size*2,
+            'out_features': hidden_size*2})
+        self.classifier = MulticlassPrototypicalClassifier(device=self.device)
+
+    def forward(self, flows, second_domain_feats, labels, curr_known_attack_count, query_mask):
+        
+        flows = self.flow_normalizer(flows.permute((0,2,1))).permute((0,2,1))
+        second_domain_feats = self.second_stream_normalizer(second_domain_feats.permute((0,2,1))).permute((0,2,1))
+
+        if self.use_encoder:
+            flows = self.flow_encoder(flows)
+            second_domain_feats = self.second_stream_encoder(second_domain_feats)
+
+        flows = self.flow_rnn(flows)
+        second_domain_feats = self.second_stream_rnn(second_domain_feats)
+
+        hiddens = torch.cat([flows, second_domain_feats], dim=1)
+
+        hiddens, predicted_kernel = self.kernel_regressor(hiddens)
+        logits  = self.classifier(hiddens, labels, curr_known_attack_count, query_mask)
+
+        return logits, hiddens, predicted_kernel
  
+
+class OneStreamMultiClassFlowClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, dropout_prob, kr_heads=8,device='cpu', kwargs=None):
+        super(OneStreamMultiClassFlowClassifier, self).__init__()
+        self.device=device
+        self.normalizer = nn.BatchNorm1d(input_size)
+        rnn_input_dim = input_size
+        self.use_encoder = False
+        if kwargs['use_encoder']:
+            self.use_encoder = True
+            rnn_input_dim = hidden_size
+            self.encoder = MLP(input_size, hidden_size, dropout_prob)
+        self.rnn = RecurrentModel(rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
+        kernel_regressor_class = DistKernelRegressor if kwargs['kr_type'] == 'dist' else DotProdKernelRegressor            
+        self.kernel_regressor = kernel_regressor_class(
+            {'device': self.device,
+            'dropout': dropout_prob,
+            'n_heads': kr_heads,
+            'in_features': hidden_size,
+            'out_features': hidden_size})
+        self.classifier = MulticlassPrototypicalClassifier(device=self.device)
+
+    def forward(self, x, labels, curr_known_attack_count, query_mask):
+        # nn.BatchNorm1d ingests (N,C,L), where N is the batch size, 
+        # C is the number of features or channels, and L is the sequence length
+        x = self.normalizer(x.permute((0,2,1))).permute((0,2,1))
+        if self.use_encoder:
+            x = self.encoder(x)
+        hiddens = self.rnn(x)
+        hiddens, predicted_kernel = self.kernel_regressor(hiddens)
+        logits  = self.classifier(hiddens, labels, curr_known_attack_count, query_mask)
+        return logits, hiddens, predicted_kernel
+
