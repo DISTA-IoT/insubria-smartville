@@ -4,9 +4,11 @@ health_monitoring: true
 wandb:
   wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
 
+neural_modules:
+  hidden_size: 200
 
+  
 intrusion_detection:
-  h_dim: 200
   pretrained_inference: false
   epistemic_agency: false
   online_evaluation: true

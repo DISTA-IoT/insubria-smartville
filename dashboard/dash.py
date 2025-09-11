@@ -45,6 +45,8 @@ HEALTH_MONITORING = None
 KAFKA_PORT = None
 grafana_socat_proc = None
 
+OmegaConf.register_new_resolver("len", lambda x: len(x))
+
 def init_traffic_stuff(cfg):
     global traffic_dict, labelled_traffic_dict
 

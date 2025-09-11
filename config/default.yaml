@@ -132,34 +132,62 @@ wandb:
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
   wb_project_name:  'SmartVille' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
+  entity: jfcevallos
+  view_name: fx76ozd40tj # you cannot create the view id. Try running the project and then copy here the id that wandb assigns to the created view
+                         # since the current wandb api does not allow to create views specifying the id,
+                         # if this id is not found, a new view will be created and saved in wandb at each run!
 
 
+health:
+  max_conn_retries: 5 #(int, optional): max. num. of connections attempts to the kafka broker. Default is 5.
+  poll_timeout_seconds: 3 # consumer poll timeout in seconds.
+  max_failed_polls: 40 # max. num. of failed poll attempts after which the consuming task is aborted for each topic
+  topic_replication_factor: 1
+  ping_host: 'www.google.com'
+  ping_thread_timeout: 5
+  probe_frequency_seconds: 3
+  node_features_time_window: 10
+  probe_metrics:
+    - CPU
+    - RAM
+    - RTT
+    - INBOUND
+    - OUTBOUND
 
+
+neural_modules:
+  first_stream_input_size: 4
+  second_stream_input_size: 64
+  third_stream_input_size: ${len:${health.probe_metrics}}
+  hidden_size: 800
+  kernel_regressor_heads: 2
+  dropout: 0.1 # Dropout rate for the neural network.
+  device: cpu # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
+  use_encoder: false
+  recurrent_layers: 1
 
 intrusion_detection:
   # neural modules:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
-  device: 'cpu'  # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
-  kernel_regressor_heads: 2
+  device: ${neural_modules.device}  
   learning_rate: 1e-3
   pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   save_models: false # overwritte models on disk.
-  h_dim: 800
-  recurrent_layers: 1
+  h_dim: ${neural_modules.hidden_size}
+  recurrent_layers: ${neural_modules.recurrent_layers}
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DDQN  # can be DQN, DDQN or DAI
   ai_debug: true  # A boolean flag for a verbose version of ML related code
   use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
   packet_buffer_len: 1  # If 'use_packet_feats'=True, indicates how many packets are retained from each flow to build feature vectors
-  packet_feat_dim: 64
+  packet_feat_dim: ${neural_modules.second_stream_input_size}
   anonymize_transport_ports: true
-  flow_feat_dim: 4
+  flow_feat_dim: ${neural_modules.first_stream_input_size}
   flow_buff_len: 10  # Indicates the flowstats time-window size to build feature vectors
   node_features: ${health_monitoring}  # Use node features to build the feature vectors
   inference_freq_secs: 1  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 
   flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. 
-  dropout: 0.1 # Dropout rate for the neural network. Default is 0.6
   init_k_shot: 4 #  Initial value for k_shot in k_shot learning. Default is 5. 
   batch_size: 16 # Batch size for the neural network. Default is 20
   kernel_regression: True
@@ -190,8 +218,6 @@ intrusion_detection:
   greedy_decay: 0.999
   agent_discount_rate: 0.99
   epistemic_agency: true # activates the management agent, false to only pretrain the inference modules.
-  use_encoder: false
-  kr_type: 'dist' # can be 'dist' or 'dotprod'
   bad_classif_penalisation: easy # can be easy or hard
   no_confidence_penalty: 0 # this is a penalty (abs value) given each time the management module discards the closed-set inferences of the decision module.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
@@ -215,22 +241,6 @@ intrusion_detection:
   use_critic_to_act: true
   greedy_update: false
 
-
-health:
-  max_conn_retries: 5 #(int, optional): max. num. of connections attempts to the kafka broker. Default is 5.
-  poll_timeout_seconds: 3 # consumer poll timeout in seconds.
-  max_failed_polls: 40 # max. num. of failed poll attempts after which the consuming task is aborted for each topic
-  topic_replication_factor: 1
-  ping_host: 'www.google.com'
-  ping_thread_timeout: 5
-  probe_frequency_seconds: 3
-  node_features_time_window: 10
-  probe_metrics:
-    - CPU
-    - RAM
-    - RTT
-    - INBOUND
-    - OUTBOUND
 
 
 honeypots:

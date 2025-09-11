@@ -262,14 +262,17 @@ class MulticlassPrototypicalClassifier(nn.Module):
 
 
 class ThreeStreamMulticlassFlowClassifier(nn.Module):
-    def __init__(self, flow_input_size, second_stream_input_size, third_stream_input_size, hidden_size, dropout_prob=0.2, kr_heads=8, device='cpu', kwargs=None):
+    def __init__(self, kwargs):
         super(ThreeStreamMulticlassFlowClassifier, self).__init__()
-        self.device = device
+        self.device = kwargs['device']
+        flow_input_size = kwargs['first_stream_input_size']
         self.flow_normalizer = nn.BatchNorm1d(flow_input_size)
         self.use_encoder = False
         flow_rnn_input_dim = flow_input_size
-        second_stream_rnn_input_dim = second_stream_input_size
-        third_stream_rnn_input_dim = third_stream_input_size
+        second_stream_input_size = second_stream_rnn_input_dim = kwargs['second_stream_input_size']
+        third_stream_input_size = third_stream_rnn_input_dim = kwargs['third_stream_input_size']
+        hidden_size = kwargs['hidden_size']
+        dropout_prob = kwargs['dropout']
         if kwargs['use_encoder']:
             self.use_encoder = True
             self.flow_rnn_input_dim = hidden_size
@@ -284,11 +287,10 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
         self.third_stream_normalizer = nn.BatchNorm1d(third_stream_input_size)
         self.third_stream_rnn = RecurrentModel(third_stream_rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
-        kernel_regressor_class = DistKernelRegressor if kwargs['kr_type'] == 'dist' else DotProdKernelRegressor 
-        self.kernel_regressor = kernel_regressor_class(
+        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
             {'device': self.device,
             'dropout': dropout_prob,
-            'n_heads': kr_heads,
+            'n_heads': kwargs['kernel_regressor_heads'],
             'in_features': hidden_size*3,
             'out_features': hidden_size*3})
         self.classifier = MulticlassPrototypicalClassifier(device=self.device)
