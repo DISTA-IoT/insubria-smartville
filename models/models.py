@@ -319,12 +319,15 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
  
 
 class TwoStreamMulticlassFlowClassifier(nn.Module):
-    def __init__(self, flow_input_size, second_stream_input_size, hidden_size, dropout_prob=0.2, kr_heads=8, device='cpu', kwargs=None):
+    def __init__(self, kwargs):
         super(TwoStreamMulticlassFlowClassifier, self).__init__()
-        self.device = device
+        self.device = kwargs['device']
+        flow_input_size = kwargs['first_stream_input_size']
         self.flow_normalizer = nn.BatchNorm1d(flow_input_size)
         flow_rnn_input_dim = flow_input_size
-        second_stream_rnn_input_dim = second_stream_input_size
+        second_stream_input_size = second_stream_rnn_input_dim = kwargs['second_stream_input_size']
+        hidden_size = kwargs['hidden_size']
+        dropout_prob = kwargs['dropout']
         self.use_encoder = False
         if kwargs['use_encoder']:
             self.use_encoder = True
@@ -336,11 +339,10 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
         self.flow_rnn = RecurrentModel(flow_rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
         self.second_stream_normalizer = nn.BatchNorm1d(second_stream_input_size)
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
-        kernel_regressor_class = DistKernelRegressor if kwargs['kr_type'] == 'dist' else DotProdKernelRegressor 
-        self.kernel_regressor = kernel_regressor_class(
+        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
             {'device': self.device,
             'dropout': dropout_prob,
-            'n_heads': kr_heads,
+            'n_heads': kwargs['kernel_regressor_heads'],
             'in_features': hidden_size*2,
             'out_features': hidden_size*2})
         self.classifier = MulticlassPrototypicalClassifier(device=self.device)
@@ -366,22 +368,23 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
  
 
 class OneStreamMultiClassFlowClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size, dropout_prob, kr_heads=8,device='cpu', kwargs=None):
+    def __init__(self, device='cpu', kwargs=None):
         super(OneStreamMultiClassFlowClassifier, self).__init__()
         self.device=device
         self.normalizer = nn.BatchNorm1d(input_size)
-        rnn_input_dim = input_size
+        rnn_input_dim = input_size = kwargs['first_stream_input_size']
+        hidden_size = kwargs['hidden_size']
+        dropout_prob = kwargs['dropout']
         self.use_encoder = False
         if kwargs['use_encoder']:
             self.use_encoder = True
             rnn_input_dim = hidden_size
             self.encoder = MLP(input_size, hidden_size, dropout_prob)
         self.rnn = RecurrentModel(rnn_input_dim, hidden_size, dropout_prob, kwargs['recurrent_layers'], device=self.device)
-        kernel_regressor_class = DistKernelRegressor if kwargs['kr_type'] == 'dist' else DotProdKernelRegressor            
-        self.kernel_regressor = kernel_regressor_class(
+        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
             {'device': self.device,
             'dropout': dropout_prob,
-            'n_heads': kr_heads,
+            'n_heads': kwargs['kernel_regressor_heads'],
             'in_features': hidden_size,
             'out_features': hidden_size})
         self.classifier = MulticlassPrototypicalClassifier(device=self.device)
