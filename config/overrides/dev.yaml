@@ -19,7 +19,6 @@ intrusion_detection:
   
 topology_creator:
   use_gns3_config_file: false
-  # contr_start: "../../pox.py samples.pretty_log smartController.tiger_server"
   ADDITIONAL_ENV_VARS: |
     https_proxy=http://proxy.uninsubria.it:3128
     HTTPS_PROXY=http://proxy.uninsubria.it:3128
