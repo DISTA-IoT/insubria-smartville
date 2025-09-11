@@ -117,7 +117,25 @@
                         <input type="checkbox" name="use_packet_feats" checked> Use Packet Features
                     </label>
 
-                    <!-- Example of nested section -->
+                    <details>
+                        <summary>Traffic classification Neural Modules:</summary>
+                        <label>Hidden Size: <input type="number" name="neural_modules.hidden_size" value=128></label>
+                        <label>Recurrent Layers: <input type="number" name="neural_modules.recurrent_layers" value="1"></label>
+                        <label>Dropout: <input type="number" name="neural_modules.dropout" value="0.2"></label>
+                        <label>First Stream Input Size: <input type="number" name="neural_modules.first_stream_input_size" value=4></label>
+                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="64"></label>
+                        <label>Third Stream Input Size: <input type="number" name="neural_modules.third_stream_input_size" value="{{ rendering_params.neural_modules.third_stream_input_size }}"></label>
+                        <label>Device: 
+                            <select name="neural_modules.device">
+                                <option value="cpu" selected>cpu</option>
+                                <option value="cuda">cuda</option>
+                            </select>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="neural_modules.use_encoder"> Use Encoder
+                        </label>
+                    </details>
+
                     <details>
                         <summary>Topology Creator (Not working yet)</summary>
                         <label>Project: <input type="text" name="topology_creator.project" value="SmartVille"></label>
@@ -133,18 +151,19 @@
                         <label>Bridge IP: <input type="text" name="topology_creator.bridge_ip" value="192.168.1.100"></label>
                     </details>
 
-                    <!-- Another section example -->
+                    
                     <details>
+                        <summary>Traffic parameters (Not working yet)</summary>
                        <label>Replay Speed: <input type="number" name="base_params.replay_speed" value="1"></label>
                     </details>
 
-                    <!-- Another section -->
+                   
                     <details>
-                        <summary>WandB</summary>
+                        <summary>Other WandB parameters</summary>
                         <label>Project Name: <input type="text" name="wandb.wb_project_name" value="SmartVille"></label>
                     </details>
 
-                    <!-- Submit button -->
+                    
                     <button type="submit" class="blue">Save Config</button>
                     
                 </form>

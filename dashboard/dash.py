@@ -47,6 +47,21 @@ grafana_socat_proc = None
 
 OmegaConf.register_new_resolver("len", lambda x: len(x))
 
+
+def merge_dicts(d1: dict, d2: dict) -> dict:
+        """
+        Recursively merge two dictionaries.
+        Values from d2 overwrite those from d1.
+        """
+        result = d1.copy()
+        for k, v in d2.items():
+            if k in result and isinstance(result[k], dict) and isinstance(v, dict):
+                result[k] = merge_dicts(result[k], v)
+            else:
+                result[k] = v
+        return result
+
+
 def init_traffic_stuff(cfg):
     global traffic_dict, labelled_traffic_dict
 
@@ -187,6 +202,7 @@ def main(cfg: DictConfig) -> None:
             'host_ip': cfg.base_params.host_ip,
             'gns3_web_gui_port': cfg.base_params.gns3_web_gui_port,
             'grafana_web_gui_port':cfg.grafana.port}
+        rendering_params['neural_modules'] = OmegaConf.to_container(cfg.neural_modules, resolve=True)
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         for hostname, host_info in traffic_dict.items():
@@ -555,11 +571,14 @@ def main(cfg: DictConfig) -> None:
     
     stop_services_function = stop_services
 
+    
+
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
         init_args = OmegaConf.to_container(cfg, resolve=True)
 
         data = request.get_json(force=True)
+        config_from_frontend = data['config_from_frontend']
         init_args['wandb']['wb_tracking'] = data['wandb_track']
         init_args['wandb']['wb_run_name'] = data['wandb_run_name']
         init_args['container_ips'] = containers_internal_ips
@@ -574,6 +593,7 @@ def main(cfg: DictConfig) -> None:
         init_args['rewards'] = rewards
         init_args['monitor_ip'] = containers_external_ips['monitor']
         init_args['models'] = get_models_source()
+        init_args['neural_modules'] = merge_dicts(init_args['neural_modules'], config_from_frontend['neural_modules'])
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")

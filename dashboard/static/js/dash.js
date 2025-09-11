@@ -54,15 +54,28 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     var config = {};
 
+    function updateConfigDict() {
+        const formData = new FormData(configForm);
+        formData.forEach((val, key) => {
+            const keys = key.split('.');
+            let curr = config;
+            for (let i = 0; i < keys.length - 1; i++) {
+                const k = keys[i];
+                curr[k] = curr[k] || {};
+                curr = curr[k];
+            }
+            curr[keys[keys.length - 1]] = val;
+        });
+    }
+
     configForm.addEventListener("submit", function(e) {
       e.preventDefault();
-      const formData = new FormData(e.target);
-      formData.forEach((val, key) => {
-        config[key] = val;
-      });
+      updateConfigDict();
       alert("Configuration Saved!!");
       // TODO: send config dict to backend with fetch/axios
     });
+
+    updateConfigDict();
 
 
     refreshContainersButton.addEventListener("click", function() {
@@ -153,7 +166,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
             },
             body: JSON.stringify({ 
               wandb_run_name: wandbRunName, 
-              wandb_track: wandbTrack 
+              wandb_track: wandbTrack,
+              config_from_frontend: config
             })
         })
         .then(response => response.json())
