@@ -55,7 +55,7 @@ topology_creator:
 
   
   # Controller configuration
-  contr_start: "sh"  # Could also be: "./pox.py samples.pretty_log smartController.tiger_server"
+  contr_start: "../../pox.py samples.pretty_log smartController.tiger_server" # could also be "sh"
   monitor_start: "python monitor_server.py"
   victim_start: "python honeypot_server.py"
   attacker_start: "python attacker_server.py"
