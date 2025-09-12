@@ -56,6 +56,9 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     function updateConfigDict() {
         const formData = new FormData(configForm);
+        config = {}; // reset
+
+        // First handle all regular inputs (text, number, selects, checked checkboxes)
         formData.forEach((val, key) => {
             const keys = key.split('.');
             let curr = config;
@@ -65,6 +68,19 @@ window.addEventListener('DOMContentLoaded', (event) => {
                 curr = curr[k];
             }
             curr[keys[keys.length - 1]] = val;
+        });
+
+        // Now explicitly handle ALL checkboxes (checked or not)
+        const checkboxes = configForm.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach(cb => {
+            const keys = cb.name.split('.');
+            let curr = config;
+            for (let i = 0; i < keys.length - 1; i++) {
+                const k = keys[i];
+                curr[k] = curr[k] || {};
+                curr = curr[k];
+            }
+            curr[keys[keys.length - 1]] = cb.checked;
         });
     }
 
@@ -85,7 +101,15 @@ window.addEventListener('DOMContentLoaded', (event) => {
     });
   
     startTrafficButton.addEventListener("click", function() {
-        fetch("/launch_traffic", {method: "POST"})
+        fetch("/launch_traffic", {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            config_from_frontend: config
+          })
+        })
           .then(response => response.text())
           .then(data => alert(data));
     });
@@ -104,7 +128,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ hostname: button.id })
+                body: JSON.stringify({ 
+                  hostname: button.id,
+                  config_from_frontend: config 
+                })
             })
             .then(response => response.text())
             .then(data => alert(data));

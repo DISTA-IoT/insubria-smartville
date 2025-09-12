@@ -282,6 +282,10 @@ def main(cfg: DictConfig) -> None:
     @app.route('/launch_traffic', methods=['POST'])
     def launch_traffic():
         global HEALTH_MONITORING, KAFKA_PORT
+
+        data = request.get_json(force=True)
+        data = request.get_json(force=True)
+        HEALTH_MONITORING = data['config_from_frontend']['health_monitoring']
         
         response_str = ""
         for hostname, host_info in traffic_dict.items():
@@ -302,7 +306,10 @@ def main(cfg: DictConfig) -> None:
     def launch_traffic_single():
         global HEALTH_MONITORING, KAFKA_PORT
 
-        hostname = request.json['hostname'].split('_')[0]
+        data = request.get_json(force=True)
+        HEALTH_MONITORING = data['config_from_frontend']['health_monitoring']
+
+        hostname = data['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
         host_info['node_features'] = HEALTH_MONITORING
