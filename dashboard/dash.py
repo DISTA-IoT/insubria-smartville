@@ -605,7 +605,10 @@ def main(cfg: DictConfig) -> None:
         init_args['rewards'] = rewards
         init_args['monitor_ip'] = containers_external_ips['monitor']
         init_args['models'] = get_models_source()
+        # update info from the frontend:
         init_args['neural_modules'] = merge_dicts(init_args['neural_modules'], config_from_frontend['neural_modules'])
+        init_args['health']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
+
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
