@@ -12,6 +12,19 @@ function openTab(evt, tabId) {
       evt.currentTarget.classList.add("active");
     }
 
+function healthParametersChanged() {
+                            const checkboxes = document.querySelectorAll("input[name^='health.']");
+                            const healthParams = {};
+                            checkboxes.forEach(cb => {
+                                healthParams[cb.name] = cb.checked;
+                            });
+                            console.log("Health parameters changed:", healthParams);
+                            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                            console.log(`Number of checked health parameters: ${checkedCount}`);
+
+                            const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
+                            thirdStreamFeatureSizeTextBox.value = checkedCount;
+                        }
 
 window.addEventListener('DOMContentLoaded', (event) => {
 
@@ -92,7 +105,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
     });
 
     updateConfigDict();
-
 
     refreshContainersButton.addEventListener("click", function() {
         fetch("/refresh_containers", {method: "POST"})
