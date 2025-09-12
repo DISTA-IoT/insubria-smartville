@@ -293,6 +293,8 @@ def main(cfg: DictConfig) -> None:
             host_info['node_features'] = HEALTH_MONITORING
             host_info['kafka_endpoint'] = cfg.kafka.endpoint
             host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
+            # update health params from frontend configuration:
+            host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
             port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
             response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
             if response.json() is not None:
@@ -315,6 +317,9 @@ def main(cfg: DictConfig) -> None:
         host_info['node_features'] = HEALTH_MONITORING
         host_info['kafka_endpoint'] = cfg.kafka.endpoint
         host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
+        # update health params from frontend configuration:
+        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
+        
         port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
         response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"

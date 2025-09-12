@@ -80,7 +80,7 @@
                     {% for button in rendering_params.traffic_buttons %}
                     <nav>
                         <button id="{{ button }}_start_traffic" class="small">replay from {{ button }}</button>
-                        <button id="{{ button }}_stop_traffic" class="stop small">stop replau from {{ button }}</button>
+                        <button id="{{ button }}_stop_traffic" class="stop small">stop replay from {{ button }}</button>
                     </nav>
                 {% endfor %}
                 </nav>
@@ -112,6 +112,25 @@
                     <label>
                         <input type="checkbox" name="health_monitoring"> Health Monitoring
                     </label>
+
+                    <details>
+                        <summary>Health Parameters</summary>
+                        <label>
+                            <input type="checkbox" name="health.CPU" checked> CPU
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.RAM" checked> RAM
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.RTT" checked> RTT
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.INBOUND" checked> INBOUND
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.OUTBOUND" checked> OUTBOUND
+                        </label>
+                    </details>
 
                     <label>
                         <input type="checkbox" name="use_packet_feats" checked> Use Packet Features
