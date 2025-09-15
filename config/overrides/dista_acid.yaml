@@ -3,9 +3,12 @@ wandb:
   wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'DAI_P'
 
+neural_modules:
+  hidden_size: 200
+
+
 intrusion_detection:
   agent: DAI_P
-  h_dim: 200
   inference_freq_secs: 0.5
   flowstats_freq_secs: 1
   bad_classif_penalisation: hard
@@ -32,6 +35,7 @@ topology_creator:
     no_proxy=localhost,127.0.0.1
     
 base_params: 
+  host_ip: 192.168.183.146
   # container_manager_replay_from_file : false
   disable_proxy: true
   replay_speed: 20 # Replay speed factor
