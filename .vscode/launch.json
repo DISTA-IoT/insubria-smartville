@@ -5,37 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "REWRITE",
-            "type": "python",
-            "request": "launch",
-            "program": "AttackerNode/scripts/rewrite.py",
-            "args": [
-                "hajime",
-                "192.168.1.9",
-                "192.168.1.4",
-            ],
-            "justMyCode": true
-        },
-        {
-            "name": "REPLAY",
-            "type": "python",
-            "request": "launch",
-            "program": "AttackerNode/scripts/replay.py",
-            "args": [
-                "AttackerNode/h_scan",
-                "192.168.1.5",
-                "--repeat",
-                "5"
-            ],
-            "justMyCode": true
-        },
-        {
-            "name": "DISTA Star Topology Generation",
+            "name": "DISTA Topology Generation",
             "type": "python",
             "request": "launch",
             "program": "utils/star_topology.py",
             "args": [
-                "override=dista_dai"
+                "override=dista_full_topology"
             ],
             "justMyCode": true
         },
@@ -46,16 +21,6 @@
             "program": "utils/star_topology.py",
             "args": [
                 "override=dev"
-            ],
-            "justMyCode": false
-        },
-        {
-            "name": "home Star Topology Generation",
-            "type": "python",
-            "request": "launch",
-            "program": "utils/star_topology.py",
-            "args": [
-                "override=jesus"
             ],
             "justMyCode": false
         },
@@ -78,7 +43,6 @@
             "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "justMyCode": true,
             "args": [
-                "override=jesus"
                 ]
         },
         {
@@ -89,7 +53,7 @@
             "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "justMyCode": true,
             "args": [
-                "override=dista_dai"
+                "override=dista_acid"
                 ]
         }
     ]
