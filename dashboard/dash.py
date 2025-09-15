@@ -612,10 +612,12 @@ def main(cfg: DictConfig) -> None:
         init_args['health_monitoring'] = config_from_frontend['health_monitoring']
         init_args['neural_modules'] = merge_dicts(init_args['neural_modules'], config_from_frontend['neural_modules'])
         init_args['intrusion_detection'] = merge_dicts(init_args['intrusion_detection'], config_from_frontend['packet_monitoring'])
+        init_args['intrusion_detection'] = merge_dicts(init_args['intrusion_detection'], config_from_frontend['flow_monitoring'])
         init_args['health']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
         init_args['knowledge']['Knowns'] = config_from_frontend['knowledge']['Knowns']
         init_args['knowledge']['G1s'] = config_from_frontend['knowledge']['G1s']
         init_args['knowledge']['G2s'] = config_from_frontend['knowledge']['G2s']
+
         # solving hydra string binding with fronend info:
         init_args['intrusion_detection']['h_dim'] = int(init_args['neural_modules']['hidden_size']) 
         init_args['intrusion_detection']['device'] = init_args['neural_modules']['device']
