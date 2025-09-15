@@ -14,8 +14,8 @@ function openTab(evt, tabId) {
 
 
 function syncParams() {
-  const usePacketFeatsCheckbox = document.querySelector("input[name='intrusion_detection.use_packet_feats']");
-  const packetBytesTextBox = document.querySelector("input[name='intrusion_detection.packet_feat_dim']");
+  const usePacketFeatsCheckbox = document.querySelector("input[name='packet_monitoring.use_packet_feats']");
+  const packetBytesTextBox = document.querySelector("input[name='packet_monitoring.packet_feat_dim']");
   const secondStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.second_stream_input_size']");
   const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
   const healthMonitoringCheckbox = document.querySelector("input[name='health_monitoring']");
