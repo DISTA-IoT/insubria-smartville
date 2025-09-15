@@ -167,7 +167,6 @@ neural_modules:
   recurrent_layers: 1
 
 intrusion_detection:
-  # neural modules:
   eval: false  # Whether to use neural modules in evaluation mode (no training)
   device: ${neural_modules.device}  
   learning_rate: 1e-3

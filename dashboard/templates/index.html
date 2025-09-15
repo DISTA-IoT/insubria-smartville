@@ -110,39 +110,51 @@
                     </label>
 
                     <label>
-                        <input type="checkbox" name="health_monitoring"> Health Monitoring
+                        <input type="checkbox" name="health_monitoring" onchange="syncParams()"> Health Monitoring
                     </label>
 
                     <details>
                         <summary>Health Parameters</summary>
                         <label>
-                            <input type="checkbox" name="health.CPU" onchange="healthParametersChanged()" checked> CPU
+                            <input type="checkbox" name="health.CPU" onchange="syncParams()" checked> CPU
                         </label>
                         <label>
-                            <input type="checkbox" name="health.RAM" onchange="healthParametersChanged()" checked> RAM
+                            <input type="checkbox" name="health.RAM" onchange="syncParams()" checked> RAM
                         </label>
                         <label>
-                            <input type="checkbox" name="health.RTT" onchange="healthParametersChanged()" checked> RTT
+                            <input type="checkbox" name="health.RTT" onchange="syncParams()" checked> RTT
                         </label>
                         <label>
-                            <input type="checkbox" name="health.INBOUND" onchange="healthParametersChanged()" checked> INBOUND
+                            <input type="checkbox" name="health.INBOUND" onchange="syncParams()" checked> INBOUND
                         </label>
                         <label>
-                            <input type="checkbox" name="health.OUTBOUND" onchange="healthParametersChanged()" checked> OUTBOUND
+                            <input type="checkbox" name="health.OUTBOUND" onchange="syncParams()" checked> OUTBOUND
                         </label>
                     </details>
 
-                    <label>
-                        <input type="checkbox" name="use_packet_feats" checked> Use Packet Features
-                    </label>
+                    <details>
+                        <summary>Packet Monitoring:</summary>
+                        <label>
+                        <input type="checkbox" name="intrusion_detection.use_packet_feats" onchange="syncParams()" checked> Use Packet Features
+                        </label>
+                        <label> Packet Timeseries length
+                            <input type="number" name="intrusion_detection.packet_buffer_len" onchange="syncParams()" value=1> 
+                        </label>
+                        <label> Bytes per packet 
+                            <input type="numer" name="intrusion_detection.packet_feat_dim" onchange="syncParams()" value=64>
+                        </label>
+
+                    </details>
+
+                    
 
                     <details>
                         <summary>Traffic classification Neural Modules:</summary>
-                        <label>Hidden Size: <input type="number" name="neural_modules.hidden_size" value=128></label>
+                        <label>Hidden Size: <input type="number" name="neural_modules.hidden_size" value=128 onchange="syncParams()"></label>
                         <label>Recurrent Layers: <input type="number" name="neural_modules.recurrent_layers" value="1"></label>
                         <label>Dropout: <input type="number" name="neural_modules.dropout" value="0.2"></label>
-                        <label>First Stream Input Size: <input type="number" name="neural_modules.first_stream_input_size" value=4></label>
-                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="64"></label>
+                        <label>First Stream Input Size: <input type="number" name="neural_modules.first_stream_input_size" value=4 readonly></label>
+                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="64" readonly></label>
                         <label>Third Stream Input Size: 
                             <input type="number" name="neural_modules.third_stream_input_size" value="{{ rendering_params.neural_modules.third_stream_input_size }}" readonly>
                         </label>

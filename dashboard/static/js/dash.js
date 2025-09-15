@@ -12,19 +12,68 @@ function openTab(evt, tabId) {
       evt.currentTarget.classList.add("active");
     }
 
-function healthParametersChanged() {
-                            const checkboxes = document.querySelectorAll("input[name^='health.']");
-                            const healthParams = {};
-                            checkboxes.forEach(cb => {
-                                healthParams[cb.name] = cb.checked;
-                            });
-                            console.log("Health parameters changed:", healthParams);
-                            const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
-                            console.log(`Number of checked health parameters: ${checkedCount}`);
 
-                            const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
-                            thirdStreamFeatureSizeTextBox.value = checkedCount;
-                        }
+function syncParams() {
+  const usePacketFeatsCheckbox = document.querySelector("input[name='intrusion_detection.use_packet_feats']");
+  const packetBytesTextBox = document.querySelector("input[name='intrusion_detection.packet_feat_dim']");
+  const secondStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.second_stream_input_size']");
+  const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
+  const healthMonitoringCheckbox = document.querySelector("input[name='health_monitoring']");
+  const metricsCheckboxes = document.querySelectorAll("input[name^='health.']");
+  const healthParams = {};
+  metricsCheckboxes.forEach(cb => {
+      healthParams[cb.name] = cb.checked;
+  });
+  const checkedCount = Array.from(metricsCheckboxes).filter(cb => cb.checked).length;
+
+  console.log(`healthMonitoringCheckbox.checked: ${healthMonitoringCheckbox.checked}`);
+  console.log("Health parameters:", healthParams);
+  console.log(`Number of checked health parameters: ${checkedCount}`);
+  console.log(`usePacketFeatsCheckbox.checked: ${usePacketFeatsCheckbox.checked}`);
+  console.log(`packetBytesTextBox.value: ${packetBytesTextBox.value}`);
+
+
+  if(usePacketFeatsCheckbox.checked){
+    if(healthMonitoringCheckbox.checked){
+      // three steams.
+      // first stream: flow features 
+      // second stream: packet features
+      // third stream: health features
+      secondStreamFeatureSizeTextBox.enabled = true;
+      thirdStreamFeatureSizeTextBox.enabled = true;
+      secondStreamFeatureSizeTextBox.value = packetBytesTextBox.value;
+      thirdStreamFeatureSizeTextBox.value = checkedCount;
+    }
+    else{
+      // two steams.
+      // first stream: flow features 
+      // second stream: packet features
+      secondStreamFeatureSizeTextBox.enabled = true;
+      thirdStreamFeatureSizeTextBox.enabled = false;
+      secondStreamFeatureSizeTextBox.value = packetBytesTextBox.value;
+      thirdStreamFeatureSizeTextBox.value = 0;
+    }
+  }else{
+    if(healthMonitoringCheckbox.checked){
+      // two steams.
+      // first stream: flow features 
+      // second stream: health features
+      secondStreamFeatureSizeTextBox.enabled = true;
+      thirdStreamFeatureSizeTextBox.enabled = false;
+      secondStreamFeatureSizeTextBox.value = checkedCount;
+      thirdStreamFeatureSizeTextBox.value = 0;
+    }
+    else{
+      // one steam.
+      // first stream: flow features 
+      secondStreamFeatureSizeTextBox.enabled = false;
+      thirdStreamFeatureSizeTextBox.enabled = false;
+      secondStreamFeatureSizeTextBox.value = 0;
+      thirdStreamFeatureSizeTextBox.value = 0;
+    }
+  }
+}
+
 
 window.addEventListener('DOMContentLoaded', (event) => {
 
