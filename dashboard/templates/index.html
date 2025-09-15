@@ -112,12 +112,15 @@
                         </select>
                     </label>
 
-                    <label>
-                        <input type="checkbox" name="health_monitoring" onchange="syncParams()"> Health Monitoring
-                    </label>
+                    
 
                     <details>
                         <summary>Health Parameters</summary>
+
+                        <label>
+                            <input type="checkbox" name="health_monitoring" onchange="syncParams()" checked> Health Monitoring
+                        </label>
+
                         <label>
                             <input type="checkbox" name="health.CPU" onchange="syncParams()" checked> CPU
                         </label>
