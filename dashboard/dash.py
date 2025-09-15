@@ -201,8 +201,9 @@ def main(cfg: DictConfig) -> None:
             'traffic_buttons': [],
             'host_ip': cfg.base_params.host_ip,
             'gns3_web_gui_port': cfg.base_params.gns3_web_gui_port,
-            'grafana_web_gui_port':cfg.grafana.port}
-        rendering_params['neural_modules'] = OmegaConf.to_container(cfg.neural_modules, resolve=True)
+            'grafana_web_gui_port':cfg.grafana.port,
+            'neural_modules': OmegaConf.to_container(cfg.neural_modules, resolve=True),
+            'knowledge': OmegaConf.to_container(cfg.knowledge, resolve=True),}
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         for hostname, host_info in traffic_dict.items():

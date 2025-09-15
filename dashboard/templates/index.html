@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <script src="{{ url_for('static', filename='/js/dash.js') }}"></script>
-    
+    <script>
+    // data from server: cfg.knowledge
+    const initialKnowledge = JSON.parse('{{ rendering_params.knowledge | tojson | safe }}');
+    </script>
     <title>SmartVille</title>
 </head>
 <body>
@@ -169,6 +172,34 @@
                         </label>
                     </details>
 
+                    
+                    <details>
+                        <summary>Knowledge groups (drag & drop)</summary>
+                        <p>Drag items into Known, G1 or G2. Drop back into <em>Unassigned</em> to remove.</p>
+
+                        <div id="knowledge-picker" style="display:flex; gap:12px; margin-top:8px;">
+                            <div style="flex:1;">
+                                <label><strong>Unassigned</strong></label>
+                                <div id="unassigned" class="dropzone" style="min-height:120px; border:1px dashed #aaa; padding:8px;"></div>
+                            </div>
+
+                            <div style="flex:1;">
+                                <label><strong>Known</strong></label>
+                                <div id="known" class="dropzone" data-target="Knowns" style="min-height:120px; border:1px dashed #aaa; padding:8px;"></div>
+
+                                <label style="margin-top:8px;"><strong>G1</strong></label>
+                                <div id="g1" class="dropzone" data-target="G1s" style="min-height:120px; border:1px dashed #aaa; padding:8px;"></div>
+
+                                <label style="margin-top:8px;"><strong>G2</strong></label>
+                                <div id="g2" class="dropzone" data-target="G2s" style="min-height:120px; border:1px dashed #aaa; padding:8px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- hidden JSON field used by JS to send groups to backend -->
+                        <input type="hidden" id="knowledge_json" name="knowledge_json" value=""/>
+                    </details>
+
+
                     <details>
                         <summary>Topology Creator (Not working yet)</summary>
                         <label>Project: <input type="text" name="topology_creator.project" value="SmartVille"></label>
@@ -203,5 +234,6 @@
             </div>
         </div>
     </div>
+
 </body>
 </html>

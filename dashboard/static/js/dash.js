@@ -75,6 +75,121 @@ function syncParams() {
 }
 
 
+// ---------- Knowledge drag & drop UI helpers ----------
+
+// create a draggable tag element
+function createTag(pattern) {
+  const el = document.createElement('div');
+  el.className = 'draggable-tag';
+  el.draggable = true;
+  el.dataset.pattern = pattern;
+  el.textContent = pattern;
+  el.style.padding = '4px 8px';
+  el.style.margin = '4px';
+  el.style.border = '1px solid #666';
+  el.style.borderRadius = '6px';
+  el.style.display = 'inline-block';
+  el.addEventListener('dragstart', function(ev) {
+    ev.dataTransfer.setData('text/plain', pattern);
+    // small visual hint
+    ev.dataTransfer.effectAllowed = 'move';
+  });
+  return el;
+}
+
+// allow drop
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+
+// reads DOM zones and store JSON into hidden input
+function syncHiddenKnowledge() {
+  const knowns = Array.from(document.getElementById('known').children).map(c => c.dataset.pattern);
+  const g1s = Array.from(document.getElementById('g1').children).map(c => c.dataset.pattern);
+  const g2s = Array.from(document.getElementById('g2').children).map(c => c.dataset.pattern);
+
+  const payload = {
+    Knowns: knowns,
+    G1s: g1s,
+    G2s: g2s
+  };
+  document.getElementById('knowledge_json').value = JSON.stringify(payload);
+}
+
+
+// handle drop into a dropzone
+function onDrop(ev) {
+  ev.preventDefault();
+  const pattern = ev.dataTransfer.getData('text/plain');
+  if (!pattern) return;
+  const target = ev.currentTarget;
+  // avoid duplicates
+  if (![...target.children].some(c => c.dataset && c.dataset.pattern === pattern)) {
+    const tag = createTag(pattern);
+    target.appendChild(tag);
+  }
+  // if tag exists elsewhere, remove it from there
+  document.querySelectorAll('.draggable-tag').forEach(t => {
+    if (t !== null && t.dataset && t.dataset.pattern === pattern && t.parentElement !== target) {
+      // remove the older one (we created a new copy)
+      t.parentElement.removeChild(t);
+    }
+  });
+  syncHiddenKnowledge();
+}
+
+
+// populate UI from initialKnowledge object
+function renderKnowledgeUI(initialKnowledge) {
+  // produce full list of patterns. try to use attack_patterns + bening_patterns if present
+  let allPatterns = [];
+  if (initialKnowledge.attack_patterns) allPatterns = allPatterns.concat(initialKnowledge.attack_patterns);
+  if (initialKnowledge.bening_patterns) allPatterns = allPatterns.concat(initialKnowledge.bening_patterns);
+  // ensure unique
+  allPatterns = [...new Set(allPatterns)];
+
+  // prepare dropzones
+  const zones = {
+    known: document.getElementById('known'),
+    g1: document.getElementById('g1'),
+    g2: document.getElementById('g2'),
+    unassigned: document.getElementById('unassigned')
+  };
+  // clear
+  Object.values(zones).forEach(z => { z.innerHTML = ''; z.addEventListener('dragover', allowDrop); z.addEventListener('drop', onDrop); });
+
+  // place items according to initialKnowledge groups, otherwise into unassigned
+  const placed = new Set();
+  if (initialKnowledge.Knowns) {
+    initialKnowledge.Knowns.forEach(p => {
+      zones.known.appendChild(createTag(p)); placed.add(p);
+    });
+  }
+  if (initialKnowledge.G1s) {
+    initialKnowledge.G1s.forEach(p => {
+      zones.g1.appendChild(createTag(p)); placed.add(p);
+    });
+  }
+  if (initialKnowledge.G2s) {
+    initialKnowledge.G2s.forEach(p => {
+      zones.g2.appendChild(createTag(p)); placed.add(p);
+    });
+  }
+
+  // remaining -> unassigned
+  allPatterns.forEach(p => {
+    if (!placed.has(p)) zones.unassigned.appendChild(createTag(p));
+  });
+
+  // fill hidden input initially
+  syncHiddenKnowledge();
+}
+
+
+
+
+
 window.addEventListener('DOMContentLoaded', (event) => {
 
     const configForm = document.getElementById("config-form");
@@ -114,6 +229,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const WandBRunNameTextBox = document.getElementById("wandb-run-name-textbox");
     const WandBTrackCheckBox = document.getElementById("wandb-track-checkbox");
 
+    
     var config = {};
 
     function updateConfigDict() {
@@ -144,6 +260,17 @@ window.addEventListener('DOMContentLoaded', (event) => {
             }
             curr[keys[keys.length - 1]] = cb.checked;
         });
+
+        // parse knowledge_json hidden field and set config.knowledge to an object
+        const knowledgeJSON = document.getElementById('knowledge_json')?.value;
+        if (knowledgeJSON) {
+          try {
+            config.knowledge = JSON.parse(knowledgeJSON);
+          } catch (e) {
+            console.error("Failed to parse knowledge_json", e);
+          }
+        }
+
     }
 
     configForm.addEventListener("submit", function(e) {
@@ -154,6 +281,10 @@ window.addEventListener('DOMContentLoaded', (event) => {
     });
 
     updateConfigDict();
+
+    if (typeof initialKnowledge !== 'undefined') {
+        renderKnowledgeUI(initialKnowledge);
+    }
 
     refreshContainersButton.addEventListener("click", function() {
         fetch("/refresh_containers", {method: "POST"})
@@ -343,7 +474,6 @@ window.addEventListener('DOMContentLoaded', (event) => {
           .then(response => response.json())
           .then(data => alert(data.msg));
     });
-    
     
 
   });
