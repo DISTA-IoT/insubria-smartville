@@ -5,17 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "DISTA Topology Generation",
+            "name": "SmartvilleTG Dista",
             "type": "python",
             "request": "launch",
             "program": "utils/star_topology.py",
             "args": [
-                "override=dista_full_topology"
+                "override=smartville_dista"
             ],
             "justMyCode": true
         },
         {
-            "name": "DEV Topology Generation",
+            "name": "DEV-TG Dista",
             "type": "python",
             "request": "launch",
             "program": "utils/star_topology.py",
@@ -25,7 +25,7 @@
             "justMyCode": false
         },
         {
-            "name": "DevDash",
+            "name": "DevDash Dista",
             "type": "python",
             "request": "launch",
             "program": "dash.py",
@@ -36,17 +36,18 @@
                 ]
         },
         {
-            "name": "Dash",
+            "name": "SmartvilleDash-Dista",
             "type": "python",
             "request": "launch",
             "program": "dash.py",
             "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "justMyCode": true,
             "args": [
+                "override=smartville_dista"
                 ]
         },
         {
-            "name": "DistaDash",
+            "name": "AcidDash Dista",
             "type": "python",
             "request": "launch",
             "program": "dash.py",
