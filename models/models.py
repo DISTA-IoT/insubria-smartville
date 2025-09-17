@@ -367,12 +367,12 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
         return logits, hiddens, predicted_kernel
  
 
-class OneStreamMultiClassFlowClassifier(nn.Module):
+class OneStreamMulticlassFlowClassifier(nn.Module):
     def __init__(self, device='cpu', kwargs=None):
-        super(OneStreamMultiClassFlowClassifier, self).__init__()
+        super(OneStreamMulticlassFlowClassifier, self).__init__()
         self.device=device
-        self.normalizer = nn.BatchNorm1d(input_size)
         rnn_input_dim = input_size = int(kwargs['first_stream_input_size'])
+        self.normalizer = nn.BatchNorm1d(input_size)
         hidden_size = int(kwargs['hidden_size'])
         dropout_prob = float(kwargs['dropout'])
         self.use_encoder = False
