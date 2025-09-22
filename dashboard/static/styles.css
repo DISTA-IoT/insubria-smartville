@@ -170,7 +170,7 @@ a:hover {
 .tablink {
   flex: 1;
   padding: 10px;
-  background: #f1f1f1;
+  background: #076925;
   border: none;
   cursor: pointer;
   font-size: 14px;
@@ -178,7 +178,7 @@ a:hover {
 }
 
 .tablink.active {
-  background: #ddd;
+  background: #349e26;
   font-weight: bold;
 }
 
