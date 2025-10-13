@@ -267,17 +267,16 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
         self.device = kwargs['device']
         flow_input_size = int(kwargs['first_stream_input_size'])
         self.flow_normalizer = nn.BatchNorm1d(flow_input_size)
-        self.use_encoder = False
+        self.use_encoder = kwargs['use_encoder']
         flow_rnn_input_dim = flow_input_size
         second_stream_input_size = second_stream_rnn_input_dim = int(kwargs['second_stream_input_size'])
         third_stream_input_size = third_stream_rnn_input_dim = int(kwargs['third_stream_input_size'])
         hidden_size = int(kwargs['hidden_size'])
         dropout_prob = float(kwargs['dropout'])
-        if kwargs['use_encoder']:
-            self.use_encoder = True
-            self.flow_rnn_input_dim = hidden_size
-            self.second_stream_rnn_input_dim = hidden_size
-            self.third_stream_rnn_input_dim = hidden_size
+        if self.use_encoder:
+            flow_rnn_input_dim = hidden_size
+            second_stream_rnn_input_dim = hidden_size
+            third_stream_rnn_input_dim = hidden_size
             self.flow_encoder = MLP(flow_input_size, hidden_size, dropout_prob)
             self.second_stream_encoder = MLP(second_stream_input_size, hidden_size, dropout_prob)
             self.third_stream_encoder = MLP(third_stream_input_size, hidden_size, dropout_prob)
@@ -328,9 +327,8 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
         second_stream_input_size = second_stream_rnn_input_dim = int(kwargs['second_stream_input_size'])
         hidden_size = int(kwargs['hidden_size'])
         dropout_prob = float(kwargs['dropout'])
-        self.use_encoder = False
-        if kwargs['use_encoder']:
-            self.use_encoder = True
+        self.use_encoder = kwargs['use_encoder']
+        if self.use_encoder:
             flow_rnn_input_dim = hidden_size
             second_stream_rnn_input_dim = hidden_size
             self.flow_encoder = MLP(flow_input_size, hidden_size, dropout_prob)
@@ -375,9 +373,8 @@ class OneStreamMulticlassFlowClassifier(nn.Module):
         self.normalizer = nn.BatchNorm1d(input_size)
         hidden_size = int(kwargs['hidden_size'])
         dropout_prob = float(kwargs['dropout'])
-        self.use_encoder = False
-        if kwargs['use_encoder']:
-            self.use_encoder = True
+        self.use_encoder = kwargs['use_encoder']
+        if self.use_encoder:
             rnn_input_dim = hidden_size
             self.encoder = MLP(input_size, hidden_size, dropout_prob)
         self.rnn = RecurrentModel(rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
