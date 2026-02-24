@@ -129,42 +129,56 @@ YOU NEED DOCKER TO RUN THIS PROJECT.
 
 Before starting, create a file named .env in your projects home dir and put there your wandb api key:
 
-    ```contents of .env file at projects root directory (the same dir of this readme file)
-   WANDB_API_KEY=pastehereyourwandbapikey
-   ```
-The .gitignore file is already taking care of not versioning your .env file, don't worry.
+    #.env file content (place it in the same dir of this readme file)
+    
+    WANDB_API_KEY=pastehereyourwandbapikey
+   
+    
+
+
 
 The docker images used to build the nodes can be obtained by running the Makefile
 
-    make all
+    # Build the docker images
 
-    - for developers: There is a cache point for building from the git cloning for some containers, just do: make build-scache
+    $ make all
+
+    # note there is a cache point for building from the git cloning for some containers:
+    
+    make build-scache
 
 ### Build topology
-After building the images, you can build the *star topology* execute star_topology.py: (GNS3 MUST BE OPENED!)
-
-    python3 utils/star_topology.py
-
-You will get in the GNS3 GUI a new project with this scenario. 
-Note: WE USE OUR OWN MECHANISM FOR CONFIG OVERRIDING BASED ON THE HYDRA LIBRARY -> use an override configuration for different topologies, e.g, for the latest config:
+After building the images, you can build the *star topology*:
 
 
-    python3 utils/star_topology.py override=acid
+    # (NOTE: GNS3 MUST BE OPENED!)
+
+    $ python3 utils/star_topology.py
+
+You will get a new project in your gns3 server.
+
+Note: Hydra is used to override the config file. Use an override configuration for different topologies, e.g, for the latest config:
+
+
+    $ python3 utils/star_topology.py override=acid
 
 
 
 ![alt text](./readme_imgs/topology.png)
 
+You can change the topology by modifying the topology creator script.
 
-Each node can communicate with eachother and everyone has Internet connection available. 
-If you need proxies or whatever like that, you can use the topology_creator.ADDITIONAL_ENV_VARS option in the config file, for example:
-topology_creator:
-  ADDITIONAL_ENV_VARS: |
-    https_proxy=http://proxy.uninsubria.it:3128
-    HTTPS_PROXY=http://proxy.uninsubria.it:3128
-    HTTP_PROXY=http://proxy.uninsubria.it:3128
-    http_proxy=http://proxy.uninsubria.it:3128
-    no_proxy=localhost,127.0.0.1,${topology_creator.bridge_ip}
+If needed, fill the *ADDITIONAL_ENV_VARS* option in the config file, for example:
+
+    in your_overrides.yaml:
+
+    topology_creator:
+        ADDITIONAL_ENV_VARS: |
+            https_proxy=http://proxy.uninsubria.it:3128
+            HTTPS_PROXY=http://proxy.uninsubria.it:3128
+            HTTP_PROXY=http://proxy.uninsubria.it:3128
+            http_proxy=http://proxy.uninsubria.it:3128
+            no_proxy=localhost,127.0.0.1,${topology_creator.bridge_ip}
 
 Note that such a parameter is a string and is formatted diversely comparted to yaml's default dicts...
 
@@ -174,7 +188,7 @@ Execute the dash script and it will guide you through the rest! (use overrides i
 
     python3 dashboard/dash.py override=acid
 
-You can now control everthing from your dashboard, usually runnin at http://localhost:7777, but it depends on your configs!
+You can now control everthing from your dashboard, which will be available at http://localhost:7777 (you can change the ip and port in the config file, e.g. you can connect to a different machine via ssh tunneling).
 
 ### Smart Controller
 
@@ -208,8 +222,7 @@ Stay tuned for a full walk-through tutorial!
 
 
 
-### Modify nodes
-Each node can be modified or replaced by manipulating the *node.dockerfile* and *star_topology.py* to fit the desired requirements.
+
 
 ## Troubleshooting
 ### gns3_server.conf is not found
