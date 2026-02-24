@@ -122,7 +122,7 @@ def mount_switch(templates, curr_switch_label,ip=None,gateway=None):
     template_id = get_template_id_from_name(templates, SWITCH_IMG_NAME)
     control_interface = 'eth0'
     if ip is not None:
-        switch1_node_name = curr_switch_label + "("+ ip +")"
+        switch1_node_name = curr_switch_label + "\n"+ ip.split("/")[0]
     else:
         switch1_node_name = curr_switch_label
 
@@ -171,7 +171,7 @@ def mount_controller(templates, switch_name, ip=None):
     """
     template_id = get_template_id_from_name(templates, CONTROLLER_IMG_NAME)
     if ip is not None:
-        controller_name = CONTROLLER_IMG_NAME+"("+ip+")"
+        controller_name = CONTROLLER_IMG_NAME+"-"+ip.split("/")[0]
     else:
         controller_name = CONTROLLER_IMG_NAME
 
@@ -474,7 +474,7 @@ def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_i
             img_name = VICTIM_IMG_NAME
         
         if ip is not None:
-            curr_node_name = f'{nodename}({ip})'
+            curr_node_name = f'{nodename}-{ip.split("/")[0]}'
         else:
             curr_node_name = nodename
 
@@ -843,8 +843,9 @@ def main(cfg: DictConfig) -> None:
                     cfg = OmegaConf.merge(cfg, OmegaConf.create({k: config_overrides[k]}))
             """
             cfg = OmegaConf.merge(cfg, config_overrides)
+            logging.info(f'Using configuration override: {cfg.override}')
         except:
-            logger.error('Unsuccesfully tried to use the configuration override: ',cfg.override)
+            logger.error(f'Unsuccesfully tried to use the configuration override: {cfg.override}')
             assert 1 == 0
     else:
     
