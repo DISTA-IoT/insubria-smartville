@@ -286,7 +286,7 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
         self.third_stream_normalizer = nn.BatchNorm1d(third_stream_input_size)
         self.third_stream_rnn = RecurrentModel(third_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DotProdKernelRegressor( # Try also DotProdKernelRegressor
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),

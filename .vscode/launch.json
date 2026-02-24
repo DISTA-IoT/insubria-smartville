@@ -15,6 +15,16 @@
             "justMyCode": true
         },
         {
+            "name": "ACIDTG Dista",
+            "type": "python",
+            "request": "launch",
+            "program": "utils/star_topology.py",
+            "args": [
+                "override=dista_acid"
+            ],
+            "justMyCode": true
+        },
+        {
             "name": "DEV-TG Dista",
             "type": "python",
             "request": "launch",
