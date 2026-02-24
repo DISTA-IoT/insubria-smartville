@@ -169,8 +169,9 @@ def main(cfg: DictConfig) -> None:
             config_overrides = OmegaConf.load(f'../config/overrides/{cfg.override}.yaml')
             # Merge configurations, with the variant overriding the base config
             cfg = OmegaConf.merge(cfg, config_overrides)
+            app.logger.info(f'Using the configuration override: {cfg.override}')
         except:
-            app.logger.error('Unsuccesfully tried to use the configuration override: ',cfg.override)
+            app.logger.error('Unsuccesfully tried to use the configuration override: {cfg.override}')
             assert 1 == 0
     else:   
         
@@ -203,7 +204,7 @@ def main(cfg: DictConfig) -> None:
             'gns3_web_gui_port': cfg.base_params.gns3_web_gui_port,
             'grafana_web_gui_port':cfg.grafana.port,
             'neural_modules': OmegaConf.to_container(cfg.neural_modules, resolve=True),
-            'knowledge': OmegaConf.to_container(cfg.knowledge, resolve=True),}
+            'knowledge': OmegaConf.to_container(cfg.knowledge, resolve=True)}
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         for hostname, host_info in traffic_dict.items():
@@ -233,7 +234,7 @@ def main(cfg: DictConfig) -> None:
             container_info = client.api.inspect_container(container.id)
             img_name = container_info['Config']['Image']
             container_name = container_info['Config']['Hostname']
-            container_name = container_name.split('(')[0] 
+            container_name = container_name.split('_')[0] 
             containers_dict[container_name] = container
 
             if img_name != 'openvswitch:latest':

@@ -15,7 +15,7 @@
             "justMyCode": true
         },
         {
-            "name": "ACIDTG Dista",
+            "name": "ACID_TIGER_TG Dista",
             "type": "python",
             "request": "launch",
             "program": "utils/star_topology.py",
@@ -65,6 +65,17 @@
             "justMyCode": true,
             "args": [
                 "override=dista_acid"
+                ]
+        },
+        {
+            "name": "TIGER_Dash Dista",
+            "type": "python",
+            "request": "launch",
+            "program": "dash.py",
+            "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
+            "justMyCode": true,
+            "args": [
+                "override=dista_tiger"
                 ]
         }
     ]

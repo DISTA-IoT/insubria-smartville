@@ -221,7 +221,7 @@
                         </div>
 
                         <!-- hidden JSON field used by JS to send groups to backend -->
-                        <input type="hidden" id="knowledge_json" name="knowledge_json" value=""/>
+                        <input type="hidden" id="knowledge_json" name="knowledge_json" value="{{ rendering_params.knowledge|tojson|forceescape }}"/>
                     </details>
 
 
