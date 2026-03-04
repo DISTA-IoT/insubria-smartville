@@ -12,8 +12,8 @@ CACHE_BUST := $(shell date +%s)
 .PHONY: all build-controller build-attacker build-victim build-openvswitch build-monitor
 
 all: build-controller build-attacker build-victim build-openvswitch build-monitor
-allnocache: build-victim-nocache build-attacker-nocache build-controller-nocache build-monitor-nocache
-build-scache: build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-openvswitch
+all-nocache: build-victim-nocache build-attacker-nocache build-controller-nocache build-monitor-nocache
+all-scache: build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-openvswitch
 
 build-controller:
 	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
