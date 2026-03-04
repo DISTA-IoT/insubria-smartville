@@ -15,12 +15,22 @@
             "justMyCode": true
         },
         {
-            "name": "ACID_TIGER_TG Dista",
+            "name": "ACID_TG Dista",
             "type": "python",
             "request": "launch",
             "program": "utils/star_topology.py",
             "args": [
                 "override=dista_acid"
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "TIGER_TG Dista",
+            "type": "python",
+            "request": "launch",
+            "program": "utils/star_topology.py",
+            "args": [
+                "override=dista_tiger"
             ],
             "justMyCode": true
         },
