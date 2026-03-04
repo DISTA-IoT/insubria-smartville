@@ -25,7 +25,8 @@ intrusion_detection:
   # variational_tmodel: true
 
 topology_creator:
-  contr_start: sh
+  contr_start: sh # COMMENT THIS IF YOU WANT POX TO START AUTOMATICALLY
+  # victim_start: sh # COMMENT THIS IF YOU WANT TO START THE VICTIM SERVER AUTOMATICALLY
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
     https_proxy=http://proxy.uninsubria.it:3128
@@ -38,4 +39,4 @@ base_params:
   host_ip: 192.168.183.146
   # container_manager_replay_from_file : false
   disable_proxy: true
-  replay_speed: 20 # Replay speed factor
+  replay_speed: 2000 # Replay speed factor
