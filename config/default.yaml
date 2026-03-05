@@ -1,7 +1,10 @@
 override: ""
 # SmartVille Configuration
 
+smart_controller_log_level: info
 smart_switch_log_level: info
+flow_logger_log_level: info
+
 health_monitoring: false
 use_packet_feats: true
 
