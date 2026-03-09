@@ -601,7 +601,7 @@ def main(cfg: DictConfig) -> None:
         del init_args['base_params']
         del init_args['honeypots']
         del init_args['attackers']
-        init_args['traffic_dict'] = labelled_traffic_dict
+        init_args['traffic_dict'] = traffic_dict
         rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards, resolve=True), {}).copy()
         del init_args['rewards']
         init_args['rewards'] = rewards

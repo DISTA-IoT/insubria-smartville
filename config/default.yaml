@@ -182,11 +182,11 @@ intrusion_detection:
   agent: DDQN  # can be DQN, DDQN or DAI
   ai_debug: true  # A boolean flag for a verbose version of ML related code
   use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
-  packet_buffer_len: 1  # If 'use_packet_feats'=True, indicates how many packets are retained from each flow to build feature vectors
+  packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
   packet_feat_dim: ${neural_modules.second_stream_input_size}
   anonymize_transport_ports: true
   flow_feat_dim: ${neural_modules.first_stream_input_size}
-  flow_buff_len: 10  # Indicates the flowstats time-window size to build feature vectors
+  flows_per_sample: 10  # Indicates the flowstats time-window size to build feature vectors
   node_features: ${health_monitoring}  # Use node features to build the feature vectors
   inference_freq_secs: 1  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 

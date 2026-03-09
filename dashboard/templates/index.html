@@ -162,7 +162,7 @@
                         <input type="checkbox" name="packet_monitoring.use_packet_feats" onchange="syncParams()" checked> Use Packet Features
                         </label>
                         <label> Packet Timeseries length
-                            <input type="number" name="packet_monitoring.packet_buffer_len" onchange="syncParams()" value=1> 
+                            <input type="number" name="packet_monitoring.packets_per_sample" onchange="syncParams()" value=1> 
                         </label>
                         <label> Bytes per packet 
                             <input type="numer" name="packet_monitoring.packet_feat_dim" onchange="syncParams()" value=64>
@@ -173,7 +173,7 @@
                     <details>
                         <summary>Flow monitoring:</summary>
                         <label> Flow features dim: <input type="number" name="flow_monitoring.flow_feat_dim" value=4 readonly></label>
-                        <label> Flow timeseries length: <input type="number" name="flow_monitoring.flow_buff_len" value=10></label>
+                        <label> Flow timeseries length: <input type="number" name="flow_monitoring.flows_per_sample" value=10></label>
                     </details>
 
                     <details>
