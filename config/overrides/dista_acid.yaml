@@ -5,7 +5,7 @@ wandb:
 
 neural_modules:
   hidden_size: 200
-
+  dropout: 0.2
 
 intrusion_detection:
   agent: DAI_P

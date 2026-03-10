@@ -202,7 +202,14 @@ def main(cfg: DictConfig) -> None:
             'gns3_web_gui_port': cfg.base_params.gns3_web_gui_port,
             'grafana_web_gui_port':cfg.grafana.port,
             'neural_modules': OmegaConf.to_container(cfg.neural_modules, resolve=True),
-            'knowledge': OmegaConf.to_container(cfg.knowledge, resolve=True)}
+            'knowledge': OmegaConf.to_container(cfg.knowledge, resolve=True),
+            'wandb': OmegaConf.to_container(cfg.wandb, resolve=True),
+            'smart_controller_log_level': cfg.smart_controller_log_level,
+            'smart_switch_log_level': cfg.smart_switch_log_level,
+            'flow_logger_log_level': cfg.flow_logger_log_level,
+            'intrusion_detection': OmegaConf.to_container(cfg.intrusion_detection, resolve=True),
+            'health': OmegaConf.to_container(cfg.health, resolve=True),
+            }
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         for hostname, host_info in traffic_dict.items():

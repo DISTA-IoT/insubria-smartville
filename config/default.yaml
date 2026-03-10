@@ -141,6 +141,7 @@ wandb:
 
 
 health:
+  health_monitoring: ${health_monitoring}
   max_conn_retries: 5 #(int, optional): max. num. of connections attempts to the kafka broker. Default is 5.
   poll_timeout_seconds: 3 # consumer poll timeout in seconds.
   max_failed_polls: 40 # max. num. of failed poll attempts after which the consuming task is aborted for each topic

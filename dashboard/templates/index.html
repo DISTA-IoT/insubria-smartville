@@ -121,12 +121,28 @@
                     <h2>SmartVille Configuration</h2>
 
                     <!-- Simple top-level fields -->
-                    <label>Log Level:
+                    <label>Smart Switch Log Level:
                         <select name="smart_switch_log_level">
-                        <option value="info" selected>info</option>
-                        <option value="debug">debug</option>
-                        <option value="warn">warn</option>
-                        <option value="error">error</option>
+                        <option value="info" {{ "selected" if rendering_params.smart_switch_log_level == "info" else "" }}>info</option>
+                        <option value="debug" {{ "selected" if rendering_params.smart_switch_log_level == "debug" else "" }}>debug</option>
+                        <option value="warn" {{ "selected" if rendering_params.smart_switch_log_level == "warn" else "" }}>warn</option>
+                        <option value="error" {{ "selected" if rendering_params.smart_switch_log_level == "error" else "" }}>error</option>
+                        </select>
+                    </label>
+                    <label>Smart Controller Log Level:
+                        <select name="smart_controller_log_level">
+                        <option value="info" {{ "selected" if rendering_params.smart_controller_log_level == "info" else "" }}>info</option>
+                        <option value="debug" {{ "selected" if rendering_params.smart_controller_log_level == "debug" else "" }}>debug</option>
+                        <option value="warn" {{ "selected" if rendering_params.smart_controller_log_level == "warn" else "" }}>warn</option>
+                        <option value="error" {{ "selected" if rendering_params.smart_controller_log_level == "error" else "" }}>error</option>
+                        </select>
+                    </label>
+                    <label>Flow Logger Log Level:
+                        <select name="flow_logger_log_level">
+                        <option value="info" {{ "selected" if rendering_params.flow_logger_log_level == "info" else "" }}>info</option>
+                        <option value="debug" {{ "selected" if rendering_params.flow_logger_log_level == "debug" else "" }}>debug</option>
+                        <option value="warn" {{ "selected" if rendering_params.flow_logger_log_level == "warn" else "" }}>warn</option>
+                        <option value="error" {{ "selected" if rendering_params.flow_logger_log_level == "error" else "" }}>error</option>
                         </select>
                     </label>
 
@@ -136,64 +152,64 @@
                         <summary>Health Parameters</summary>
 
                         <label>
-                            <input type="checkbox" name="health_monitoring" onchange="syncParams()" > Health Monitoring
+                            <input type="checkbox" name="health_monitoring" onchange="syncParams()" {{ "checked" if rendering_params.health.health_monitoring else "" }}> Health Monitoring
                         </label>
 
                         <label>
-                            <input type="checkbox" name="health.CPU" onchange="syncParams()" checked> CPU
+                            <input type="checkbox" name="health.CPU" onchange="syncParams()" {{ "checked" if "CPU" in rendering_params.health.probe_metrics else "" }}> CPU
                         </label>
                         <label>
-                            <input type="checkbox" name="health.RAM" onchange="syncParams()" checked> RAM
+                            <input type="checkbox" name="health.RAM" onchange="syncParams()" {{ "checked" if "RAM" in rendering_params.health.probe_metrics else "" }}> RAM
                         </label>
                         <label>
-                            <input type="checkbox" name="health.RTT" onchange="syncParams()" checked> RTT
+                            <input type="checkbox" name="health.RTT" onchange="syncParams()" {{ "checked" if "RTT" in rendering_params.health.probe_metrics else "" }}> RTT
                         </label>
                         <label>
-                            <input type="checkbox" name="health.INBOUND" onchange="syncParams()" checked> INBOUND
+                            <input type="checkbox" name="health.INBOUND" onchange="syncParams()" {{ "checked" if "INBOUND" in rendering_params.health.probe_metrics else "" }}> INBOUND
                         </label>
                         <label>
-                            <input type="checkbox" name="health.OUTBOUND" onchange="syncParams()" checked> OUTBOUND
+                            <input type="checkbox" name="health.OUTBOUND" onchange="syncParams()" {{ "checked" if "OUTBOUND" in rendering_params.health.probe_metrics else "" }}> OUTBOUND
                         </label>
                     </details>
 
                     <details>
                         <summary>Packet Monitoring:</summary>
                         <label>
-                        <input type="checkbox" name="packet_monitoring.use_packet_feats" onchange="syncParams()" checked> Use Packet Features
+                        <input type="checkbox" name="packet_monitoring.use_packet_feats" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_packet_feats else "" }}> Use Packet Features
                         </label>
                         <label> Packet Timeseries length
-                            <input type="number" name="packet_monitoring.packets_per_sample" onchange="syncParams()" value=1> 
+                            <input type="number" name="packet_monitoring.packets_per_sample" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packets_per_sample }}> 
                         </label>
                         <label> Bytes per packet 
-                            <input type="numer" name="packet_monitoring.packet_feat_dim" onchange="syncParams()" value=64>
+                            <input type="numer" name="packet_monitoring.packet_feat_dim" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packet_feat_dim }}>
                         </label>
 
                     </details>
 
                     <details>
                         <summary>Flow monitoring:</summary>
-                        <label> Flow features dim: <input type="number" name="flow_monitoring.flow_feat_dim" value=4 readonly></label>
-                        <label> Flow timeseries length: <input type="number" name="flow_monitoring.flows_per_sample" value=10></label>
+                        <label> Flow features dim: <input type="number" name="flow_monitoring.flow_feat_dim" value="{{ rendering_params.intrusion_detection.flow_feat_dim }}" readonly></label>
+                        <label> Flow timeseries length: <input type="number" name="flow_monitoring.flows_per_sample" value="{{ rendering_params.intrusion_detection.flows_per_sample }}"></label>
                     </details>
 
                     <details>
                         <summary>Traffic classification Neural Modules:</summary>
-                        <label>Hidden Size: <input type="number" name="neural_modules.hidden_size" value=128 onchange="syncParams()"></label>
-                        <label>Recurrent Layers: <input type="number" name="neural_modules.recurrent_layers" value="1"></label>
-                        <label>Dropout: <input type="number" name="neural_modules.dropout" value="0.2"></label>
-                        <label>First Stream Input Size: <input type="number" name="neural_modules.first_stream_input_size" value=4 readonly></label>
-                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="64" readonly></label>
+                        <label>Hidden Size: <input type="number" name="neural_modules.hidden_size" value="{{ rendering_params.neural_modules.hidden_size }}" onchange="syncParams()"></label>
+                        <label>Recurrent Layers: <input type="number" name="neural_modules.recurrent_layers" value="{{ rendering_params.neural_modules.recurrent_layers }}" onchange="syncParams()"></label>
+                        <label>Dropout: <input type="number" name="neural_modules.dropout" value="{{ rendering_params.neural_modules.dropout }}" onchange="syncParams()"></label>
+                        <label>First Stream Input Size: <input type="number" name="neural_modules.first_stream_input_size" value="{{ rendering_params.neural_modules.first_stream_input_size }}" readonly></label>
+                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="{{ rendering_params.neural_modules.second_stream_input_size }}" onchange="syncParams()"></label>
                         <label>Third Stream Input Size: 
                             <input type="number" name="neural_modules.third_stream_input_size" value="{{ rendering_params.neural_modules.third_stream_input_size }}" readonly>
                         </label>
                         <label>Device: 
-                            <select name="neural_modules.device">
+                            <select name="neural_modules.device" onchange="syncParams()">
                                 <option value="cpu" selected>cpu</option>
                                 <option value="cuda">cuda</option>
                             </select>
                         </label>
                         <label>
-                            <input type="checkbox" name="neural_modules.use_encoder"> Use Encoder
+                            <input type="checkbox" name="neural_modules.use_encoder" onchange="syncParams()" {{ "checked" if rendering_params.neural_modules.use_encoder else "" }}> Use Encoder
                         </label>
                     </details>
 
@@ -225,7 +241,7 @@
                     </details>
 
 
-                    <details>
+                    <!--details>
                         <summary>Topology Creator (Not working yet)</summary>
                         <label>Project: <input type="text" name="topology_creator.project" value="SmartVille"></label>
                         <label>Controller Docker: <input type="text" name="topology_creator.controller_docker" value="pox-controller"></label>
@@ -244,12 +260,12 @@
                     <details>
                         <summary>Traffic parameters (Not working yet)</summary>
                        <label>Replay Speed (deprecated): <input type="number" name="base_params.replay_speed" value="1"></label>
-                    </details>
+                    </details-->
 
                    
                     <details>
                         <summary>Other WandB parameters</summary>
-                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="SmartVille"></label>
+                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}" onchange="syncParams()"></label>
                     </details>
 
                     
