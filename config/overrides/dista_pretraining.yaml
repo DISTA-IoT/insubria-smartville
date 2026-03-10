@@ -25,4 +25,3 @@ topology_creator:
 base_params: 
   # container_manager_replay_from_file : false
   disable_proxy: true
-  replay_speed: 20 # Replay speed factor

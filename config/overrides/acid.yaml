@@ -26,4 +26,3 @@ intrusion_detection:
 
 base_params: 
   disable_proxy: true
-  replay_speed: 20 # Replay speed factor

@@ -72,7 +72,6 @@ def init_traffic_stuff(cfg):
     for attacker_name, attacker_info in attackers_dict.items():
         attacker_info['dest_ip'] = containers_internal_ips[attacker_info['destination']]
         attacker_info['src_ip'] = containers_internal_ips[attacker_name]
-        attacker_info['speed_multiplier'] = cfg.base_params.replay_speed
         if 'pattern' not in attacker_info:
             attacker_info['pattern'] = random.choice(cfg.knowledge.attack_patterns + cfg.knowledge.bening_patterns)
         attacker_info['benign'] = attacker_info['pattern'] in cfg.knowledge.bening_patterns
@@ -87,7 +86,6 @@ def init_traffic_stuff(cfg):
                 honeypot_info['dest_ip'] = containers_internal_ips[honeypot_info['destination']]
                 honeypot_info['src_ip'] = containers_internal_ips[honeypot_name]
                 honeypot_info['benign'] = True
-                honeypot_info['speed_multiplier'] = cfg.base_params.replay_speed
                 if 'pattern' not in honeypot_info:
                     honeypot_info['pattern'] = random.choice(cfg.knowledge.bening_patterns)
 
