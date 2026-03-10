@@ -180,7 +180,6 @@ intrusion_detection:
   recurrent_layers: ${neural_modules.recurrent_layers}
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DDQN  # can be DQN, DDQN or DAI
-  ai_debug: true  # A boolean flag for a verbose version of ML related code
   use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
   packet_feat_dim: ${neural_modules.second_stream_input_size}
