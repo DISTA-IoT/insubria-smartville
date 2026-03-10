@@ -36,7 +36,7 @@ class RecurrentModel(nn.Module):
 
     def forward(self, x):
         # Initialize hidden state
-        h0 = torch.zeros(self.gru.num_layers, x.size(0), self.hidden_size).to(x.device)
+        h0 = torch.zeros(self.gru.num_layers, x.size(0), self.hidden_size, device=x.device)
         
         # Forward pass through GRU layer
         out, _ = self.gru(x, h0)
