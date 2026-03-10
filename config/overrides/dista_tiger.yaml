@@ -1,14 +1,13 @@
 wandb:
   wb_tracking: true
   wb_run_name: 'DDQN'
-  wb_project_name:  'TIGER'
+  wb_project_name:  'TIGER2.0'
 
 neural_modules:
   hidden_size: 200
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
-  inference_freq_secs: 0.5
   flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true

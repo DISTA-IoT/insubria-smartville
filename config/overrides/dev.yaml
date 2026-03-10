@@ -13,7 +13,6 @@ intrusion_detection:
   epistemic_agency: false
   online_evaluation: true
   report_step_freq: 10
-  inference_freq_secs: 1
   flowstats_freq_secs: 6
 
   

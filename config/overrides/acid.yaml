@@ -8,7 +8,6 @@ neural_modules:
 
 intrusion_detection:
   agent: DDQN
-  inference_freq_secs: 0.5
   flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true

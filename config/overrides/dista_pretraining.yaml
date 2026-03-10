@@ -10,7 +10,6 @@ intrusion_detection:
   online_evaluation: true
   save_models: true
   report_step_freq: 10
-  inference_freq_secs: 0.05
   flowstats_freq_secs: 0.25
 
   

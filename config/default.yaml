@@ -188,7 +188,6 @@ intrusion_detection:
   flow_feat_dim: ${neural_modules.first_stream_input_size}
   flows_per_sample: 10  # Indicates the flowstats time-window size to build feature vectors
   node_features: ${health_monitoring}  # Use node features to build the feature vectors
-  inference_freq_secs: 1  # Time in seconds between two consecutive calls to an inference (and a batch training from experience buffer)
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 
   flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. 
   k_shot: 4 #  Number of support samples per class (k value for k_shot learning).
