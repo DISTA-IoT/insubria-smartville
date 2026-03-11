@@ -11,7 +11,7 @@ neural_modules:
 intrusion_detection:
   pretrained_inference: false
   epistemic_agency: false
-  # online_evaluation: true
+  online_evaluation: true
   save_models: true
   report_step_freq: 10
   flowstats_freq_secs: 0.25

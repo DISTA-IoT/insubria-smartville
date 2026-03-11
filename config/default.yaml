@@ -251,7 +251,7 @@ honeypots:
   - victim-1:
       pattern: 'echo'
       destination: 'victim-2'
-      speed_multiplier: 10
+      speed_multiplier: 5
 
   - victim-2:
       pattern: 'hue'
@@ -293,7 +293,7 @@ attackers:
   - attacker-7:
       pattern: 'gafgyt'
       destination: 'victim-0'
-      speed_multiplier: 10
+      speed_multiplier: 1
 
   - attacker-8:
       pattern: 'hajime'
@@ -303,7 +303,7 @@ attackers:
   - attacker-9:
       pattern: 'okiru'
       destination: 'victim-2'
-      speed_multiplier: 10
+      speed_multiplier: 1
 
   - attacker-10:
       pattern: 'muhstik'
