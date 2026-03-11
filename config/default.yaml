@@ -135,9 +135,7 @@ wandb:
   wb_project_name:  'SmartVille' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
   entity: jfcevallos
-  view_name: fx76ozd40tj # you cannot create the view id. Try running the project and then copy here the id that wandb assigns to the created view
-                         # since the current wandb api does not allow to create views specifying the id,
-                         # if this id is not found, a new view will be created and saved in wandb at each run!
+  plots: false
 
 
 health:
@@ -248,7 +246,7 @@ honeypots:
   - victim-0:
       pattern: 'doorlock'
       destination: 'victim-1'
-      speed_multiplier: 100
+      speed_multiplier: 10
 
   - victim-1:
       pattern: 'echo'
@@ -258,14 +256,14 @@ honeypots:
   - victim-2:
       pattern: 'hue'
       destination: 'victim-0'
-      speed_multiplier: 1000
+      speed_multiplier: 100
 
 
 attackers:
   - attacker-1:
       pattern: 'cc_heartbeat'
       destination: 'victim-0'
-      speed_multiplier: 1000
+      speed_multiplier: 100
 
   - attacker-2:
       pattern: 'generic_ddos'
@@ -280,17 +278,17 @@ attackers:
   - attacker-4:
       pattern: 'hakai'
       destination: 'victim-0'
-      speed_multiplier: 1000
+      speed_multiplier: 100
 
   - attacker-5:
       pattern: 'torii'
       destination: 'victim-1'
-      speed_multiplier: 1000
+      speed_multiplier: 100
 
   - attacker-6:
       pattern: 'mirai'
       destination: 'victim-2'
-      speed_multiplier: 1000
+      speed_multiplier: 100
 
   - attacker-7:
       pattern: 'gafgyt'
@@ -310,7 +308,7 @@ attackers:
   - attacker-10:
       pattern: 'muhstik'
       destination: 'victim-0'
-      speed_multiplier: 1000
+      speed_multiplier: 100
 
 
 rewards:

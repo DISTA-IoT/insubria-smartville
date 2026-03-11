@@ -32,13 +32,13 @@
                             type="text" 
                             id="wandb-run-name-textbox"
                             name="wandb-run-name-textbox" 
-                            value="My_new_run">
+                            value="{{ rendering_params.wandb.wb_run_name }}">
                         </label>
                         <label>
                             <input 
                                 id="wandb-track-checkbox"
                                 type="checkbox" 
-                                name="wandb-track-checkbox"> Enable W&B Tracking
+                                name="wandb-track-checkbox" {{ "checked" if rendering_params.wandb.wb_tracking else ""}}> Enable W&B Tracking
                         </label>
                         
                     </nav>

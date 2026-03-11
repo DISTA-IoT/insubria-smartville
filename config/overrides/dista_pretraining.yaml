@@ -1,13 +1,17 @@
 wandb:
  wb_tracking: true
- wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
- wb_project_name:  'TIGER'
-  
-intrusion_detection:  
-  h_dim: 200
+ wb_run_name: 'PT'
+ wb_project_name:  'TIGER2.0'
+
+neural_modules:
+  hidden_size: 200
+  dropout: 0.2
+
+
+intrusion_detection:
   pretrained_inference: false
   epistemic_agency: false
-  online_evaluation: true
+  # online_evaluation: true
   save_models: true
   report_step_freq: 10
   flowstats_freq_secs: 0.25
@@ -20,8 +24,9 @@ topology_creator:
     HTTPS_PROXY=http://proxy.uninsubria.it:3128
     HTTP_PROXY=http://proxy.uninsubria.it:3128
     http_proxy=http://proxy.uninsubria.it:3128
-    no_proxy=localhost,127.0.0.1,192.168.122.1
+    no_proxy=localhost,127.0.0.1
     
 base_params: 
+  host_ip: 192.168.183.146
   # container_manager_replay_from_file : false
   disable_proxy: true
