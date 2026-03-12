@@ -269,7 +269,7 @@ attackers:
   - attacker-2:
       pattern: 'generic_ddos'
       destination: 'victim-1'
-      sspeed_multiplierd: 1
+      speed_multiplierd: 1
 
   - attacker-3:
       pattern: 'h_scan'

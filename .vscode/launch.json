@@ -10,7 +10,7 @@
             "request": "launch",
             "program": "utils/star_topology.py",
             "args": [
-                "override=smartville_dista"
+                "override=dista_smartville"
             ],
             "justMyCode": true
         },
@@ -63,7 +63,7 @@
             "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "justMyCode": true,
             "args": [
-                "override=smartville_dista"
+                "override=dista_smartville"
                 ]
         },
         {

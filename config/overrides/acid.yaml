@@ -1,13 +1,14 @@
 wandb:
   wb_tracking: true
-  wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
-  wb_run_name: 'DDQN'
+  wb_project_name:  'ACID2.0' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
+  wb_run_name: 'DAI_P'
 
 neural_modules:
   hidden_size: 200
+  dropout: 0.2
 
 intrusion_detection:
-  agent: DDQN
+  agent: DAI_P
   flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true

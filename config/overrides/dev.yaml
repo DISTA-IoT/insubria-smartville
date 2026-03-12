@@ -2,7 +2,7 @@
 health_monitoring: true
 
 wandb:
-  wb_run_name: 'PT_H200_noenc_distkr_R1_blazingfast'
+  wb_run_name: 'PT'
 
 neural_modules:
   hidden_size: 200
@@ -37,24 +37,29 @@ honeypots:
   - victim-0:
       pattern: 'doorlock'
       destination: 'victim-1'
+      speed_multiplier: 10
 
   - victim-1:
       pattern: 'doorlock'
       destination: 'victim-0'
+      speed_multiplier: 5
 
 
 attackers:
   - attacker-1:
       pattern: 'cc_heartbeat'
       destination: 'victim-0'
+      speed_multiplier: 100
 
   - attacker-2:
       pattern: 'hakai'
       destination: 'victim-1'
+      speed_multiplierd: 1
 
   - benign-1:
       pattern: 'doorlock'
-      destination: 'victim-1'  
+      destination: 'victim-1' 
+      speed_multiplier: 10 
 
 knowledge:
 
