@@ -136,6 +136,7 @@ wandb:
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
   entity: jfcevallos
   plots: false
+  resource_monitor_interval_secs: 12 # for wholistic system resource monitoring
 
 
 health:

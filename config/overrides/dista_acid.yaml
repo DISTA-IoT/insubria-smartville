@@ -1,6 +1,6 @@
 wandb:
   wb_tracking: true
-  wb_project_name:  'ACID' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
+  wb_project_name:  'ACID2.0' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'DAI_P'
 
 neural_modules:
