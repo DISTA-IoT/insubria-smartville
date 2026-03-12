@@ -9,6 +9,8 @@ ONE_STREAM_MULTICLASS_FLOW_CLASSIFIER_CLASS_NAME = 'OneStreamMulticlassFlowClass
 TWO_STREAM_MULTICLASS_FLOW_CLASSIFIER_CLASS_NAME = 'TwoStreamMulticlassFlowClassifier'
 THREE_STREAM_MULTICLASS_FLOW_CLASSIFIER_CLASS_NAME = 'ThreeStreamMulticlassFlowClassifier'
 """
+torch.set_flush_denormal(True) # Fixes potential micro-float CPU slowdown
+torch.set_num_threads(4)       # Stops possible thread traffic jams
 
 
 class MLP(nn.Module):
