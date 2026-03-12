@@ -126,21 +126,12 @@ class DistKernelRegressor(nn.Module):
             self,
             hiddens):
         
-        n_nodes = hiddens.shape[0]
-
-        h_pivot = hiddens.repeat(
-            n_nodes,
-            1)
-
-        h_interleave = hiddens.repeat_interleave(
-            n_nodes,
-            dim=0)
+        h_pivot = hiddens.unsqueeze(1)
+        h_interleave = hiddens.unsqueeze(0)
         
         energies = self.similarity_network(h_pivot, h_interleave)
 
-        kernel = torch.sigmoid(energies)
-
-        kernel = kernel.reshape(n_nodes,n_nodes)
+        kernel = torch.sigmoid(energies).squeeze(-1)
 
         return hiddens, kernel
 
