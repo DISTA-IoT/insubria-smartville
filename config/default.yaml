@@ -187,7 +187,7 @@ intrusion_detection:
   flows_per_sample: 10  # Indicates the flowstats time-window size to build feature vectors
   node_features: ${health_monitoring}  # Use node features to build the feature vectors
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 
-  flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. 
+  flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. MUST BE GRATER THAN 1 SEC.
   k_shot: 4 #  Number of support samples per class (k value for k_shot learning).
   batch_size: 16 # Batch size for the neural network.
   kernel_regression: True
