@@ -602,7 +602,6 @@ def main(cfg: DictConfig) -> None:
         init_args['wandb']['wb_run_name'] = data['wandb_run_name']
         init_args['container_ips'] = containers_internal_ips
         init_args['ips_containers'] = internal_ips_containers
-        del init_args['topology_creator']
         del init_args['base_params']
         del init_args['honeypots']
         del init_args['attackers']
@@ -612,7 +611,6 @@ def main(cfg: DictConfig) -> None:
         init_args['rewards'] = rewards
         init_args['monitor_ip'] = containers_external_ips['monitor']
         init_args['models'] = get_models_source()
-
 
         # update info from the frontend:
         init_args['health_monitoring'] = config_from_frontend['health_monitoring']
