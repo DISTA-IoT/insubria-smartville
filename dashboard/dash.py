@@ -297,6 +297,7 @@ def main(cfg: DictConfig) -> None:
         response_str = ""
         for hostname, host_info in traffic_dict.items():
             node_external_ip = containers_external_ips[hostname]
+            host_info['controller_server_url'] = containers_external_ips['pox-controller']+':'+str(cfg.topology_creator.controller.SERVER_PORT)
             host_info['node_features'] = HEALTH_MONITORING
             host_info['kafka_endpoint'] = cfg.kafka.endpoint
             host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
@@ -321,6 +322,7 @@ def main(cfg: DictConfig) -> None:
         hostname = data['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
+        host_info['controller_server_url'] = containers_external_ips['pox-controller']+':'+str(cfg.topology_creator.controller.SERVER_PORT)
         host_info['node_features'] = HEALTH_MONITORING
         host_info['kafka_endpoint'] = cfg.kafka.endpoint
         host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
@@ -434,6 +436,7 @@ def main(cfg: DictConfig) -> None:
             headers=dict(response.headers)
         )
     
+
     @app.get('/open_grafana')
     def open_grafana():
         """
@@ -446,6 +449,7 @@ def main(cfg: DictConfig) -> None:
         ])
         time.sleep(1)
         return "Grafana dashboard opened in browser."
+
 
     @app.post('/stop_zookeeper')  
     def stop_zookeeper():
@@ -589,7 +593,6 @@ def main(cfg: DictConfig) -> None:
             return {"msg": response_message, "status_code": 200}
     
     stop_services_function = stop_services
-
     
 
     @app.route('/initialize_controller', methods=['POST'])
@@ -642,6 +645,7 @@ def main(cfg: DictConfig) -> None:
         response = response.json()
         app.logger.info(f"Replay from controller answered with status code: {response['status_code']}")
         return response
+
 
     @app.route('/attach_controller',  methods=['POST'])
     def  attach_controller():

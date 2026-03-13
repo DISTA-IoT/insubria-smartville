@@ -149,6 +149,8 @@ health:
   ping_thread_timeout: 5
   probe_frequency_seconds: 3
   node_features_time_window: 10
+  rtt_profiling_num_requests: 20
+  rtt_profiling_interval_ms: 100
   probe_metrics:
     - CPU
     - RAM
