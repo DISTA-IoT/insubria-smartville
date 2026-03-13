@@ -588,6 +588,21 @@ def main(cfg: DictConfig) -> None:
                 time.sleep(1)
 
             response_message += json.loads(zookeeper_response.data)['msg'] + "\n"
+
+
+            # Wipe Kafka data and Zookeeper state so the next experiment starts clean
+            try:
+                monitor_container = containers_dict['monitor']
+                monitor_container.exec_run("rm -rf /tmp/kafka-logs")
+                monitor_container.exec_run("rm -rf /tmp/zookeeper")
+                response_message += "Kafka logs and Zookeeper state deleted.\n"
+                app.logger.info("Sent command to wipe Kafka logs and Zookeeper state...")
+            except KeyError:
+                app.logger.warning("Monitor container not found in containers_dict — skipping Kafka log cleanup.")
+                response_message += "Warning: could not delete Kafka logs (monitor container not found).\n"
+            except Exception as e:
+                app.logger.error(f"Error deleting Kafka logs: {e}")
+                response_message += f"Warning: error deleting Kafka logs: {e}\n"
             
 
             return {"msg": response_message, "status_code": 200}
