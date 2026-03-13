@@ -162,15 +162,44 @@
                             <input type="checkbox" name="health.RAM" onchange="syncParams()" {{ "checked" if "RAM" in rendering_params.health.probe_metrics else "" }}> RAM
                         </label>
                         <label>
-                            <input type="checkbox" name="health.RTT" onchange="syncParams()" {{ "checked" if "RTT" in rendering_params.health.probe_metrics else "" }}> RTT
+                            <input type="checkbox" name="health.external_http_rtt" onchange="syncParams()" {{ "checked" if "external_http_rtt" in rendering_params.health.probe_metrics else "" }}> external_http_rtt
                         </label>
                         <label>
-                            <input type="checkbox" name="health.INBOUND" onchange="syncParams()" {{ "checked" if "INBOUND" in rendering_params.health.probe_metrics else "" }}> INBOUND
+                            <input type="checkbox" name="health.icmp_min_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_min_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_min_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.OUTBOUND" onchange="syncParams()" {{ "checked" if "OUTBOUND" in rendering_params.health.probe_metrics else "" }}> OUTBOUND
+                            <input type="checkbox" name="health.icmp_max_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_max_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_max_rtt_ms
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.icmp_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_avg_rtt_ms
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.icmp_loss_percent" onchange="syncParams()" {{ "checked" if "icmp_loss_percent" in rendering_params.health.probe_metrics else "" }}> icmp_loss_percent
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.http_min_rtt_ms" onchange="syncParams()" {{ "checked" if "http_min_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_min_rtt_ms
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.http_max_rtt_ms" onchange="syncParams()" {{ "checked" if "http_max_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_max_rtt_ms
+                        </label>
+                        <label>
+                            <input type="checkbox" name="health.http_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "http_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_avg_rtt_ms
+                        </label>
+                        <label> 
+                            <input type="checkbox" name="health.inbound_MBps" onchange="syncParams()" {{ "checked" if "inbound_MBps" in rendering_params.health.probe_metrics else "" }}> inbound_MBps
+                        </label>
+                        <label> 
+                            <input type="checkbox" name="health.outbound_MBps" onchange="syncParams()" {{ "checked" if "outbound_MBps" in rendering_params.health.probe_metrics else "" }}> outbound_MBps
+                        </label>
+                        <label> 
+                            <input type="checkbox" name="health.inbound_packets_per_second" onchange="syncParams()" {{ "checked" if "inbound_packets_per_second" in rendering_params.health.probe_metrics else "" }}> inbound_packets_per_second
+                        </label>
+                        <label> 
+                             <input type="checkbox" name="health.outbound_packets_per_second" onchange="syncParams()" {{ "checked" if "outbound_packets_per_second" in rendering_params.health.probe_metrics else "" }}> outbound_packets_per_second
+
                         </label>
                     </details>
+
 
                     <details>
                         <summary>Packet Monitoring:</summary>

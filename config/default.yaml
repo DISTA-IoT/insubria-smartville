@@ -154,9 +154,19 @@ health:
   probe_metrics:
     - CPU
     - RAM
-    - RTT
-    - INBOUND
-    - OUTBOUND
+    - external_http_rtt
+    - icmp_min_rtt_ms
+    - icmp_max_rtt_ms
+    - icmp_avg_rtt_ms
+    - icmp_loss_percent
+    - http_min_rtt_ms
+    - http_max_rtt_ms
+    - http_avg_rtt_ms
+    - inbound_MBps
+    - outbound_MBps
+    - inbound_packets_per_second
+    - outbound_packets_per_second
+
 
 
 neural_modules:
