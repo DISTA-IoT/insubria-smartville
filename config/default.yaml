@@ -47,7 +47,8 @@ topology_creator:
     max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
     max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
     arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
-    
+    ECHO_PORT: 7778
+    INTERNAL_IP:${topology_creator.controller_ip}
   attacker:
     SERVER_PORT: 7777
   

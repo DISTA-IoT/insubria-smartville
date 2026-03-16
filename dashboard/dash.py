@@ -322,7 +322,7 @@ def main(cfg: DictConfig) -> None:
         hostname = data['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
-        host_info['controller_server_url'] = containers_external_ips['pox-controller']+':'+str(cfg.topology_creator.controller.SERVER_PORT)
+        host_info['controller_server_url'] = containers_internal_ips['pox-controller']+':'+str(cfg.topology_creator.controller.ECHO_PORT)
         host_info['node_features'] = HEALTH_MONITORING
         host_info['kafka_endpoint'] = cfg.kafka.endpoint
         host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
