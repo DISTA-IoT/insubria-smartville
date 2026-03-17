@@ -260,12 +260,12 @@ honeypots:
   - victim-0:
       pattern: 'doorlock'
       destination: 'victim-1'
-      speed_multiplier: 10
+      speed_multiplier: 1
 
   - victim-1:
       pattern: 'echo'
       destination: 'victim-2'
-      speed_multiplier: 5
+      speed_multiplier: 1
 
   - victim-2:
       pattern: 'hue'
