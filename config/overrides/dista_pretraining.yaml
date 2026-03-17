@@ -2,9 +2,10 @@ health_monitoring: true
 
 
 wandb:
- wb_tracking: false
+ wb_tracking: true
  wb_run_name: 'PT'
  wb_project_name:  'TIGER2.0'
+ plots: true
 
 neural_modules:
   hidden_size: 200
@@ -17,7 +18,6 @@ intrusion_detection:
   online_evaluation: true
   save_models: true
   report_step_freq: 10
-  flowstats_freq_secs: 0.25
 
   
 topology_creator:
