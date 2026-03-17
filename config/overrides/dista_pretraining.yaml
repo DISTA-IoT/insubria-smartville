@@ -1,4 +1,5 @@
 health_monitoring: true
+use_packet_feats: false
 
 
 wandb:
@@ -18,7 +19,7 @@ intrusion_detection:
   online_evaluation: true
   save_models: true
   report_step_freq: 10
-
+  resample_packets : false # baseline, for overhead comparisons.
   
 topology_creator:
   use_gns3_config_file: false
