@@ -154,14 +154,14 @@ health:
   rtt_profiling_interval_ms: 100
   probe_metrics:
     - CPU
-    - RAM
+    # - RAM
     - external_http_rtt
-    - icmp_min_rtt_ms
-    - icmp_max_rtt_ms
+    # - icmp_min_rtt_ms
+    # - icmp_max_rtt_ms
     - icmp_avg_rtt_ms
     - icmp_loss_percent
-    - http_min_rtt_ms
-    - http_max_rtt_ms
+    # - http_min_rtt_ms
+    # - http_max_rtt_ms
     - http_avg_rtt_ms
     - inbound_MBps
     - outbound_MBps
@@ -193,6 +193,7 @@ intrusion_detection:
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DDQN  # can be DQN, DDQN or DAI
   use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
+  resample_packets : true # wheter to periocially sample new packets from flows, if false, the first packets of the flow are used continuously
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
   packet_feat_dim: ${neural_modules.second_stream_input_size}
   anonymize_transport_ports: true
