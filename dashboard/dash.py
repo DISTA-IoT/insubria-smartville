@@ -527,7 +527,7 @@ def main(cfg: DictConfig) -> None:
                 time.sleep(3)
 
             response_message += json.loads(kafka_response.data)['msg'] + "\n"
-
+            """
             while not prometheus_ok:
                 prometheus_response = start_prometheus()
                 prometheus_ok = prometheus_response.status_code == 200
@@ -541,7 +541,7 @@ def main(cfg: DictConfig) -> None:
                 time.sleep(3)
 
             response_message += json.loads(grafana_response.data)['msg']
-
+            """
             ms_healthcheck_thread = Thread(target=ms_health_thread_function, daemon=True)
             ms_healthcheck_thread.start()
             return {"msg": response_message, "status_code": 200}
@@ -560,7 +560,7 @@ def main(cfg: DictConfig) -> None:
             grafana_ok = False
 
             response_message = ""
-
+            """
             while not grafana_ok:
                 grafana_response = stop_grafana()
                 grafana_ok = grafana_response.status_code in [200, 202]
@@ -574,7 +574,7 @@ def main(cfg: DictConfig) -> None:
                 time.sleep(1)
 
             response_message += json.loads(prometheus_response.data)['msg'] + "\n"
-
+            """
             while not kafka_ok:
                 kafka_response = stop_kafka()
                 kafka_ok = kafka_response.status_code in [200, 202]
@@ -718,6 +718,7 @@ def main(cfg: DictConfig) -> None:
                         app.logger.error(f"Kafka check failed with status code: {response.status_code}")
 
             time.sleep(1)
+            """
             with monitoring_services_lock:
                 if monitoring_services:
                     response = requests.get(f"http://{monitor_external_ip}:{cfg.topology_creator.monitor.SERVER_PORT}/check_grafana")
@@ -752,7 +753,7 @@ def main(cfg: DictConfig) -> None:
                             app.logger.debug(f"Prometheus running healthy with pid: {response_content['pid']}")
                     else:
                         app.logger.error(f"Prometheus check failed with status code: {response.status_code}")
-
+            """
             time.sleep(5)
 
         app.logger.debug(f"Monitoring services stopped")
