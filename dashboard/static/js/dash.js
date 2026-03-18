@@ -1,3 +1,43 @@
+// ---------- In-GUI Console ----------
+
+function logToConsole(message, level = "info") {
+  const console_ = document.getElementById("gui-console-log");
+  if (!console_) return;
+
+  const now = new Date();
+  const timestamp = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+  const entry = document.createElement("div");
+  entry.className = `console-entry console-${level}`;
+  entry.innerHTML = `<span class="console-ts">[${timestamp}]</span> <span class="console-msg">${message}</span>`;
+  console_.appendChild(entry);
+  console_.scrollTop = console_.scrollHeight;
+
+  // also keep browser console in sync
+  if (level === "error") console.error(message);
+  else console.log(message);
+}
+
+function clearConsole() {
+  const c = document.getElementById("gui-console-log");
+  if (c) c.innerHTML = "";
+}
+
+function toggleConsole() {
+  const body = document.getElementById("gui-console-body");
+  const toggle = document.getElementById("gui-console-toggle");
+  if (body.style.display === "none") {
+    body.style.display = "flex";
+    toggle.textContent = "▼";
+  } else {
+    body.style.display = "none";
+    toggle.textContent = "▲";
+  }
+}
+
+// ---------- end Console ----------
+
+
 function openTab(evt, tabId) {
       // Hide all tabs
       document.querySelectorAll(".tabcontent").forEach(tab => tab.style.display = "none");
@@ -254,7 +294,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     configForm.addEventListener("submit", function(e) {
       e.preventDefault();
       updateConfigDict();
-      alert("Configuration Saved!!");
+      logToConsole("Configuration Saved!", "info");
       // TODO: send config dict to backend with fetch/axios
     });
     
@@ -277,7 +317,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     refreshContainersButton.addEventListener("click", function() {
         fetch("/refresh_containers", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
   
     startTrafficButton.addEventListener("click", function() {
@@ -291,14 +331,14 @@ window.addEventListener('DOMContentLoaded', (event) => {
           })
         })
           .then(response => response.text())
-          .then(data => alert(data));
+          .then(data => logToConsole(data));
     });
     
 
     stopTrafficButton.addEventListener("click", function() {
         fetch("/stop_traffic", {method: "POST"})
           .then(response => response.text())
-          .then(data => alert(data));
+          .then(data => logToConsole(data));
     });
 
     startTrafficButtons.forEach(button => {
@@ -314,7 +354,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
                 })
             })
             .then(response => response.text())
-            .then(data => alert(data));
+            .then(data => logToConsole(data));
         });
     });
 
@@ -330,7 +370,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
                                         })
             })
             .then(response => response.text())
-            .then(data => alert(data));
+            .then(data => logToConsole(data));
         });
     });
   
@@ -346,20 +386,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
           })
         })
           .then(response => response.text())
-          .then(data => alert(data));
+          .then(data => logToConsole(data));
     });
     
 
     attachControllerButton.addEventListener("click", function() {
         fetch("/attach_controller", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
   
     checkTrafficButton.addEventListener("click", function() {
         fetch("/check_traffic", {method: "POST"})
           .then(response => response.text())
-          .then(data => alert(data));
+          .then(data => logToConsole(data));
     });
   
   
@@ -378,13 +418,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
             })
         })
         .then(response => response.json())
-        .then(data => alert(data.msg));
+        .then(data => logToConsole(data.msg));
     });
 
     stopControllerButton.addEventListener("click", function() {
         fetch("/stop_controller", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
 
@@ -392,57 +432,56 @@ window.addEventListener('DOMContentLoaded', (event) => {
         fetch("/start_services", {method: "POST"})
           .then(response => response.json())
           .then(data => {
-            alert(data.msg);
+            logToConsole(data.msg);
             openGrafanaButton.disabled = false;
             openGrafanaButton.classList.remove("disabled");
             openGrafanaButton.classList.add("blue");
-          }
-          );
+          });
     });
 
     stopMSButton.addEventListener("click", function() {
         fetch("/stop_services", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
 
     startZookeeperButton.addEventListener("click", function() {
         fetch("/start_zookeeper", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
     stopZookeeperButton.addEventListener("click", function() {
         fetch("/stop_zookeeper", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
 
     startKafkaButton.addEventListener("click", function() {
         fetch("/start_kafka", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
     stopKafkaButton.addEventListener("click", function() {
         fetch("/stop_kafka", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
 
     startPrometheusButton.addEventListener("click", function() {
         fetch("/start_prometheus", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
     stopPrometheusButton.addEventListener("click", function() {
         fetch("/stop_prometheus", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
 
 
@@ -450,7 +489,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
         fetch("/start_grafana", {method: "POST"})
           .then(response => response.json())
           .then(data => {
-            alert(data.msg);
+            logToConsole(data.msg);
             openGrafanaButton.disabled = false;
             openGrafanaButton.classList.remove("disabled");
             openGrafanaButton.classList.add("blue");
@@ -460,7 +499,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     stopGrafanaButton.addEventListener("click", function() {
         fetch("/stop_grafana", {method: "POST"})
           .then(response => response.json())
-          .then(data => alert(data.msg));
+          .then(data => logToConsole(data.msg));
     });
     
 
