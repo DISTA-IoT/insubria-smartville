@@ -297,7 +297,8 @@
                    
                     <details>
                         <summary>Other WandB parameters</summary>
-                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}" onchange="syncParams()"></label>
+                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}" ></label>
+                        <label>Log plots: <input type="checkbox" name="wandb.plots"  {{ "checked" if rendering_params.wandb.plots else "" }} ></label>
                     </details>
 
                     

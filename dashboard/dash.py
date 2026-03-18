@@ -618,6 +618,7 @@ def main(cfg: DictConfig) -> None:
         config_from_frontend = data['config_from_frontend']
         init_args['wandb']['wb_tracking'] = data['wandb_track']
         init_args['wandb']['wb_run_name'] = data['wandb_run_name']
+        init_args['wandb'].update(config_from_frontend['wandb'])
         init_args['container_ips'] = containers_internal_ips
         init_args['ips_containers'] = internal_ips_containers
         del init_args['base_params']
