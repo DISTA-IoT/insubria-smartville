@@ -647,6 +647,11 @@ def main(cfg: DictConfig) -> None:
         init_args['intrusion_detection']['use_packet_feats'] = config_from_frontend['packet_monitoring']['use_packet_feats']
         init_args['intrusion_detection']['node_features'] = init_args['health_monitoring']
 
+        # pass log levels from frontend
+        init_args['smart_switch_log_level'] = config_from_frontend['smart_switch_log_level']
+        init_args['smart_controller_log_level'] = config_from_frontend['smart_controller_log_level']
+        init_args['flow_logger_log_level'] = config_from_frontend['flow_logger_log_level']
+
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")

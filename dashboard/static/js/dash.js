@@ -20,54 +20,32 @@ function syncParams() {
   const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
   const healthMonitoringCheckbox = document.querySelector("input[name='health_monitoring']");
   const metricsCheckboxes = document.querySelectorAll("input[name^='health.']");
-  const healthParams = {};
-  metricsCheckboxes.forEach(cb => {
-      healthParams[cb.name] = cb.checked;
-  });
+
+  // uncheck all metric checkboxes when health_monitoring is unchecked
+  if (!healthMonitoringCheckbox.checked) {
+    metricsCheckboxes.forEach(cb => { cb.checked = false; });
+  }
+
   const checkedCount = Array.from(metricsCheckboxes).filter(cb => cb.checked).length;
 
-  console.log(`healthMonitoringCheckbox.checked: ${healthMonitoringCheckbox.checked}`);
-  console.log("Health parameters:", healthParams);
-  console.log(`Number of checked health parameters: ${checkedCount}`);
-  console.log(`usePacketFeatsCheckbox.checked: ${usePacketFeatsCheckbox.checked}`);
-  console.log(`packetBytesTextBox.value: ${packetBytesTextBox.value}`);
-
-
-  if(usePacketFeatsCheckbox.checked){
-    if(healthMonitoringCheckbox.checked){
-      // three steams.
-      // first stream: flow features 
-      // second stream: packet features
-      // third stream: health features
-      secondStreamFeatureSizeTextBox.enabled = true;
-      thirdStreamFeatureSizeTextBox.enabled = true;
+  if (usePacketFeatsCheckbox.checked) {
+    if (healthMonitoringCheckbox.checked) {
+      // three streams: flow | packet | health
       secondStreamFeatureSizeTextBox.value = packetBytesTextBox.value;
       thirdStreamFeatureSizeTextBox.value = checkedCount;
-    }
-    else{
-      // two steams.
-      // first stream: flow features 
-      // second stream: packet features
-      secondStreamFeatureSizeTextBox.enabled = true;
-      thirdStreamFeatureSizeTextBox.enabled = false;
+    } else {
+      // two streams: flow | packet
       secondStreamFeatureSizeTextBox.value = packetBytesTextBox.value;
       thirdStreamFeatureSizeTextBox.value = 0;
     }
-  }else{
-    if(healthMonitoringCheckbox.checked){
-      // two steams.
-      // first stream: flow features 
-      // second stream: health features
-      secondStreamFeatureSizeTextBox.enabled = true;
-      thirdStreamFeatureSizeTextBox.enabled = false;
-      secondStreamFeatureSizeTextBox.value = checkedCount;
+  } else {
+    if (healthMonitoringCheckbox.checked) {
+      // two streams: flow | health
+      // shift — second takes whatever third was showing (health count)
+      secondStreamFeatureSizeTextBox.value = thirdStreamFeatureSizeTextBox.value || checkedCount;
       thirdStreamFeatureSizeTextBox.value = 0;
-    }
-    else{
-      // one steam.
-      // first stream: flow features 
-      secondStreamFeatureSizeTextBox.enabled = false;
-      thirdStreamFeatureSizeTextBox.enabled = false;
+    } else {
+      // one stream: flow only
       secondStreamFeatureSizeTextBox.value = 0;
       thirdStreamFeatureSizeTextBox.value = 0;
     }
@@ -279,8 +257,18 @@ window.addEventListener('DOMContentLoaded', (event) => {
       alert("Configuration Saved!!");
       // TODO: send config dict to backend with fetch/axios
     });
+    
+
+    syncParams();
 
     updateConfigDict();
+
+    
+
+    // keep config dict fresh on any form field change (catches selects like log levels)
+    configForm.addEventListener("change", function() {
+        updateConfigDict();
+    });
 
     if (typeof initialKnowledge !== 'undefined') {
         renderKnowledgeUI(initialKnowledge);

@@ -206,6 +206,9 @@
                         <label>
                         <input type="checkbox" name="packet_monitoring.use_packet_feats" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_packet_feats else "" }}> Use Packet Features
                         </label>
+                        <label>
+                            <input  type="checkbox" name="packet_monitoring.resample_packets" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.resample_packets else "" }}> Resample packets
+                        </label> 
                         <label> Packet Timeseries length
                             <input type="number" name="packet_monitoring.packets_per_sample" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packets_per_sample }}> 
                         </label>
@@ -227,7 +230,7 @@
                         <label>Recurrent Layers: <input type="number" name="neural_modules.recurrent_layers" value="{{ rendering_params.neural_modules.recurrent_layers }}" onchange="syncParams()"></label>
                         <label>Dropout: <input type="number" name="neural_modules.dropout" value="{{ rendering_params.neural_modules.dropout }}" onchange="syncParams()"></label>
                         <label>First Stream Input Size: <input type="number" name="neural_modules.first_stream_input_size" value="{{ rendering_params.neural_modules.first_stream_input_size }}" readonly></label>
-                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="{{ rendering_params.neural_modules.second_stream_input_size }}" onchange="syncParams()"></label>
+                        <label>Second Stream Input Size: <input type="number" name="neural_modules.second_stream_input_size" value="{{ rendering_params.neural_modules.second_stream_input_size }}" readonly></label>
                         <label>Third Stream Input Size: 
                             <input type="number" name="neural_modules.third_stream_input_size" value="{{ rendering_params.neural_modules.third_stream_input_size }}" readonly>
                         </label>
