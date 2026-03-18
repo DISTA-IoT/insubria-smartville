@@ -30,6 +30,8 @@ import ipaddress
 import atexit
 import signal
 from threading import Lock, Thread 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 
 containers_dict = {}
 containers_external_ips = {}
@@ -286,29 +288,52 @@ def main(cfg: DictConfig) -> None:
         return {'msg': return_str}
     
 
+        
     @app.route('/launch_traffic', methods=['POST'])
     def launch_traffic():
         global HEALTH_MONITORING, KAFKA_PORT
 
         data = request.get_json(force=True)
-        data = request.get_json(force=True)
         HEALTH_MONITORING = data['config_from_frontend']['health_monitoring']
-        
-        response_str = ""
-        for hostname, host_info in traffic_dict.items():
+
+        def call_node(hostname, host_info):
             node_external_ip = containers_external_ips[hostname]
-            host_info['controller_server_url'] = containers_internal_ips['pox-controller']+':'+str(cfg.topology_creator.controller.ECHO_PORT)
+            host_info['controller_server_url'] = (
+                containers_internal_ips['pox-controller'] + ':' + str(cfg.topology_creator.controller.ECHO_PORT)
+            )
             host_info['node_features'] = HEALTH_MONITORING
             host_info['kafka_endpoint'] = cfg.kafka.endpoint
             host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
-            # update health params from frontend configuration:
-            host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
-            port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
-            response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
-            if response.json() is not None:
-                response_str += f"{hostname}:{response.status_code} - {response.json()['message']}\n"
+            host_info['health_params']['probe_metrics'] = [
+                key for key, val in data['config_from_frontend']['health'].items() if val
+            ]
+            port = (
+                cfg.topology_creator.victim.SERVER_PORT
+                if hostname.startswith('victim')
+                else cfg.topology_creator.attacker.SERVER_PORT
+            )
+            try:
+                response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
+                return hostname, response.status_code, response.json().get('message', '')
+            except Exception as e:
+                return hostname, 500, str(e)
 
-        
+        results = {}
+        with ThreadPoolExecutor(max_workers=len(traffic_dict)) as executor:
+            futures = {
+                executor.submit(call_node, hostname, host_info): hostname
+                for hostname, host_info in traffic_dict.items()
+            }
+            for future in as_completed(futures):
+                hostname, status_code, message = future.result()
+                results[hostname] = (status_code, message)
+
+        # Build response string in a stable order
+        response_str = "\n".join(
+            f"{hostname}:{status_code} - {message}"
+            for hostname, (status_code, message) in sorted(results.items())
+        )
+
         return response_str
 
 
@@ -337,16 +362,33 @@ def main(cfg: DictConfig) -> None:
     @app.route('/stop_traffic', methods=['POST'])
     def stop_traffic():
 
-        response_str = ""
-
-        for hostname, host_info in traffic_dict.items():
+        def stop_node(hostname):
             node_external_ip = containers_external_ips[hostname]
-            port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
-            response = requests.post(f"http://{node_external_ip}:{port}/stop")
-            if response.json() is not None:
-                response_str += f"{hostname}:({response.status_code}) {response.json()['message']}\n"
-        
-        return response_str
+            port = (
+                cfg.topology_creator.victim.SERVER_PORT
+                if hostname.startswith('victim')
+                else cfg.topology_creator.attacker.SERVER_PORT
+            )
+            try:
+                response = requests.post(f"http://{node_external_ip}:{port}/stop")
+                return hostname, response.status_code, response.json().get('message', '')
+            except Exception as e:
+                return hostname, 500, str(e)
+
+        results = {}
+        with ThreadPoolExecutor(max_workers=len(traffic_dict)) as executor:
+            futures = {
+                executor.submit(stop_node, hostname): hostname
+                for hostname in traffic_dict
+            }
+            for future in as_completed(futures):
+                hostname, status_code, message = future.result()
+                results[hostname] = (status_code, message)
+
+        return "\n".join(
+            f"{hostname}:({status_code}) {message}"
+            for hostname, (status_code, message) in sorted(results.items())
+        )
 
 
     @app.post('/stop_traffic_single')
@@ -361,16 +403,28 @@ def main(cfg: DictConfig) -> None:
     @app.route('/check_traffic', methods=['POST'])
     def check_traffic():
 
-        response_str = ""
-
-        for hostname, host_info in traffic_dict.items():
+        def check_node(hostname):
             node_external_ip = containers_external_ips[hostname]
-            response = requests.get(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay_status")
-            if response.json() is not None:
-                response_str += f"{hostname}: {response.json()['message']}\n"
+            try:
+                response = requests.get(f"http://{node_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/replay_status")
+                return hostname, response.json().get('message', '')
+            except Exception as e:
+                return hostname, str(e)
 
+        results = {}
+        with ThreadPoolExecutor(max_workers=len(traffic_dict)) as executor:
+            futures = {
+                executor.submit(check_node, hostname): hostname
+                for hostname in traffic_dict
+            }
+            for future in as_completed(futures):
+                hostname, message = future.result()
+                results[hostname] = message
 
-        return response_str
+        return "\n".join(
+            f"{hostname}: {message}"
+            for hostname, message in sorted(results.items())
+        )
 
 
     @app.route('/flow_rewards', methods=['GET'])
