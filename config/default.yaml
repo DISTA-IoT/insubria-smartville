@@ -42,7 +42,7 @@ topology_creator:
 
   controller:
     SERVER_PORT: 7777
-    flow_idle_timeout:  10 # Number of no-activity seconds  for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
+    flow_idle_timeout:  10 # Number of no-activity seconds for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
     arp_timeout: 120 # Number of seconds to delete and ARP entry in the switch. Default is 120
     max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
     max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 

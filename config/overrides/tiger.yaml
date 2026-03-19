@@ -1,0 +1,35 @@
+wandb:
+  wb_tracking: true
+  wb_run_name: 'DDQN'
+  wb_project_name:  'TIGER2.0'
+
+neural_modules:
+  hidden_size: 200
+intrusion_detection:
+  boltzmann_sampling: false
+  agent: DDQN
+  flowstats_freq_secs: 1
+  bad_classif_penalisation: hard
+  use_transition_model: true
+  max_budget: 300
+  min_budget: -60
+  useless_epistemic_penalty: 7
+  epistemic_is_blocking: false
+  hard_bad_classif_cost_factor: 8
+  greedy_update: true
+  # epistemic_regularisation_factor: 0.05
+  # entropy_reg_coefficient: 0
+  # surrogate_policy_consistency: true
+  # use_critic_to_act: false
+  # variational_tmodel: true
+
+topology_creator:
+  contr_start: sh # COMMENT THIS IF YOU WANT POX TO START AUTOMATICALLY
+  # victim_start: sh # COMMENT THIS IF YOU WANT TO START THE VICTIM SERVER AUTOMATICALLY
+  use_gns3_config_file: false
+
+    
+base_params: 
+  host_ip: 10.23.10.175
+  # container_manager_replay_from_file : false
+  disable_proxy: true

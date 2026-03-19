@@ -1,0 +1,29 @@
+health_monitoring: true
+use_packet_feats: false
+
+
+wandb:
+ wb_tracking: false
+ wb_run_name: 'PT'
+ wb_project_name:  'TIGER2.0'
+ plots: true
+
+neural_modules:
+  hidden_size: 200
+  dropout: 0.2
+
+
+intrusion_detection:
+  pretrained_inference: false
+  epistemic_agency: false
+  online_evaluation: true
+  save_models: true
+  report_step_freq: 10
+  resample_packets : false # baseline, for overhead comparisons.
+  
+
+base_params:
+  host_ip: 10.23.10.175
+
+topology_creator:
+  use_gns3_config_file: false

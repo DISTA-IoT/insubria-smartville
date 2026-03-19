@@ -35,6 +35,16 @@
             "justMyCode": true
         },
         {
+            "name": "TIGER_TG",
+            "type": "python",
+            "request": "launch",
+            "program": "utils/star_topology.py",
+            "args": [
+                "override=tiger"
+            ],
+            "justMyCode": true
+        },
+        {
             "name": "DEV-TG Dista",
             "type": "python",
             "request": "launch",
@@ -97,6 +107,17 @@
             "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
             "args": [
                 "override=dista_pretraining"
+                ]
+        },
+        {
+            "name": "Pretraining",
+            "type": "python",
+            "request": "launch",
+            "program": "dash.py",
+            "justMyCode": true,         
+            "cwd": "${workspaceFolder}/dashboard",  // Set the current working directory here
+            "args": [
+                "override=pretraining"
                 ]
         }
     ]
