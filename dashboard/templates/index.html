@@ -185,6 +185,9 @@
                         <label>
                             <input type="checkbox" name="health.http_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "http_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_avg_rtt_ms
                         </label>
+                        <label>
+                            <input type="checkbox" name="health.http_loss_percent" onchange="syncParams()" {{ "checked" if "http_loss_percent" in rendering_params.health.probe_metrics else "" }}> http_loss_percent
+                        </label>
                         <label> 
                             <input type="checkbox" name="health.inbound_MBps" onchange="syncParams()" {{ "checked" if "inbound_MBps" in rendering_params.health.probe_metrics else "" }}> inbound_MBps
                         </label>

@@ -163,6 +163,7 @@ health:
     # - http_min_rtt_ms
     # - http_max_rtt_ms
     - http_avg_rtt_ms
+    - http_loss_percent
     - inbound_MBps
     - outbound_MBps
     - inbound_packets_per_second
