@@ -299,7 +299,7 @@ def main(cfg: DictConfig) -> None:
         def call_node(hostname, host_info):
             node_external_ip = containers_external_ips[hostname]
             host_info['controller_server_url'] = (
-                containers_internal_ips['pox-controller'] + ':' + str(cfg.topology_creator.controller.ECHO_PORT)
+                containers_internal_ips['mockserver'] + ':' + str(cfg.topology_creator.mockserver.SERVER_PORT)
             )
             internal_ips_str = ','.join(containers_internal_ips['all'])
             host_info['internal_ips'] = internal_ips_str
@@ -349,7 +349,7 @@ def main(cfg: DictConfig) -> None:
         hostname = data['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
-        host_info['controller_server_url'] = containers_internal_ips['pox-controller']+':'+str(cfg.topology_creator.controller.ECHO_PORT)
+        host_info['controller_server_url'] = containers_internal_ips['mockserver']+':'+str(cfg.topology_creator.controller.SERVER_PORT)
         internal_ips_str = ','.join(','.join(containers_internal_ips['all']))
         host_info['internal_ips'] = internal_ips_str
         host_info['node_features'] = HEALTH_MONITORING
