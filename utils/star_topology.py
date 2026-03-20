@@ -33,11 +33,13 @@ ATTACKER_NODE_COUNT = None
 VICTIM_NODE_COUNT = None
 ATTACKER_START_COMMAND = None
 VICTIM_START_COMMAND = None
+MOCKSERVER_START_COMMAND = None
 MONITOR_START_COMMAND = None
 CONTROLLER_IMG_NAME = None
 SWITCH_IMG_NAME = None
 VICTIM_IMG_NAME = None
 ATTACKER_IMG_NAME = None
+MOCKSERVER_IMG_NAME = None
 ZOOKEEPER_IMG_NAME = None
 KAFKA_IMG_NAME = None
 GRAFANA_IMG_NAME = None
@@ -204,6 +206,47 @@ def mount_controller(templates, switch_name, ip=None):
     print(f"{CONTROLLER_IMG_NAME}: started")
     return controller_name
 
+
+def mount_mockserver(templates, switch_name, mockserver_ip):
+
+    template_id = get_template_id_from_name(templates, MOCKSERVER_IMG_NAME)
+
+    if mockserver_ip is not None:
+        mockserver_name = MOCKSERVER_IMG_NAME+"_"+mockserver_ip.split("/")[0]
+    else:
+        mockserver_name = MOCKSERVER_IMG_NAME
+
+    openvswitch_id = get_node_id_by_name(server,project,switch_name)
+    mockserver_id = get_node_id_by_name(server,project, mockserver_name)
+    if(mockserver_id is not None):
+        delete_node(server,project,mockserver_id)
+        print("Old mockserver node deleted")
+    mockserver = create_node(server, project, 0, +200, template_id, mockserver_name)
+    mockserver_id = mockserver['node_id']
+    create_link(server, project, mockserver_id,0,openvswitch_id,1)
+    print(f"Created a link from {CONTROLLER_IMG_NAME} to {switch_name} on port eth0")
+
+
+    mockserver_id = mockserver['node_id']
+    print(f"new {MOCKSERVER_IMG_NAME} mockserver created ")
+
+    
+
+    if mockserver_ip is not None:
+        set_node_network_interfaces(server, project, mockserver_id, "eth0", ipaddress.IPv4Interface(mockserver_ip), None)
+        print(f"{MOCKSERVER_IMG_NAME}: assigned ip: {mockserver_ip} on eth0")
+    else:
+        set_dhcp_node_network_interfaces(server, project, mockserver_id, "eth0", None)
+        print(f"{MOCKSERVER_IMG_NAME}: DHCP on eth0")
+
+    set_dhcp_node_network_interfaces(server,project,mockserver_id,"eth1", None)
+    print(f"{MOCKSERVER_IMG_NAME}: DHCP on eth1")
+
+
+    node_ids.append(mockserver_id)
+    print(f"{MOCKSERVER_IMG_NAME}: started")
+
+    return mockserver_name
 
 def mount_monitor(templates):
     template_id = get_template_id_from_name(templates, MONITOR_IMG_NAME)
@@ -436,7 +479,7 @@ def mount_single_Host(templates, curr_img_name, curr_node_name,switch1_node_name
     print(f"{curr_node_name}: started")
 
 
-def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=2, fixed_ips=True):
+def mount_all_hosts(cfg, templates, switch_node_name, curr_node_count=3, fixed_ips=True):
     node_names = []
     # mounts hosts and links each one to a port of the switch
     gateway = None  
@@ -504,6 +547,7 @@ def connect_all(
         edge_switch_node_name,
         controller_node_name,
         monitor_node_name,
+        mockserver_node_name,
         host_names, 
         zookeeper_node_name,
         kafka_node_name,
@@ -521,25 +565,28 @@ def connect_all(
     montor_id = get_node_id_by_name(server, project, monitor_node_name)
     create_link(server, project,str(edge_switch_id),4,str(montor_id),0)
 
+    mockserver_id = get_node_id_by_name(server, project, mockserver_node_name)
+    create_link(server, project,str(edge_switch_id),5,str(mockserver_id),1)
+
     if zookeeper_node_name is not None:
         zookeeper_id = get_node_id_by_name(server, project, zookeeper_node_name)
-        create_link(server, project,str(edge_switch_id),4,str(zookeeper_id),1)
+        create_link(server, project,str(edge_switch_id),5,str(zookeeper_id),1)
 
     if kafka_node_name is not None:
         kafka_id = get_node_id_by_name(server, project, kafka_node_name)
-        create_link(server, project,str(edge_switch_id),5,str(kafka_id),1)
+        create_link(server, project,str(edge_switch_id),6,str(kafka_id),1)
 
     if prometheus_node_name is not None:
         prometheus_id = get_node_id_by_name(server, project, prometheus_node_name)
-        create_link(server, project,str(edge_switch_id),6,str(prometheus_id),1)
+        create_link(server, project,str(edge_switch_id),7,str(prometheus_id),1)
 
     if grafana_node_name is not None:
         grafana_id = get_node_id_by_name(server, project, grafana_node_name)
-        create_link(server, project,str(edge_switch_id),7,str(grafana_id),1)
+        create_link(server, project,str(edge_switch_id),8,str(grafana_id),1)
 
     for idx, host_name in enumerate(host_names):
         host_id = get_node_id_by_name(server, project, host_name)
-        create_link(server, project,str(edge_switch_id),8+idx,str(host_id),1)
+        create_link(server, project,str(edge_switch_id),9+idx,str(host_id),1)
 
     cloud_id = get_node_id_by_name(server, project, CLOUD_IMG_NAME)
 
@@ -591,8 +638,11 @@ def starTopology(cfg, templates):
     main_switch_node_name = mount_switch(templates, "openvswitch-1", ip=main_switch_ip)
     edge_switch_node_name = mount_edge_switch(templates)
     controller_ip = cfg.topology_creator.controller_ip + cfg.topology_creator.netmask
+    mockserver_ip = cfg.topology_creator.mockserver_ip + cfg.topology_creator.netmask
     controller_node_name = mount_controller(templates, main_switch_node_name, ip=controller_ip)
+    mockserver_node_name = mount_mockserver(templates, main_switch_node_name, mockserver_ip)
     monitor_node_name = mount_monitor(templates)
+    
     """
     zookeeper_ip = cfg.topology_creator.zookeeper_ip + cfg.topology_creator.netmask
     zookeeper_node_name = mount_zookeeper(templates, main_switch_node_name, ip=zookeeper_ip)
@@ -616,6 +666,7 @@ def starTopology(cfg, templates):
         edge_switch_node_name,
         controller_node_name,
         monitor_node_name,
+        mockserver_node_name,
         host_names,
         zookeeper_node_name,
         kafka_node_name,
@@ -679,6 +730,18 @@ def update_attacker_template(args, templates):
     ATTACKER_ENV_VARS += ENV_STR
 
     update_generic_template(templates, ATTACKER_IMG_NAME, ATTACKER_START_COMMAND, ATTACKER_ENV_VARS)
+
+
+def update_mocksever_template(args, templates):
+    MOCKSERVER_ENV_VARS = ""
+    for key, value in OmegaConf.to_container(args.mockserver, resolve=True).items():
+        MOCKSERVER_ENV_VARS += f"{key}={value}\n"
+
+    MOCKSERVER_ENV_VARS += ENV_STR
+
+    update_generic_template(templates, MOCKSERVER_IMG_NAME, MOCKSERVER_START_COMMAND, MOCKSERVER_ENV_VARS)
+
+
 
 def update_controller_template(args, templates):
     global project
@@ -804,6 +867,7 @@ def update_templates(args, templates):
     update_monitor_template(args, templates)
     update_victim_template(args, templates)
     update_attacker_template(args, templates)
+    update_mocksever_template(args, templates)
     """
     update_zookeeper_template(args, templates)
     update_kafka_template(args, templates)
@@ -816,7 +880,7 @@ def update_templates(args, templates):
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global PROJECT_NAME, GNS3_HOST, GNS3_PORT, GNS3_AUTH, GNS3_USERNAME, GNS3_PASSWORD
-    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME, MONITOR_HOSTNAME, VICTIM_START_COMMAND
+    global CONTROLLER_IMG_NAME, SWITCH_IMG_NAME, VICTIM_IMG_NAME, ATTACKER_IMG_NAME, MOCKSERVER_IMG_NAME, MONITOR_HOSTNAME, VICTIM_START_COMMAND, MOCKSERVER_START_COMMAND
     global ZOOKEEPER_IMG_NAME, KAFKA_IMG_NAME, GRAFANA_IMG_NAME, PROMETHEUS_IMG_NAME, MONITOR_IMG_NAME, ATTACKER_START_COMMAND
     global CONTROLLER_START_COMMAND, ENV_STR, ATTACKER_NODE_COUNT, VICTIM_NODE_COUNT, MONITOR_START_COMMAND
     global GRAFANA_START_COMMAND, PROMETHEUS_START_COMMAND, ZOOKEEPER_START_COMMAND, KAFKA_START_COMMAND
@@ -866,6 +930,7 @@ def main(cfg: DictConfig) -> None:
     SWITCH_IMG_NAME = args.switch_docker
     VICTIM_IMG_NAME = args.victim_docker
     ATTACKER_IMG_NAME = args.attacker_docker
+    MOCKSERVER_IMG_NAME = args.mockserver_docker
     ZOOKEEPER_IMG_NAME = args.zookeeper_docker
     KAFKA_IMG_NAME = args.kafka_docker
     PROMETHEUS_IMG_NAME = args.prometheus_docker
@@ -873,6 +938,7 @@ def main(cfg: DictConfig) -> None:
     CONTROLLER_START_COMMAND = args.contr_start
     VICTIM_START_COMMAND = args.victim_start
     ATTACKER_START_COMMAND = args.attacker_start
+    MOCKSERVER_START_COMMAND = args.mockserver_start
     MONITOR_START_COMMAND = args.monitor_start
     GRAFANA_START_COMMAND = args.grafana_start
     PROMETHEUS_START_COMMAND = args.prometheus_start
