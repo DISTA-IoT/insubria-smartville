@@ -210,7 +210,6 @@ def mount_controller(templates, switch_name, ip=None):
 def mount_mockserver(templates, switch_name, mockserver_ip):
 
     template_id = get_template_id_from_name(templates, MOCKSERVER_IMG_NAME)
-
     if mockserver_ip is not None:
         mockserver_name = MOCKSERVER_IMG_NAME+"_"+mockserver_ip.split("/")[0]
     else:
@@ -221,17 +220,12 @@ def mount_mockserver(templates, switch_name, mockserver_ip):
     if(mockserver_id is not None):
         delete_node(server,project,mockserver_id)
         print("Old mockserver node deleted")
+
     mockserver = create_node(server, project, 0, +200, template_id, mockserver_name)
     mockserver_id = mockserver['node_id']
-    create_link(server, project, mockserver_id,0,openvswitch_id,1)
-    print(f"Created a link from {CONTROLLER_IMG_NAME} to {switch_name} on port eth0")
-
-
-    mockserver_id = mockserver['node_id']
     print(f"new {MOCKSERVER_IMG_NAME} mockserver created ")
-
+    time.sleep(2)
     
-
     if mockserver_ip is not None:
         set_node_network_interfaces(server, project, mockserver_id, "eth0", ipaddress.IPv4Interface(mockserver_ip), None)
         print(f"{MOCKSERVER_IMG_NAME}: assigned ip: {mockserver_ip} on eth0")
@@ -239,13 +233,15 @@ def mount_mockserver(templates, switch_name, mockserver_ip):
         set_dhcp_node_network_interfaces(server, project, mockserver_id, "eth0", None)
         print(f"{MOCKSERVER_IMG_NAME}: DHCP on eth0")
 
+    create_link(server, project, mockserver_id,0,openvswitch_id,1)
+    print(f"Created a link from {MOCKSERVER_IMG_NAME} to {switch_name} on port eth0")
+
     set_dhcp_node_network_interfaces(server,project,mockserver_id,"eth1", None)
     print(f"{MOCKSERVER_IMG_NAME}: DHCP on eth1")
 
 
     node_ids.append(mockserver_id)
     print(f"{MOCKSERVER_IMG_NAME}: started")
-
     return mockserver_name
 
 def mount_monitor(templates):
@@ -570,23 +566,23 @@ def connect_all(
 
     if zookeeper_node_name is not None:
         zookeeper_id = get_node_id_by_name(server, project, zookeeper_node_name)
-        create_link(server, project,str(edge_switch_id),5,str(zookeeper_id),1)
+        create_link(server, project,str(edge_switch_id),6,str(zookeeper_id),1)
 
     if kafka_node_name is not None:
         kafka_id = get_node_id_by_name(server, project, kafka_node_name)
-        create_link(server, project,str(edge_switch_id),6,str(kafka_id),1)
+        create_link(server, project,str(edge_switch_id),7,str(kafka_id),1)
 
     if prometheus_node_name is not None:
         prometheus_id = get_node_id_by_name(server, project, prometheus_node_name)
-        create_link(server, project,str(edge_switch_id),7,str(prometheus_id),1)
+        create_link(server, project,str(edge_switch_id),8,str(prometheus_id),1)
 
     if grafana_node_name is not None:
         grafana_id = get_node_id_by_name(server, project, grafana_node_name)
-        create_link(server, project,str(edge_switch_id),8,str(grafana_id),1)
+        create_link(server, project,str(edge_switch_id),9,str(grafana_id),1)
 
     for idx, host_name in enumerate(host_names):
         host_id = get_node_id_by_name(server, project, host_name)
-        create_link(server, project,str(edge_switch_id),9+idx,str(host_id),1)
+        create_link(server, project,str(edge_switch_id),10+idx,str(host_id),1)
 
     cloud_id = get_node_id_by_name(server, project, CLOUD_IMG_NAME)
 
