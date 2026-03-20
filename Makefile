@@ -36,6 +36,9 @@ build-victim-nocache:
 build-botmaster:
 	docker build --build-arg GIT_USERNAME=$(GIT_USERNAME) --build-arg GIT_TOKEN=$(GIT_TOKEN) -t botmaster -f BotMasterNode/botmaster.Dockerfile BotMasterNode/.
 
+build-mockserver:
+	docker build -t mockserver -f mockserver/mockserver.Dockerfile mockserver/.
+
 build-openvswitch:
 	docker build -t openvswitch -f openvswitch.Dockerfile openSwitch/.
 
@@ -65,6 +68,12 @@ build-victim-scache:
 	docker build --build-arg CACHE_BUST=$(shell date +%s) \
 	             -t victim \
 	             -f VictimNode/victim.Dockerfile VictimNode/.
+
+
+build-mockserver-scache:
+	docker build --build-arg CACHE_BUST=$(shell date +%s) \
+	             -t mockserver \
+	             -f mockserver/mockserver.Dockerfile mockserver/.
 
 # Zookeeper node (uses prebuilt Confluent image)
 build-zookeeper:
