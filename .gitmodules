@@ -19,6 +19,6 @@
 	url = https://github.com/DISTA-IoT/smartville-monitor
 	branch = master
 [submodule "mockserver"]
-	path= mockserver
-	url=https://github.com/DISTA-IoT/smartville-mockserver
+	path = mockserver
+	url = ./mockserver/
 	branch=main
