@@ -202,7 +202,7 @@ intrusion_detection:
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DDQN  # can be DQN, DDQN or DAI
   use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
-  resample_packets : true # wheter to periocially sample new packets from flows, if false, the first packets of the flow are used continuously
+  resample_packets : false # wheter to periocially sample new packets from flows, if false, the first packets of the flow are used continuously
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
   packet_feat_dim: ${neural_modules.second_stream_input_size}
   anonymize_transport_ports: true
