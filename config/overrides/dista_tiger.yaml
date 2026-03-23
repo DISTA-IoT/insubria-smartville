@@ -8,7 +8,6 @@ neural_modules:
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
-  flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true
   max_budget: 300
