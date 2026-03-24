@@ -58,6 +58,7 @@ function syncParams() {
   const packetBytesTextBox = document.querySelector("input[name='intrusion_detection.packet_feat_dim']");
   const secondStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.second_stream_input_size']");
   const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
+  const nodeFeaturesCheckbox = document.querySelector("input[name='node_features']");
   const healthMonitoringCheckbox = document.querySelector("input[name='health_monitoring']");
   const metricsCheckboxes = document.querySelectorAll("input[name^='health.probe_metrics.']");
 
@@ -69,7 +70,7 @@ function syncParams() {
   const checkedCount = Array.from(metricsCheckboxes).filter(cb => cb.checked).length;
 
   if (usePacketFeatsCheckbox.checked) {
-    if (healthMonitoringCheckbox.checked) {
+    if (nodeFeaturesCheckbox.checked) {
       // three streams: flow | packet | health
       secondStreamFeatureSizeTextBox.value = packetBytesTextBox.value;
       thirdStreamFeatureSizeTextBox.value = checkedCount;
@@ -79,10 +80,10 @@ function syncParams() {
       thirdStreamFeatureSizeTextBox.value = 0;
     }
   } else {
-    if (healthMonitoringCheckbox.checked) {
+    if (nodeFeaturesCheckbox.checked) {
       // two streams: flow | health
       // shift — second takes whatever third was showing (health count)
-      secondStreamFeatureSizeTextBox.value = thirdStreamFeatureSizeTextBox.value || checkedCount;
+      secondStreamFeatureSizeTextBox.value = checkedCount;
       thirdStreamFeatureSizeTextBox.value = 0;
     } else {
       // one stream: flow only
