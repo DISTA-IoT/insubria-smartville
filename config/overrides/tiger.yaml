@@ -1,3 +1,7 @@
+host_ip: 10.23.10.175
+# container_manager_replay_from_file : false
+disable_proxy: true
+
 wandb:
   wb_tracking: true
   wb_run_name: 'DDQN'
@@ -5,10 +9,10 @@ wandb:
 
 neural_modules:
   hidden_size: 200
+
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
-  flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true
   max_budget: 300
@@ -27,9 +31,3 @@ topology_creator:
   contr_start: sh # COMMENT THIS IF YOU WANT POX TO START AUTOMATICALLY
   # victim_start: sh # COMMENT THIS IF YOU WANT TO START THE VICTIM SERVER AUTOMATICALLY
   use_gns3_config_file: false
-
-    
-base_params: 
-  host_ip: 10.23.10.175
-  # container_manager_replay_from_file : false
-  disable_proxy: true

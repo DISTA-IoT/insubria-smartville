@@ -1,12 +1,23 @@
 override: ""
 # SmartVille Configuration
 
+host_ip: localhost
+gns3_web_gui_port: 3080
+disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
+dashboard_port: 7777 # Port of the Flask dashboard in the host machine
+browser_path: firefox
+
 smart_controller_log_level: info
 smart_switch_log_level: info
 flow_logger_log_level: info
 
-health_monitoring: false
+health_monitoring: true
 use_packet_feats: true
+node_features: true  # Use health monitoring features to build the feature vectors (requires health monitoring = true)
+resample_packets : false # wheter to periocially sample new packets from flows, if false, the first packets of the flow are used continuously
+
+device: cpu # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
+
 
 topology_creator:
   # Topology creation configuration
@@ -125,12 +136,7 @@ topology_creator:
   ###################################################################################################################
 
 
-base_params:
-  host_ip: localhost
-  gns3_web_gui_port: 3080
-  disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
-  dashboard_port: 7777 # Port of the Flask dashboard in the host machine
-  
+
 
 wandb:
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
@@ -142,7 +148,6 @@ wandb:
 
 
 health:
-  health_monitoring: ${health_monitoring}
   max_conn_retries: 5 #(int, optional): max. num. of connections attempts to the kafka broker. Default is 5.
   poll_timeout_seconds: 3 # consumer poll timeout in seconds.
   max_failed_polls: 40 # max. num. of failed poll attempts after which the consuming task is aborted for each topic
@@ -173,13 +178,12 @@ health:
 
 
 neural_modules:
-  first_stream_input_size: 4
-  second_stream_input_size: 64
+  first_stream_input_size: ${intrusion_detection.flow_feat_dim}
+  second_stream_input_size: ${intrusion_detection.packet_feat_dim}
   third_stream_input_size: ${len:${health.probe_metrics}}
   hidden_size: 800
   kernel_regressor_heads: 2
   dropout: 0.1 # Dropout rate for the neural network.
-  device: cpu # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
   use_encoder: false
   recurrent_layers: 1
 
@@ -192,23 +196,17 @@ switching_args:
   arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
     
 intrusion_detection:
-  eval: false  # Whether to use neural modules in evaluation mode (no training)
-  device: ${neural_modules.device}  
+  eval: false  # Whether to use neural modules in evaluation mode (no training)  
   learning_rate: 1e-3
   pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   save_models: false # overwritte models on disk.
-  h_dim: ${neural_modules.hidden_size}
-  recurrent_layers: ${neural_modules.recurrent_layers}
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DDQN  # can be DQN, DDQN or DAI
-  use_packet_feats: ${use_packet_feats}  # Use first bytes of first packets of each flow alongside flowstats to build feature vectors
-  resample_packets : false # wheter to periocially sample new packets from flows, if false, the first packets of the flow are used continuously
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
-  packet_feat_dim: ${neural_modules.second_stream_input_size}
+  packet_feat_dim: 64
   anonymize_transport_ports: true
-  flow_feat_dim: ${neural_modules.first_stream_input_size}
+  flow_feat_dim: 4
   flows_per_sample: 10  # Indicates the flowstats time-window size to build feature vectors
-  node_features: ${health_monitoring}  # Use node features to build the feature vectors
   curriculum: 1 # labelling scheme for known attacks, train ZdAs and test ZdAs. (can be 0,1, or 2). Default is 1. 
   flowstats_freq_secs:  5 # Num. of seconds between two consecutive flowstats request from this controller to its assigned switch. MUST BE GRATER THAN 1 SEC.
   k_shot: 4 #  Number of support samples per class (k value for k_shot learning).

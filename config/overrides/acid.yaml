@@ -1,3 +1,5 @@
+disable_proxy: true
+
 wandb:
   wb_tracking: true
   wb_project_name:  'ACID2.0' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
@@ -9,7 +11,6 @@ neural_modules:
 
 intrusion_detection:
   agent: DAI_P
-  flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true
   max_budget: 300
@@ -23,7 +24,3 @@ intrusion_detection:
   # surrogate_policy_consistency: true
   # use_critic_to_act: false
   # variational_tmodel: true
-
-
-base_params: 
-  disable_proxy: true

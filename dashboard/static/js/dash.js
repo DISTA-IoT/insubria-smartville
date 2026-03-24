@@ -54,12 +54,12 @@ function openTab(evt, tabId) {
 
 
 function syncParams() {
-  const usePacketFeatsCheckbox = document.querySelector("input[name='packet_monitoring.use_packet_feats']");
-  const packetBytesTextBox = document.querySelector("input[name='packet_monitoring.packet_feat_dim']");
+  const usePacketFeatsCheckbox = document.querySelector("input[name='use_packet_feats']");
+  const packetBytesTextBox = document.querySelector("input[name='intrusion_detection.packet_feat_dim']");
   const secondStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.second_stream_input_size']");
   const thirdStreamFeatureSizeTextBox = document.querySelector("input[name='neural_modules.third_stream_input_size']");
   const healthMonitoringCheckbox = document.querySelector("input[name='health_monitoring']");
-  const metricsCheckboxes = document.querySelectorAll("input[name^='health.']");
+  const metricsCheckboxes = document.querySelectorAll("input[name^='health.probe_metrics.']");
 
   // uncheck all metric checkboxes when health_monitoring is unchecked
   if (!healthMonitoringCheckbox.checked) {
@@ -133,6 +133,7 @@ function syncHiddenKnowledge() {
     G2s: g2s
   };
   document.getElementById('knowledge_json').value = JSON.stringify(payload);
+  console.log(payload);
 }
 
 
@@ -154,6 +155,7 @@ function onDrop(ev) {
       t.parentElement.removeChild(t);
     }
   });
+  console.log('syncing knowledge');
   syncHiddenKnowledge();
 }
 
@@ -243,14 +245,11 @@ window.addEventListener('DOMContentLoaded', (event) => {
     const stopGrafanaButton = document.getElementById("stop-grafana");
     const openGrafanaButton = document.getElementById("open-grafana");
 
-
-    const WandBRunNameTextBox = document.getElementById("wandb-run-name-textbox");
-    const WandBTrackCheckBox = document.getElementById("wandb-track-checkbox");
-
     
     var config = {};
 
     function updateConfigDict() {
+        console.log("updating config dict...");
         const formData = new FormData(configForm);
         config = {}; // reset
 
@@ -284,6 +283,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
         if (knowledgeJSON) {
           try {
             config.knowledge = JSON.parse(knowledgeJSON);
+            console.log("updated knowledge:", config.knowledge);
           } catch (e) {
             console.error("Failed to parse knowledge_json", e);
           }
@@ -404,16 +404,13 @@ window.addEventListener('DOMContentLoaded', (event) => {
   
   
     initControllerButton.addEventListener("click", function() {
-        const wandbRunName = WandBRunNameTextBox.value;
-        const wandbTrack = WandBTrackCheckBox.checked;
+        updateConfigDict();
         fetch("/initialize_controller", {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ 
-              wandb_run_name: wandbRunName, 
-              wandb_track: wandbTrack,
               config_from_frontend: config
             })
         })

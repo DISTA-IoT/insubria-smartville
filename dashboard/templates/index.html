@@ -26,22 +26,6 @@
                     <nav>
                         <button id="attach-controller" class="lightblue small">Attach Controller</button>
                     </nav>
-                    <nav>
-                        <label>W&B Run Name: 
-                            <input 
-                            type="text" 
-                            id="wandb-run-name-textbox"
-                            name="wandb-run-name-textbox" 
-                            value="{{ rendering_params.wandb.wb_run_name }}">
-                        </label>
-                        <label>
-                            <input 
-                                id="wandb-track-checkbox"
-                                type="checkbox" 
-                                name="wandb-track-checkbox" {{ "checked" if rendering_params.wandb.wb_tracking else ""}}> Enable W&B Tracking
-                        </label>
-                        
-                    </nav>
                 </details>
                 
             </div>
@@ -146,59 +130,79 @@
                         </select>
                     </label>
 
+                    <label>
+                        <input type="checkbox" name="health_monitoring" onchange="syncParams()" {{ "checked" if rendering_params.health_monitoring else "" }}> Health Monitoring
+                    </label>
+                    <label>
+                        <input type="checkbox" name="use_packet_feats" onchange="syncParams()" {{ "checked" if rendering_params.use_packet_feats else "" }}> Use Packet Features
+                    </label>
+                    <label>
+                        <input  type="checkbox" name="node_features" onchange="syncParams()" {{ "checked" if rendering_params.node_features else "" }}> Use Node Features
+                    </label>
+                    <label>
+                        <input  type="checkbox" name="resample_packets" onchange="syncParams()" {{ "checked" if rendering_params.resample_packets else "" }}> Resample packets
+                    </label> 
                     
+                    
+                    
+                    <details>
+                        <summary>WandB parameters</summary>
+                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}" ></label>
+                        <label>Log plots: <input type="checkbox" name="wandb.plots"  {{ "checked" if rendering_params.wandb.plots else "" }} ></label>
+                        <label>Run Name: <input type="text"  name="wandb.wb_run_name" value="{{ rendering_params.wandb.wb_run_name }}"></label>
+                        <label> Online Tracking <input   type="checkbox"  name="wandb.wb_tracking" {{ "checked" if rendering_params.wandb.wb_tracking else ""}}> 
+                        </label>
+                    </details>
 
                     <details>
                         <summary>Health Parameters</summary>
 
-                        <label>
-                            <input type="checkbox" name="health_monitoring" onchange="syncParams()" {{ "checked" if rendering_params.health.health_monitoring else "" }}> Health Monitoring
-                        </label>
+                        
 
                         <label>
-                            <input type="checkbox" name="health.CPU" onchange="syncParams()" {{ "checked" if "CPU" in rendering_params.health.probe_metrics else "" }}> CPU
+                            <input type="checkbox" name="health.probe_metrics.CPU" onchange="syncParams()" {{ "checked" if "CPU" in rendering_params.health.probe_metrics else "" }}> CPU
                         </label>
                         <label>
-                            <input type="checkbox" name="health.RAM" onchange="syncParams()" {{ "checked" if "RAM" in rendering_params.health.probe_metrics else "" }}> RAM
+                            <input type="checkbox" name="health.probe_metrics.RAM" onchange="syncParams()" {{ "checked" if "RAM" in rendering_params.health.probe_metrics else "" }}> RAM
                         </label>
                         <label>
-                            <input type="checkbox" name="health.external_http_rtt" onchange="syncParams()" {{ "checked" if "external_http_rtt" in rendering_params.health.probe_metrics else "" }}> external_http_rtt
+                            <input type="checkbox" name="health.probe_metrics.external_http_rtt" onchange="syncParams()" {{ "checked" if "external_http_rtt" in rendering_params.health.probe_metrics else "" }}> external_http_rtt
                         </label>
                         <label>
-                            <input type="checkbox" name="health.icmp_min_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_min_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_min_rtt_ms
+                            <input type="checkbox" name="health.probe_metrics.icmp_min_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_min_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_min_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.icmp_max_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_max_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_max_rtt_ms
+                            <input type="checkbox" name="health.probe_metrics.icmp_max_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_max_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_max_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.icmp_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_avg_rtt_ms
+                            <input type="checkbox" name="health.probe_metrics.icmp_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "icmp_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> icmp_avg_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.icmp_loss_percent" onchange="syncParams()" {{ "checked" if "icmp_loss_percent" in rendering_params.health.probe_metrics else "" }}> icmp_loss_percent
+                            <input type="checkbox" name="health.probe_metrics.icmp_loss_percent" onchange="syncParams()" {{ "checked" if "icmp_loss_percent" in rendering_params.health.probe_metrics else "" }}> icmp_loss_percent
                         </label>
                         <label>
-                            <input type="checkbox" name="health.http_min_rtt_ms" onchange="syncParams()" {{ "checked" if "http_min_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_min_rtt_ms
+                            <input type="checkbox" name="health.probe_metrics.http_min_rtt_ms" onchange="syncParams()" {{ "checked" if "http_min_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_min_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.http_max_rtt_ms" onchange="syncParams()" {{ "checked" if "http_max_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_max_rtt_ms
+                            <input type="checkbox" name="health.probe_metrics.http_max_rtt_ms" onchange="syncParams()" {{ "checked" if "http_max_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_max_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.http_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "http_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_avg_rtt_ms
+                            <input type="checkbox" name="health.probe_metrics.http_avg_rtt_ms" onchange="syncParams()" {{ "checked" if "http_avg_rtt_ms" in rendering_params.health.probe_metrics else "" }}> http_avg_rtt_ms
                         </label>
                         <label>
-                            <input type="checkbox" name="health.http_loss_percent" onchange="syncParams()" {{ "checked" if "http_loss_percent" in rendering_params.health.probe_metrics else "" }}> http_loss_percent
+                            <input type="checkbox" name="health.probe_metrics.http_loss_percent" onchange="syncParams()" {{ "checked" if "http_loss_percent" in rendering_params.health.probe_metrics else "" }}> http_loss_percent
                         </label>
                         <label> 
-                            <input type="checkbox" name="health.inbound_MBps" onchange="syncParams()" {{ "checked" if "inbound_MBps" in rendering_params.health.probe_metrics else "" }}> inbound_MBps
+                            <input type="checkbox" name="health.probe_metrics.inbound_MBps" onchange="syncParams()" {{ "checked" if "inbound_MBps" in rendering_params.health.probe_metrics else "" }}> inbound_MBps
                         </label>
                         <label> 
-                            <input type="checkbox" name="health.outbound_MBps" onchange="syncParams()" {{ "checked" if "outbound_MBps" in rendering_params.health.probe_metrics else "" }}> outbound_MBps
+                            <input type="checkbox" name="health.probe_metrics.outbound_MBps" onchange="syncParams()" {{ "checked" if "outbound_MBps" in rendering_params.health.probe_metrics else "" }}> outbound_MBps
                         </label>
                         <label> 
-                            <input type="checkbox" name="health.inbound_packets_per_second" onchange="syncParams()" {{ "checked" if "inbound_packets_per_second" in rendering_params.health.probe_metrics else "" }}> inbound_packets_per_second
+                            <input type="checkbox" name="health.probe_metrics.inbound_packets_per_second" onchange="syncParams()" {{ "checked" if "inbound_packets_per_second" in rendering_params.health.probe_metrics else "" }}> inbound_packets_per_second
                         </label>
                         <label> 
-                             <input type="checkbox" name="health.outbound_packets_per_second" onchange="syncParams()" {{ "checked" if "outbound_packets_per_second" in rendering_params.health.probe_metrics else "" }}> outbound_packets_per_second
+                             <input type="checkbox" name="health.probe_metrics.outbound_packets_per_second" onchange="syncParams()" {{ "checked" if "outbound_packets_per_second" in rendering_params.health.probe_metrics else "" }}> outbound_packets_per_second
 
                         </label>
                     </details>
@@ -206,25 +210,20 @@
 
                     <details>
                         <summary>Packet Monitoring:</summary>
-                        <label>
-                        <input type="checkbox" name="packet_monitoring.use_packet_feats" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_packet_feats else "" }}> Use Packet Features
-                        </label>
-                        <label>
-                            <input  type="checkbox" name="packet_monitoring.resample_packets" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.resample_packets else "" }}> Resample packets
-                        </label> 
+                        
                         <label> Packet Timeseries length
-                            <input type="number" name="packet_monitoring.packets_per_sample" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packets_per_sample }}> 
+                            <input type="number" name="intrusion_detection.packets_per_sample" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packets_per_sample }}> 
                         </label>
                         <label> Bytes per packet 
-                            <input type="numer" name="packet_monitoring.packet_feat_dim" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packet_feat_dim }}>
+                            <input type="numer" name="intrusion_detection.packet_feat_dim" onchange="syncParams()" value={{ rendering_params.intrusion_detection.packet_feat_dim }}>
                         </label>
 
                     </details>
 
                     <details>
                         <summary>Flow monitoring:</summary>
-                        <label> Flow features dim: <input type="number" name="flow_monitoring.flow_feat_dim" value="{{ rendering_params.intrusion_detection.flow_feat_dim }}" readonly></label>
-                        <label> Flow timeseries length: <input type="number" name="flow_monitoring.flows_per_sample" value="{{ rendering_params.intrusion_detection.flows_per_sample }}"></label>
+                        <label> Flow features dim: <input type="number" name="intrusion_detection.flow_feat_dim" value="{{ rendering_params.intrusion_detection.flow_feat_dim }}" readonly></label>
+                        <label> Flow timeseries length: <input type="number" name="intrusion_detection.flows_per_sample" value="{{ rendering_params.intrusion_detection.flows_per_sample }}"></label>
                     </details>
 
                     <details>
@@ -272,40 +271,11 @@
                         </div>
 
                         <!-- hidden JSON field used by JS to send groups to backend -->
-                        <input type="hidden" id="knowledge_json" name="knowledge_json" value="{{ rendering_params.knowledge|tojson|forceescape }}"/>
+                        <input type="hidden" id="knowledge_json" name="knowledge" value="{{ rendering_params.knowledge|tojson|forceescape }}"/>
                     </details>
-
-
-                    <!--details>
-                        <summary>Topology Creator (Not working yet)</summary>
-                        <label>Project: <input type="text" name="topology_creator.project" value="SmartVille"></label>
-                        <label>Controller Docker: <input type="text" name="topology_creator.controller_docker" value="pox-controller"></label>
-                        <label>Switch Docker: <input type="text" name="topology_creator.switch_docker" value="openvswitch"></label>
-                        <label>Victim Docker: <input type="text" name="topology_creator.victim_docker" value="victim"></label>
-                        <label>Attacker Docker: <input type="text" name="topology_creator.attacker_docker" value="attacker"></label>
-                        <label>Monitor Docker: <input type="text" name="topology_creator.monitor_docker" value="monitor"></label>
-                        <label>Subnet: <input type="text" name="topology_creator.subnet" value="192.168.1.0"></label>
-                        <label>Netmask: <input type="text" name="topology_creator.netmask" value="/24"></label>
-                        <label>Controller IP: <input type="text" name="topology_creator.controller_ip" value="192.168.1.1"></label>
-                        <label>Main Switch IP: <input type="text" name="topology_creator.main_switch_ip" value="192.168.1.2"></label>
-                        <label>Bridge IP: <input type="text" name="topology_creator.bridge_ip" value="192.168.1.100"></label>
-                    </details>
-
-                    
-                    <details>
-                        <summary>Traffic parameters (Not working yet)</summary>
-                       <label>Replay Speed (deprecated): <input type="number" name="base_params.replay_speed" value="1"></label>
-                    </details-->
 
                    
-                    <details>
-                        <summary>Other WandB parameters</summary>
-                        <label>Project Name: <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}" ></label>
-                        <label>Log plots: <input type="checkbox" name="wandb.plots"  {{ "checked" if rendering_params.wandb.plots else "" }} ></label>
-                    </details>
-
                     
-                    <button type="submit" class="blue">Save Config</button>
                     
                 </form>
             </div>

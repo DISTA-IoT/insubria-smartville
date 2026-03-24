@@ -1,4 +1,6 @@
-
+host_ip: 192.168.183.146
+# container_manager_replay_from_file : false
+disable_proxy: true
 health_monitoring: true
 
 intrusion_detection:
@@ -19,11 +21,6 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
 
-
-base_params: 
-  host_ip: 192.168.183.146
-  # container_manager_replay_from_file : false
-  disable_proxy: true
 
 honeypots:
   - victim-1:

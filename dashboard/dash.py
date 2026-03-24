@@ -43,8 +43,6 @@ internal_subnet = None
 monitoring_services_lock = Lock()
 ms_healthcheck_thread = None
 stop_services_function = None
-HEALTH_MONITORING = None
-KAFKA_PORT = None
 grafana_socat_proc = None
 
 OmegaConf.register_new_resolver("len", lambda x: len(x))
@@ -93,6 +91,17 @@ def init_traffic_stuff(cfg):
 
     # fuse the honeypots and attackers dict into a unique dict
     traffic_dict = {**honeypots_dict, **attackers_dict}
+
+    mockserver_url = (containers_internal_ips['mockserver'] + ':' + str(cfg.topology_creator.mockserver.SERVER_PORT))
+    internal_ips_str = ','.join(containers_internal_ips['all'])
+    monitor_external_ip = containers_external_ips['monitor']
+    for node_name, node_info in traffic_dict.items():
+        node_info['kafka_endpoint'] = monitor_external_ip + ':' + str(cfg.kafka.port)
+        node_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
+        node_info['mockserver_url'] = mockserver_url
+        node_info['internal_ips'] = internal_ips_str
+
+
     labelled_traffic_dict = attackers_dict
     
     # modify params for monitor ip:
@@ -126,12 +135,12 @@ def kill_socat_grafana():
 
     if grafana_socat_proc is not None:
         grafana_socat_proc.terminate()
-    try:
-        grafana_socat_proc.wait(timeout=2)
-    except subprocess.TimeoutExpired:
-        grafana_socat_proc.kill()
-    finally:
-        grafana_socat_proc = None
+        try:
+            grafana_socat_proc.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            grafana_socat_proc.kill()
+        finally:
+            grafana_socat_proc = None
 
 
 def socat_grafana(cfg, logger):
@@ -156,7 +165,7 @@ def socat_grafana(cfg, logger):
 @hydra.main(config_path="../config", config_name="default", version_base="1.2")
 def main(cfg: DictConfig) -> None:
     global containers_dict, containers_internal_ips, internal_subnet
-    global monitoring_services, stop_services_function, HEALTH_MONITORING, KAFKA_PORT
+    global monitoring_services, stop_services_function
 
     NAME = 'SmartVille'
     app = Flask(NAME)
@@ -181,14 +190,6 @@ def main(cfg: DictConfig) -> None:
             "            - You might need to re-launch the app each time you restart your containers. \n\n\n")
    
 
-    HEALTH_MONITORING = cfg.intrusion_detection.node_features
-    if HEALTH_MONITORING:
-        try:
-            KAFKA_PORT = int(cfg.kafka.port) 
-        except (ValueError, IndexError):
-            app.logger.error('Error parsing Kafka port from the configuration file."')
-            assert 1 == 0
-
     # transform cfg.attackers, which is  a list of dicts, into a dict of dicts. the key's of the outer dict should be the unique key of the inner dict
     # the value of the outer dict should be the inner dict
     cfg.attackers = {list(attacker.keys())[0]: attacker[list(attacker.keys())[0]] for attacker in cfg.attackers}
@@ -198,25 +199,14 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/', methods=['GET'])
     def home():
-        rendering_params = {
-            'traffic_buttons': [],
-            'host_ip': cfg.base_params.host_ip,
-            'gns3_web_gui_port': cfg.base_params.gns3_web_gui_port,
-            'grafana_web_gui_port':cfg.grafana.port,
-            'neural_modules': OmegaConf.to_container(cfg.neural_modules, resolve=True),
-            'knowledge': OmegaConf.to_container(cfg.knowledge, resolve=True),
-            'wandb': OmegaConf.to_container(cfg.wandb, resolve=True),
-            'smart_controller_log_level': cfg.smart_controller_log_level,
-            'smart_switch_log_level': cfg.smart_switch_log_level,
-            'flow_logger_log_level': cfg.flow_logger_log_level,
-            'intrusion_detection': OmegaConf.to_container(cfg.intrusion_detection, resolve=True),
-            'health': OmegaConf.to_container(cfg.health, resolve=True),
-            }
+        rendering_params = OmegaConf.to_container(cfg, resolve=True)
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
+        rendering_params['traffic_buttons'] = []
         for hostname, host_info in traffic_dict.items():
             rendering_params["traffic_buttons"].append(hostname)
         return render_template('index.html', rendering_params=rendering_params)
+
 
     @app.route('/create_topology', methods=['POST'])
     def create_topology():
@@ -283,7 +273,7 @@ def main(cfg: DictConfig) -> None:
         containers_internal_ips['all'] = [entry[1] for entry in containers_internal_ips.items() if entry[1] != '' and entry[0] != 'pox-controller']   
             
 
-        if cfg['base_params']['disable_proxy']:
+        if cfg['disable_proxy']:
             append_ips_to_no_proxy()
         return {'msg': return_str}
     
@@ -291,29 +281,19 @@ def main(cfg: DictConfig) -> None:
         
     @app.route('/launch_traffic', methods=['POST'])
     def launch_traffic():
-        global HEALTH_MONITORING, KAFKA_PORT
 
         data = request.get_json(force=True)
-        HEALTH_MONITORING = data['config_from_frontend']['health_monitoring']
 
         def call_node(hostname, host_info):
             node_external_ip = containers_external_ips[hostname]
-            host_info['mockserver_url'] = (
-                containers_internal_ips['mockserver'] + ':' + str(cfg.topology_creator.mockserver.SERVER_PORT)
-            )
-            internal_ips_str = ','.join(containers_internal_ips['all'])
-            host_info['internal_ips'] = internal_ips_str
-            host_info['node_features'] = HEALTH_MONITORING
-            host_info['kafka_endpoint'] = cfg.kafka.endpoint
-            host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
+            
+            host_info['health_monitoring'] = data['config_from_frontend']['health_monitoring']
+            host_info['node_features'] = data['config_from_frontend']['node_features']
             host_info['health_params']['probe_metrics'] = [
-                key for key, val in data['config_from_frontend']['health'].items() if val
-            ]
-            port = (
-                cfg.topology_creator.victim.SERVER_PORT
-                if hostname.startswith('victim')
-                else cfg.topology_creator.attacker.SERVER_PORT
-            )
+                key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val]
+            port = (cfg.topology_creator.victim.SERVER_PORT
+                        if hostname.startswith('victim')
+                        else cfg.topology_creator.attacker.SERVER_PORT)
             try:
                 response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
                 return hostname, response.status_code, response.json().get('message', '')
@@ -341,22 +321,17 @@ def main(cfg: DictConfig) -> None:
 
     @app.post('/launch_traffic_single')
     def launch_traffic_single():
-        global HEALTH_MONITORING, KAFKA_PORT
 
         data = request.get_json(force=True)
-        HEALTH_MONITORING = data['config_from_frontend']['health_monitoring']
 
         hostname = data['hostname'].split('_')[0]
         node_external_ip = containers_external_ips[hostname]
         host_info = traffic_dict[hostname]
-        host_info['mockserver_url'] = containers_internal_ips['mockserver']+':'+str(cfg.topology_creator.controller.SERVER_PORT)
-        internal_ips_str = ','.join(','.join(containers_internal_ips['all']))
-        host_info['internal_ips'] = internal_ips_str
-        host_info['node_features'] = HEALTH_MONITORING
-        host_info['kafka_endpoint'] = cfg.kafka.endpoint
-        host_info['health_params'] = OmegaConf.to_container(cfg.health, resolve=True)
-        # update health params from frontend configuration:
-        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
+        
+        # update params from frontend configuration:
+        host_info['health_monitoring'] = data['config_from_frontend']['health_monitoring']
+        host_info['node_features'] = data['config_from_frontend']['node_features']
+        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val] 
         
         port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
         response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
@@ -502,7 +477,7 @@ def main(cfg: DictConfig) -> None:
         """
         monitor_external_ip = containers_external_ips['monitor']
         subprocess.Popen([
-            cfg.base_params.browser_path,
+            cfg.browser_path,
             f"http://{monitor_external_ip}:{cfg.grafana.port}/"
         ])
         time.sleep(1)
@@ -670,49 +645,18 @@ def main(cfg: DictConfig) -> None:
 
     @app.route('/initialize_controller', methods=['POST'])
     def initialize_controller():
-        init_args = OmegaConf.to_container(cfg, resolve=True)
+        global controller_init_args
 
         data = request.get_json(force=True)
         config_from_frontend = data['config_from_frontend']
-        init_args['wandb']['wb_tracking'] = data['wandb_track']
-        init_args['wandb']['wb_run_name'] = data['wandb_run_name']
-        init_args['wandb'].update(config_from_frontend['wandb'])
-        init_args['container_ips'] = containers_internal_ips
-        init_args['ips_containers'] = internal_ips_containers
-        del init_args['base_params']
-        del init_args['honeypots']
-        del init_args['attackers']
-        init_args['traffic_dict'] = traffic_dict
-        rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards, resolve=True), {}).copy()
-        del init_args['rewards']
-        init_args['rewards'] = rewards
-        init_args['monitor_ip'] = containers_external_ips['monitor']
-        init_args['models'] = get_models_source()
-
-        # update info from the frontend:
-        init_args['health_monitoring'] = config_from_frontend['health_monitoring']
-        init_args['neural_modules'] = merge_dicts(init_args['neural_modules'], config_from_frontend['neural_modules'])
-        init_args['intrusion_detection'] = merge_dicts(init_args['intrusion_detection'], config_from_frontend['packet_monitoring'])
-        init_args['intrusion_detection'] = merge_dicts(init_args['intrusion_detection'], config_from_frontend['flow_monitoring'])
-        init_args['health']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health'].items() if val] 
-        init_args['knowledge']['Knowns'] = config_from_frontend['knowledge']['Knowns']
-        init_args['knowledge']['G1s'] = config_from_frontend['knowledge']['G1s']
-        init_args['knowledge']['G2s'] = config_from_frontend['knowledge']['G2s']
-
-        # solving hydra string binding with fronend info:
-        init_args['intrusion_detection']['h_dim'] = int(init_args['neural_modules']['hidden_size']) 
-        init_args['intrusion_detection']['device'] = init_args['neural_modules']['device']
-        init_args['intrusion_detection']['recurrent_layers'] = int(init_args['neural_modules']['recurrent_layers'])
-        init_args['intrusion_detection']['use_packet_feats'] = config_from_frontend['packet_monitoring']['use_packet_feats']
-        init_args['intrusion_detection']['node_features'] = init_args['health_monitoring']
 
         # pass log levels from frontend
-        init_args['smart_switch_log_level'] = config_from_frontend['smart_switch_log_level']
-        init_args['smart_controller_log_level'] = config_from_frontend['smart_controller_log_level']
-        init_args['flow_logger_log_level'] = config_from_frontend['flow_logger_log_level']
+        controller_init_args = merge_dicts(controller_init_args, config_from_frontend)
+        # fix:
+        controller_init_args['health']['probe_metrics']  = [key for key, val in config_from_frontend['health']['probe_metrics'].items() if val] 
 
         controller_external_ip = containers_external_ips['pox-controller']
-        response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=init_args)
+        response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=controller_init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
         return response.json()
 
@@ -821,15 +765,32 @@ def main(cfg: DictConfig) -> None:
             time.sleep(5)
 
         app.logger.debug(f"Monitoring services stopped")
-          
+
+
+    def init_controller_args():
+        global controller_init_args
+        controller_init_args = OmegaConf.to_container(cfg, resolve=True)
+        del controller_init_args['rewards']
+        rewards = reduce(lambda a, b: {**a, **b}, OmegaConf.to_container(cfg.rewards, resolve=True), {}).copy()
+        controller_init_args['rewards'] = rewards
+        controller_init_args['container_ips'] = containers_internal_ips
+        controller_init_args['ips_containers'] = internal_ips_containers
+        controller_init_args['traffic_dict'] = traffic_dict
+        controller_init_args['monitor_ip'] = containers_external_ips['monitor']
+        controller_init_args['models'] = get_models_source()
+
 
     refresh_containers() 
     init_traffic_stuff(cfg)
-    attach_controller()    
+    attach_controller()   
+    init_controller_args() 
 
     # Run the Flask app
-    app.run(host='0.0.0.0',port=cfg['base_params']['dashboard_port'])
+    app.run(host='0.0.0.0',port=cfg['dashboard_port'])
 
+
+
+    
 
 def cleanup():
     global ms_healthcheck_thread, monitoring_services

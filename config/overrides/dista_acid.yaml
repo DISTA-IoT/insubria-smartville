@@ -1,3 +1,7 @@
+host_ip: 192.168.183.146
+# container_manager_replay_from_file : false
+disable_proxy: true
+
 wandb:
   wb_tracking: true
   wb_project_name:  'ACID2.0' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
@@ -9,7 +13,6 @@ neural_modules:
 
 intrusion_detection:
   agent: DAI_P
-  flowstats_freq_secs: 1
   bad_classif_penalisation: hard
   use_transition_model: true
   max_budget: 300
@@ -32,8 +35,3 @@ topology_creator:
     HTTP_PROXY=http://proxy.uninsubria.it:3128
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
-    
-base_params: 
-  host_ip: 192.168.183.146
-  # container_manager_replay_from_file : false
-  disable_proxy: true
