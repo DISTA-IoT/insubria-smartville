@@ -95,12 +95,12 @@ class KernelRegressionLoss(nn.Module):
 class SimmilarityNet(nn.Module):
     def __init__(
             self,
-            h_dim):
+            hidden_size):
         super(SimmilarityNet, self).__init__()
 
         self.act = nn.LeakyReLU(0.2)
-        self.fc1 = nn.Linear(h_dim, h_dim // 2)
-        self.fc2 = nn.Linear(h_dim // 2, 1)
+        self.fc1 = nn.Linear(hidden_size, hidden_size // 2)
+        self.fc2 = nn.Linear(hidden_size // 2, 1)
 
     def forward(self, x1, x2):
         input_to_symm = torch.abs(x1 - x2)
@@ -122,7 +122,7 @@ class DistKernelRegressor(nn.Module):
         self.device = kwargs['device']
         self.w = nn.Parameter(torch.tensor(1.0))
         self.b = nn.Parameter(torch.tensor(-0.5))
-        self.similarity_network = SimmilarityNet(h_dim=kwargs['in_features'])
+        self.similarity_network = SimmilarityNet(hidden_size=kwargs['in_features'])
 
     def forward(
             self,
