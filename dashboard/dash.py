@@ -794,14 +794,24 @@ def main(cfg: DictConfig) -> None:
 
 def cleanup():
     global ms_healthcheck_thread, monitoring_services
-    print("Cleaning up before exit")
+    print("Cleaning up before exit...")
+    
+    # 1. Kill the socat process immediately
     kill_socat_grafana()
-    if ms_healthcheck_thread is not None:
-        with monitoring_services_lock:
-            monitoring_services = False
-            print("Stopping monitoring services...")
+    
+    # 2. Set the flag to False so the thread loop breaks
+    with monitoring_services_lock:
+        monitoring_services = False
+    
+    # 3. Call your stop services (ensure this has a timeout on its requests!)
+    if stop_services_function:
+        try:
             stop_services_function()
-        ms_healthcheck_thread.join()
+        except:
+            pass
+            
+    print("Forcing exit.")
+    os._exit(0) # This will force the main process to die NOW
 
 
 def handle_sigterm(signum, frame):
@@ -810,8 +820,11 @@ def handle_sigterm(signum, frame):
 
 
 if __name__ == "__main__":
-    main()
-
-    atexit.register(cleanup)
+    # Register signals BEFORE running the app
     signal.signal(signal.SIGTERM, handle_sigterm)
     signal.signal(signal.SIGINT, handle_sigterm)
+    
+    try:
+        main()
+    except KeyboardInterrupt:
+        cleanup()
