@@ -189,11 +189,11 @@ neural_modules:
 
 
 switching_args:
-  flow_idle_timeout:  10 # Number of no-activity seconds for a flow that triggers the switch to delete the corresponding entry in the flow table. Default is 10.
-  arp_timeout: 900 # Number of seconds to delete and ARP entry in the switch. Default is 120
-  max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. Default is 5. 
-  max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. Default is 5. 
-  arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). Default is 4. 
+  flow_idle_timeout:  10 # Number of no-activity seconds for a flow that triggers the switch to delete the corresponding entry in the flow table. 
+  arp_timeout: 900 # Number of seconds to delete and ARP entry in the switch. 
+  max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. . 
+  max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. 
+  arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). 
     
 intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)  
