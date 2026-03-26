@@ -103,54 +103,63 @@
             <div id="config" class="tabcontent">
                 <form id="config-form">
                     <h2>SmartVille Configuration</h2>
+                    
+                    <details> 
+                        <summary>Main Parameters:</summary>
 
-                    <!-- Simple top-level fields -->
-                    <label>Smart Switch Log Level:
-                        <select name="smart_switch_log_level">
-                        <option value="info" {{ "selected" if rendering_params.smart_switch_log_level == "info" else "" }}>info</option>
-                        <option value="debug" {{ "selected" if rendering_params.smart_switch_log_level == "debug" else "" }}>debug</option>
-                        <option value="warn" {{ "selected" if rendering_params.smart_switch_log_level == "warn" else "" }}>warn</option>
-                        <option value="error" {{ "selected" if rendering_params.smart_switch_log_level == "error" else "" }}>error</option>
-                        </select>
-                    </label>
-                    <label>Smart Controller Log Level:
-                        <select name="smart_controller_log_level">
-                        <option value="info" {{ "selected" if rendering_params.smart_controller_log_level == "info" else "" }}>info</option>
-                        <option value="debug" {{ "selected" if rendering_params.smart_controller_log_level == "debug" else "" }}>debug</option>
-                        <option value="warn" {{ "selected" if rendering_params.smart_controller_log_level == "warn" else "" }}>warn</option>
-                        <option value="error" {{ "selected" if rendering_params.smart_controller_log_level == "error" else "" }}>error</option>
-                        </select>
-                    </label>
-                    <label>Flow Logger Log Level:
-                        <select name="flow_logger_log_level">
-                        <option value="info" {{ "selected" if rendering_params.flow_logger_log_level == "info" else "" }}>info</option>
-                        <option value="debug" {{ "selected" if rendering_params.flow_logger_log_level == "debug" else "" }}>debug</option>
-                        <option value="warn" {{ "selected" if rendering_params.flow_logger_log_level == "warn" else "" }}>warn</option>
-                        <option value="error" {{ "selected" if rendering_params.flow_logger_log_level == "error" else "" }}>error</option>
-                        </select>
-                    </label>
+                        
+                        <!-- Simple top-level fields -->
+                        <label>Smart Switch Log Level:
+                            <select name="smart_switch_log_level">
+                            <option value="info" {{ "selected" if rendering_params.smart_switch_log_level == "info" else "" }}>info</option>
+                            <option value="debug" {{ "selected" if rendering_params.smart_switch_log_level == "debug" else "" }}>debug</option>
+                            <option value="warn" {{ "selected" if rendering_params.smart_switch_log_level == "warn" else "" }}>warn</option>
+                            <option value="error" {{ "selected" if rendering_params.smart_switch_log_level == "error" else "" }}>error</option>
+                            </select>
+                        </label>
+                        <label>Smart Controller Log Level:
+                            <select name="smart_controller_log_level">
+                            <option value="info" {{ "selected" if rendering_params.smart_controller_log_level == "info" else "" }}>info</option>
+                            <option value="debug" {{ "selected" if rendering_params.smart_controller_log_level == "debug" else "" }}>debug</option>
+                            <option value="warn" {{ "selected" if rendering_params.smart_controller_log_level == "warn" else "" }}>warn</option>
+                            <option value="error" {{ "selected" if rendering_params.smart_controller_log_level == "error" else "" }}>error</option>
+                            </select>
+                        </label>
+                        <label>Flow Logger Log Level:
+                            <select name="flow_logger_log_level">
+                            <option value="info" {{ "selected" if rendering_params.flow_logger_log_level == "info" else "" }}>info</option>
+                            <option value="debug" {{ "selected" if rendering_params.flow_logger_log_level == "debug" else "" }}>debug</option>
+                            <option value="warn" {{ "selected" if rendering_params.flow_logger_log_level == "warn" else "" }}>warn</option>
+                            <option value="error" {{ "selected" if rendering_params.flow_logger_log_level == "error" else "" }}>error</option>
+                            </select>
+                        </label>
 
-                    <label>
-                        <input type="checkbox" name="health_monitoring" onchange="syncParams()" {{ "checked" if rendering_params.health_monitoring else "" }}> Health Monitoring
-                    </label>
-                    <label>
-                        <input type="checkbox" name="use_packet_feats" onchange="syncParams()" {{ "checked" if rendering_params.use_packet_feats else "" }}> Use Packet Features
-                    </label>
-                    <label>
-                        <input  type="checkbox" name="node_features" onchange="syncParams()" {{ "checked" if rendering_params.node_features else "" }}> Use Node Features
-                    </label>
-                    <label>
-                        <input  type="checkbox" name="resample_packets" onchange="syncParams()" {{ "checked" if rendering_params.resample_packets else "" }}> Resample packets
-                    </label> 
-                    
-                    
-                    
+                        <label>
+                            <input type="checkbox" name="health_monitoring" onchange="syncParams()" {{ "checked" if rendering_params.health_monitoring else "" }}> Health Monitoring
+                        </label>
+                        <label>
+                            <input type="checkbox" name="use_packet_feats" onchange="syncParams()" {{ "checked" if rendering_params.use_packet_feats else "" }}> Use Packet Features
+                        </label>
+                        <label>
+                            <input  type="checkbox" name="node_features" onchange="syncParams()" {{ "checked" if rendering_params.node_features else "" }}> Use Node Features
+                        </label>
+                        <label>
+                            <input  type="checkbox" name="resample_packets" onchange="syncParams()" {{ "checked" if rendering_params.resample_packets else "" }}> Resample packets
+                        </label> 
+                        <label>
+                            <input  type="checkbox" name="intrusion_detection.online_evaluation" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.online_evaluation else "" }}> Online Evaluation
+                        </label> 
+                    </details>
+
                     <details>
                         <summary>WandB parameters</summary>
                         <label>Project Name: <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}" ></label>
                         <label>Log plots: <input type="checkbox" name="wandb.plots"  {{ "checked" if rendering_params.wandb.plots else "" }} ></label>
                         <label>Run Name: <input type="text"  name="wandb.wb_run_name" value="{{ rendering_params.wandb.wb_run_name }}"></label>
                         <label> Online Tracking <input   type="checkbox"  name="wandb.wb_tracking" {{ "checked" if rendering_params.wandb.wb_tracking else ""}}> 
+                        </label>
+                        <label> Resource Monitor Interval Secs:
+                            <input type="number" name="wandb.resource_monitor_interval_secs" value="{{ rendering_params.wandb.resource_monitor_interval_secs }}">
                         </label>
                     </details>
 
@@ -256,6 +265,111 @@
                         <label>
                             <input type="checkbox" name="neural_modules.use_encoder" onchange="syncParams()" {{ "checked" if rendering_params.neural_modules.use_encoder else "" }}> Use Encoder
                         </label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.save_models" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.save_models else "" }}> Save Models
+                        </label>
+                        <label>Batch Size: <input type="number" name="intrusion_detection.batch_size" value="{{ rendering_params.intrusion_detection.batch_size }}" onchange="syncParams()"></label>
+                        <label> K-Shot Learning: <input type="number" name="intrusion_detection.k_shot" value="{{ rendering_params.intrusion_detection.k_shot }}" onchange="syncParams()"></label>
+                    </details>
+
+                    <details>
+                        <summary>Agents:</summary>
+                        <label>
+                            <select name="intrusion_detection.agent" onchange="syncParams()">
+                            <option value="DQN" {{ "selected" if rendering_params.intrusion_detection.agent == "DQN" else "" }}>DQN</option>
+                            <option value="DDQN" {{ "selected" if rendering_params.intrusion_detection.agent == "DDQN" else "" }}>DDQN</option>
+                            <option value="DAI_P" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_P" else "" }}>DAI_P</option>
+                            <option value="DAI_A" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_A" else "" }}>DAI_A</option>
+                            <option value="DAI_SA" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_SA" else "" }}>DAI_SA</option>
+                            <option value="DAI_F" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_F" else "" }}>DAI_F</option>
+                            </select>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.use_transition_model" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_transition_model else "" }}> Use Transition Model
+                        </label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.variational_tmodel" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.variational_tmodel else "" }}> Variational Transition Model
+                        </label>
+                        <label>
+                            <input type="number" name="intrusion_detection.epistemic_regularisation_factor" value="{{ rendering_params.intrusion_detection.epistemic_regularisation_factor }}" onchange="syncParams()"> Epistemic Regularisation
+                        </label>
+                        <label>
+                            <input type="number" name="intrusion_detection.transitionnet_kl_divergence_regularisation_factor" value="{{ rendering_params.intrusion_detection.transitionnet_kl_divergence_regularisation_factor }}" onchange="syncParams()"> KL Divergence Regularisation
+                        </label>
+                        <label>
+                        <label>LeakyReLU alpha: 
+                            <input type="number" name="intrusion_detection.leaky_relu_alpha" value="{{ rendering_params.intrusion_detection.leaky_relu_alpha }}"" onchange="syncParams()"></label>
+                        <label>Actor Train Interval Steps: 
+                            <input type="number" name="intrusion_detection.actor_train_interval_steps" value="{{ rendering_params.intrusion_detection.actor_train_interval_steps}}" onchange="syncParams()"></label>
+                        <label>Entropy Regularisation Coefficient: <input type="number" name="intrusion_detection.entropy_reg_coefficient" value="{{ rendering_params.intrusion_detection.entropy_reg_coefficient }}" onchange="syncParams()"></label>
+                        <label>Temperature for Action Sampling: <input type="number" name="intrusion_detection.temperature_for_action_sampling" value="{{ rendering_params.intrusion_detection.temperature_for_action_sampling}}" onchange="syncParams()"></label>
+                        <label>Surrogate Policy Consistency: <input type="checkbox" name="intrusion_detection.surrogate_policy_consistency" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.surrogate_policy_consistency else "" }}> </label>
+                        <label>Use Critic to Act: <input type="checkbox" name="intrusion_detection.use_critic_to_act" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_critic_to_act else "" }}> </label>
+                        <label>Greedy Update: <input type="checkbox" name="intrusion_detection.greedy_update" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.greedy_update else "" }}> </label>
+                        <label>Max Budget: 
+                            <input type="number" name="intrusion_detection.max_budget" value="{{ rendering_params.intrusion_detection.max_budget }}" onchange="syncParams()"></label>
+                        <label>Max Episode Steps: 
+                            <input type="number" name="intrusion_detection.max_episode_steps" value="{{ rendering_params.intrusion_detection.max_episode_steps }}" onchange="syncParams()"></label>
+                        <label>Min Budget: 
+                            <input type="number" name="intrusion_detection.min_budget" value="{{ rendering_params.intrusion_detection.min_budget }}" onchange="syncParams()"></label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.multi_class" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.multi_class else "" }}> Multi-Class
+                        </label>
+                        <label>Intelligence Episode Steps: 
+                            <input type="number" name="intrusion_detection.intelligence_episode_steps" value="{{ rendering_params.intrusion_detection.intelligence_episode_steps }}" onchange="syncParams()"></label>
+                        <label>Tiger Init Budget: 
+                            <input type="number" name="intrusion_detection.tiger_init_budget" value="{{ rendering_params.intrusion_detection.tiger_init_budget }}" onchange="syncParams()"></label>
+                        <label>CTI Price Factor: 
+                            <input type="number" name="intrusion_detection.cti_price_factor" value="{{ rendering_params.intrusion_detection.cti_price_factor }}" onchange="syncParams()"></label>
+                        <label>Replay Batch Size: 
+                            <input type="number" name="intrusion_detection.replay_batch_size" value="{{ rendering_params.intrusion_detection.replay_batch_size }}" onchange="syncParams()"></label>
+                        <label>Replay Buffer Max Capacity: 
+                            <input type="number" name="intrusion_detection.replay_buffer_max_capacity" value="{{ rendering_params.intrusion_detection.replay_buffer_max_capacity }}" onchange="syncParams()"></label>
+                        <label>Agent Memory Size: 
+                            <input type="number" name="intrusion_detection.agent_memory_size" value="{{ rendering_params.intrusion_detection.agent_memory_size }}" onchange="syncParams()"></label>
+                        <label>Repulsive Weight: 
+                            <input type="number" name="intrusion_detection.repulsive_weight" value="{{ rendering_params.intrusion_detection.repulsive_weight }}" onchange="syncParams()"></label>
+                        <label>Attractive Weight: 
+                            <input type="number" name="intrusion_detection.attractive_weight" value="{{ rendering_params.intrusion_detection.attractive_weight }}" onchange="syncParams()"></label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.clustering_loss_backprop" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.clustering_loss_backprop else "" }}> Clustering Loss Backprop
+                        </label>
+                        <label>Init Epsilon E-Greedy: 
+                            <input type="number" step="0.01" name="intrusion_detection.init_epsilon_egreedy" value="{{ rendering_params.intrusion_detection.init_epsilon_egreedy }}" onchange="syncParams()"></label>
+                        <label>Greedy Min: 
+                            <input type="number" step="0.01" name="intrusion_detection.greedy_min" value="{{ rendering_params.intrusion_detection.greedy_min }}" onchange="syncParams()"></label>
+                        <label>Greedy Decay: 
+                            <input type="number" step="0.001" name="intrusion_detection.greedy_decay" value="{{ rendering_params.intrusion_detection.greedy_decay }}" onchange="syncParams()"></label>
+                        <label>Agent Discount Rate: 
+                            <input type="number" step="0.01" name="intrusion_detection.agent_discount_rate" value="{{ rendering_params.intrusion_detection.agent_discount_rate }}" onchange="syncParams()"></label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.epistemic_agency" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_agency else "" }}> Epistemic Agency
+                        </label>
+                        <label>Bad Classif Penalisation: 
+                            <select name="intrusion_detection.bad_classif_penalisation" onchange="syncParams()">
+                                <option value="easy" {{ "selected" if rendering_params.intrusion_detection.bad_classif_penalisation == 'easy' else "" }}>Easy</option>
+                                <option value="hard" {{ "selected" if rendering_params.intrusion_detection.bad_classif_penalisation == 'hard' else "" }}>Hard</option>
+                            </select>
+                        </label>
+                        <label>No Confidence Penalty: 
+                            <input type="number" name="intrusion_detection.no_confidence_penalty" value="{{ rendering_params.intrusion_detection.no_confidence_penalty }}" onchange="syncParams()"></label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.automatic_cs_acceptance" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.automatic_cs_acceptance else "" }}> Automatic CS Acceptance
+                        </label>
+                        <label>Useless Epistemic Penalty: 
+                            <input type="number" name="intrusion_detection.useless_epistemic_penalty" value="{{ rendering_params.intrusion_detection.useless_epistemic_penalty }}" onchange="syncParams()"></label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.epistemic_is_blocking" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_is_blocking else "" }}> Epistemic is Blocking
+                        </label>
+                        <label>
+                            <input type="checkbox" name="intrusion_detection.boltzmann_sampling" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.boltzmann_sampling else "" }}> Boltzmann Sampling
+                        </label>
+                        <label>Bad Classif Cost Factor: 
+                            <input type="number" name="intrusion_detection.bad_classif_cost_factor" value="{{ rendering_params.intrusion_detection.bad_classif_cost_factor }}" onchange="syncParams()"></label>
+                        <label>Hard Bad Classif Cost Factor: 
+                            <input type="number" name="intrusion_detection.hard_bad_classif_cost_factor" value="{{ rendering_params.intrusion_detection.hard_bad_classif_cost_factor }}" onchange="syncParams()"></label>
+                    
+                    
                     </details>
 
                     
@@ -285,9 +399,29 @@
                         <input type="hidden" id="knowledge_json" name="knowledge" value="{{ rendering_params.knowledge|tojson|forceescape }}"/>
                     </details>
 
-                   
-                    
-                    
+                    <details>
+                        <summary>Other parameters</summary>
+                            <label>
+                                <input  type="checkbox" name="intrusion_detection.anonymize_transport_ports" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.anonymize_transport_ports else "" }}> Anonymize Transport Ports
+                            </label>
+                            <label>
+                                <input  type="checkbox" name="intrusion_detection.report_step_freq" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.report_step_freq else "" }}> Report Step Freq
+                            </label>
+                            <label>
+                                <input type="checkbox" name="intrusion_detection.kernel_regression" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.kernel_regression else "" }}> Kernel Regression
+                            </label>
+                            <label>
+                                <input type="checkbox" name="intrusion_detection.use_neural_AD" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_neural_AD else "" }}> Use Neural AD
+                            </label>
+                            <label>
+                                <input type="checkbox" name="intrusion_detection.use_neural_KR" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_neural_KR else "" }}> Use Neural KR
+                            </label>
+                            <label>Online Evaluation Rounds: 
+                                <input type="number" name="intrusion_detection.online_evaluation_rounds" value="{{ rendering_params.intrusion_detection.online_evaluation_rounds }}" onchange="syncParams()"></label>
+                            <label>
+                                <input type="checkbox" name="intrusion_detection.pretrained_inference" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.pretrained_inference else "" }}> Pretrained Inference
+                            </label>
+                    </details>
                 </form>
             </div>
         </div>
