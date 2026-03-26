@@ -194,7 +194,9 @@ switching_args:
   max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. . 
   max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. 
   arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). 
-    
+  normal_flow_hard_timeout: 240 # (if resample_pakets = True) Normal forwarding flows will be hard timed out after this length in seconds.
+  sampling_flow_hard_timeout: 1 # (if resample_pakets = True) Sampling flows will be hard timed out after this length in seconds.
+
 intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)  
   learning_rate: 1e-3
