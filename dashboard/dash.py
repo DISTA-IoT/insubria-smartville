@@ -802,14 +802,15 @@ def cleanup():
     # 2. Set the flag to False so the thread loop breaks
     with monitoring_services_lock:
         monitoring_services = False
-    
+        
+    """
     # 3. Call your stop services (ensure this has a timeout on its requests!)
     if stop_services_function:
         try:
             stop_services_function()
         except:
             pass
-            
+    """
     print("Forcing exit.")
     os._exit(0) # This will force the main process to die NOW
 
