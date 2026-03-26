@@ -349,3 +349,78 @@ body {
   padding-bottom: 152px;
 }
 /* ===== end Console ===== */
+
+
+        /* ── four-column config grid ───────────────────────────────────── */
+        #config .config-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            align-items: start;
+            padding: 12px 0;
+        }
+
+        #config .config-col {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;          /* prevents grid blowout */
+        }
+
+        /* make details blocks fill the column nicely */
+        #config .config-col > details {
+            width: 100%;
+            box-sizing: border-box;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.88rem;
+        }
+
+        #config .config-col > details > summary {
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 0;
+            user-select: none;
+        }
+
+        #config .config-col > details label {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin: 4px 0;
+            font-size: 0.82rem;
+            color: #333;
+        }
+
+        #config .config-col > details input[type="number"],
+        #config .config-col > details input[type="text"],
+        #config .config-col > details select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 3px 6px;
+            font-size: 0.82rem;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+
+        /* inline checkboxes stay on one line */
+        #config .config-col > details label:has(input[type="checkbox"]) {
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+        }
+
+        #config h2.config-title {
+            grid-column: 1 / -1;
+            margin: 0 0 4px;
+        }
+
+        /* responsive: collapse to 2 cols on narrower viewports */
+        @media (max-width: 1100px) {
+            #config .config-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+            #config .config-grid { grid-template-columns: 1fr; }
+        }
