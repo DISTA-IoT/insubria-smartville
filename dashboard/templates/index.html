@@ -389,9 +389,6 @@
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.epistemic_is_blocking"    onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_is_blocking    else "" }}> Epistemic is Blocking</label>
                                 <label><input type="checkbox" name="intrusion_detection.boltzmann_sampling"       onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.boltzmann_sampling       else "" }}> Boltzmann Sampling</label>
-                                <label>Bad Classif Cost Factor:
-                                    <input type="number" name="intrusion_detection.bad_classif_cost_factor"       value="{{ rendering_params.intrusion_detection.bad_classif_cost_factor }}"       onchange="syncParams()">
-                                </label>
                                 <label>Hard Bad Classif Cost Factor:
                                     <input type="number" name="intrusion_detection.hard_bad_classif_cost_factor"  value="{{ rendering_params.intrusion_detection.hard_bad_classif_cost_factor }}"  onchange="syncParams()">
                                 </label>
