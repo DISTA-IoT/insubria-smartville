@@ -27,7 +27,7 @@ intrusion_detection:
   # variational_tmodel: true
 
 topology_creator:
-  contr_start: sh # COMMENT THIS IF YOU WANT POX TO START AUTOMATICALLY
+  contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
   # victim_start: sh # COMMENT THIS IF YOU WANT TO START THE VICTIM SERVER AUTOMATICALLY
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
