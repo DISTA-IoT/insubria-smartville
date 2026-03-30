@@ -218,6 +218,7 @@ intrusion_detection:
   use_neural_AD: True
   use_neural_KR: True
   online_evaluation: false
+  bad_classif_cost_factor: 40
   hard_bad_classif_cost_factor: 1
   online_evaluation_rounds: 10
   pretrained_inference: True
@@ -226,7 +227,6 @@ intrusion_detection:
   max_episode_steps: 750
   min_budget: -10
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
-  intelligence_episode_steps: 50
   tiger_init_budget: 1
   cti_price_factor: 4
   replay_batch_size: 32
