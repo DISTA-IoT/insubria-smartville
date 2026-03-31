@@ -275,7 +275,9 @@
                             <details>
                                 <summary>Other Parameters</summary>
                                 <label><input type="checkbox" name="intrusion_detection.anonymize_transport_ports" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.anonymize_transport_ports else "" }}> Anonymize Transport Ports</label>
-                                <label><input type="checkbox" name="intrusion_detection.report_step_freq"          onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.report_step_freq          else "" }}> Report Step Freq</label>
+                                <label>Report Step Freq:
+                                    <input type="number" name="intrusion_detection.report_step_freq" value="{{ rendering_params.intrusion_detection.report_step_freq }}" onchange="syncParams()">
+                                </label>
                                 <label><input type="checkbox" name="intrusion_detection.kernel_regression"         onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.kernel_regression         else "" }}> Kernel Regression</label>
                                 <label><input type="checkbox" name="intrusion_detection.use_neural_AD"             onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_neural_AD             else "" }}> Use Neural AD</label>
                                 <label><input type="checkbox" name="intrusion_detection.use_neural_KR"             onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_neural_KR             else "" }}> Use Neural KR</label>
