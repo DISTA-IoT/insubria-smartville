@@ -145,7 +145,7 @@
                                 <label><input type="checkbox" name="intrusion_detection.online_evaluation" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.online_evaluation else "" }}> Online Evaluation</label>
                             </details>
 
-                            <details>
+                            <details open>
                                 <summary>WandB Parameters</summary>
                                 <label>Project Name:
                                     <input type="text" name="wandb.wb_project_name" value="{{ rendering_params.wandb.wb_project_name }}">
@@ -158,6 +158,34 @@
                                 <label>Resource Monitor Interval Secs:
                                     <input type="number" name="wandb.resource_monitor_interval_secs" value="{{ rendering_params.wandb.resource_monitor_interval_secs }}">
                                 </label>
+                            </details>
+
+                            <details open>
+                                <summary>Traffic Rewards</summary>
+                                {% for reward_entry in rendering_params.rewards %}
+                                    {% for reward_type, reward_value in reward_entry.items() %}
+                                    {% set reward_id = reward_type | replace('-', '_') %}
+                                    <label>{{ reward_type }}:
+                                        <div class="reward-slider-row">
+                                            <input type="range"
+                                                   id="reward_slider_{{ reward_id }}"
+                                                   name="rewards.{{ reward_type }}"
+                                                   min="-1"
+                                                   max="1"
+                                                   step="0.01"
+                                                   value="{{ reward_value }}"
+                                                   oninput="syncRewardInputs('{{ reward_id }}', this.value)">
+                                            <input type="number"
+                                                   id="reward_number_{{ reward_id }}"
+                                                   min="-1"
+                                                   max="1"
+                                                   step="0.01"
+                                                   value="{{ reward_value }}"
+                                                   oninput="syncRewardInputs('{{ reward_id }}', this.value)">
+                                        </div>
+                                    </label>
+                                    {% endfor %}
+                                {% endfor %}
                             </details>
 
                         </div><!-- /col 1 -->
@@ -216,7 +244,7 @@
                         <!-- ────────── COLUMN 3: Packet · Flow · Neural ────────── -->
                         <div class="config-col">
 
-                            <details open>
+                            <details>
                                 <summary>Packet Monitoring</summary>
                                 <label>Packet Timeseries length:
                                     <input type="number" name="intrusion_detection.packets_per_sample" onchange="syncParams()" value="{{ rendering_params.intrusion_detection.packets_per_sample }}">
@@ -286,13 +314,6 @@
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.pretrained_inference" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.pretrained_inference else "" }}> Pretrained Inference</label>
                             </details>
-
-                        </div><!-- /col 3 -->
-
-
-                        <!-- ────────── COLUMN 4: Agents · Knowledge ────────── -->
-                        <div class="config-col">
-
                             <details open>
                                 <summary>Agents</summary>
                                 <label>Agent:
@@ -338,6 +359,17 @@
                                     <input type="number" name="intrusion_detection.min_budget" value="{{ rendering_params.intrusion_detection.min_budget }}" onchange="syncParams()">
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.multi_class" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.multi_class else "" }}> Multi-Class</label>
+                                
+                            </details>
+
+                        </div><!-- /col 3 -->
+
+
+                        <!-- ────────── COLUMN 4: Agents · Knowledge ────────── -->
+                        <div class="config-col">
+
+                            <details>
+                                <summary>Agents (more)</summary>
                                 <label>Tiger Init Budget:
                                     <input type="number" name="intrusion_detection.tiger_init_budget" value="{{ rendering_params.intrusion_detection.tiger_init_budget }}" onchange="syncParams()">
                                 </label>
@@ -398,35 +430,9 @@
 
 
 
-                            <details>
-                                <summary>Traffic Rewards</summary>
-                                {% for reward_entry in rendering_params.rewards %}
-                                    {% for reward_type, reward_value in reward_entry.items() %}
-                                    {% set reward_id = reward_type | replace('-', '_') %}
-                                    <label>{{ reward_type }}:
-                                        <div class="reward-slider-row">
-                                            <input type="range"
-                                                   id="reward_slider_{{ reward_id }}"
-                                                   name="rewards.{{ reward_type }}"
-                                                   min="-1"
-                                                   max="1"
-                                                   step="0.01"
-                                                   value="{{ reward_value }}"
-                                                   oninput="syncRewardInputs('{{ reward_id }}', this.value)">
-                                            <input type="number"
-                                                   id="reward_number_{{ reward_id }}"
-                                                   min="-1"
-                                                   max="1"
-                                                   step="0.01"
-                                                   value="{{ reward_value }}"
-                                                   oninput="syncRewardInputs('{{ reward_id }}', this.value)">
-                                        </div>
-                                    </label>
-                                    {% endfor %}
-                                {% endfor %}
-                            </details>
+                            
 
-                            <details>
+                            <details open>
                                 <summary>Knowledge Groups (drag &amp; drop)</summary>
                                 <p style="font-size:0.8rem;margin:4px 0 8px;">Drag items into Known, G1 or G2. Drop back into <em>Unassigned</em> to remove.</p>
 
