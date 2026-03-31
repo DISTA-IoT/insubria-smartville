@@ -53,6 +53,17 @@ function openTab(evt, tabId) {
     }
 
 
+function syncRewardInputs(rewardId, newValue) {
+  const slider = document.getElementById(`reward_slider_${rewardId}`);
+  const number = document.getElementById(`reward_number_${rewardId}`);
+  if (slider && slider.value !== String(newValue)) {
+    slider.value = newValue;
+  }
+  if (number && number.value !== String(newValue)) {
+    number.value = newValue;
+  }
+}
+
 function syncParams() {
   const usePacketFeatsCheckbox = document.querySelector("input[name='use_packet_feats']");
   const packetBytesTextBox = document.querySelector("input[name='intrusion_detection.packet_feat_dim']");
