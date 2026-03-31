@@ -396,6 +396,36 @@
                                 </label>
                             </details>
 
+
+
+                            <details>
+                                <summary>Traffic Rewards</summary>
+                                {% for reward_entry in rendering_params.rewards %}
+                                    {% for reward_type, reward_value in reward_entry.items() %}
+                                    {% set reward_id = reward_type | replace('-', '_') %}
+                                    <label>{{ reward_type }}:
+                                        <div class="reward-slider-row">
+                                            <input type="range"
+                                                   id="reward_slider_{{ reward_id }}"
+                                                   name="rewards.{{ reward_type }}"
+                                                   min="-1"
+                                                   max="1"
+                                                   step="0.01"
+                                                   value="{{ reward_value }}"
+                                                   oninput="syncRewardInputs('{{ reward_id }}', this.value)">
+                                            <input type="number"
+                                                   id="reward_number_{{ reward_id }}"
+                                                   min="-1"
+                                                   max="1"
+                                                   step="0.01"
+                                                   value="{{ reward_value }}"
+                                                   oninput="syncRewardInputs('{{ reward_id }}', this.value)">
+                                        </div>
+                                    </label>
+                                    {% endfor %}
+                                {% endfor %}
+                            </details>
+
                             <details>
                                 <summary>Knowledge Groups (drag &amp; drop)</summary>
                                 <p style="font-size:0.8rem;margin:4px 0 8px;">Drag items into Known, G1 or G2. Drop back into <em>Unassigned</em> to remove.</p>
