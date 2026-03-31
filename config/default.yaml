@@ -181,9 +181,9 @@ neural_modules:
   first_stream_input_size: ${intrusion_detection.flow_feat_dim}
   second_stream_input_size: ${intrusion_detection.packet_feat_dim}
   third_stream_input_size: ${len:${health.probe_metrics}}
-  hidden_size: 800
+  hidden_size: 200
   kernel_regressor_heads: 2
-  dropout: 0.1 # Dropout rate for the neural network.
+  dropout: 0.2 # Dropout rate for the neural network.
   use_encoder: false
   recurrent_layers: 1
 
@@ -219,7 +219,7 @@ intrusion_detection:
   use_neural_KR: True
   online_evaluation: false
   bad_classif_cost_factor: 40
-  hard_bad_classif_cost_factor: 1
+  hard_bad_classif_cost_factor: 8
   online_evaluation_rounds: 10
   pretrained_inference: True
 
@@ -243,7 +243,7 @@ intrusion_detection:
   bad_classif_penalisation: easy # can be easy or hard
   no_confidence_penalty: 0 # this is a penalty (abs value) given each time the management module discards the closed-set inferences of the decision module.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
-  useless_epistemic_penalty: 0 # Cost of taking a useless epistemic action
+  useless_epistemic_penalty: 7 # Cost of taking a useless epistemic action
   epistemic_is_blocking: true
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   #

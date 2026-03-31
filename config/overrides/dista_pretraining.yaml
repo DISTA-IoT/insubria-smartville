@@ -8,10 +8,6 @@ wandb:
  wb_project_name:  'TIGER2.0'
  plots: true
 
-neural_modules:
-  hidden_size: 200
-  dropout: 0.2
-
 
 intrusion_detection:
   pretrained_inference: false

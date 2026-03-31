@@ -4,10 +4,7 @@ wandb:
   wb_tracking: true
   wb_project_name:  'ACID2.0' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'DAI_P'
-
-neural_modules:
-  hidden_size: 200
-  dropout: 0.2
+  
 
 intrusion_detection:
   agent: DAI_P
@@ -15,7 +12,6 @@ intrusion_detection:
   use_transition_model: true
   max_budget: 300
   min_budget: -60
-  useless_epistemic_penalty: 7
   epistemic_is_blocking: false
   hard_bad_classif_cost_factor: 8
   greedy_update: true
