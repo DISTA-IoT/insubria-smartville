@@ -18,7 +18,6 @@ intrusion_detection:
   epistemic_agency: false
   online_evaluation: true
   save_models: true
-  report_step_freq: 10
   
 topology_creator:
   use_gns3_config_file: false
