@@ -1,4 +1,5 @@
 disable_proxy: true
+node_features: false
 
 wandb:
   wb_tracking: true
