@@ -104,6 +104,78 @@ function syncParams() {
   }
 }
 
+const CONFIG_PARAM_HELP = {
+  "smart_switch_log_level": "Log verbosity for the smart switch process.",
+  "smart_controller_log_level": "Log verbosity for the smart controller process.",
+  "flow_logger_log_level": "Log verbosity for flow logging components.",
+  "health_monitoring": "Enable health probes and health-driven monitoring features.",
+  "use_packet_feats": "Use packet-level features for intrusion-detection inputs.",
+  "node_features": "Use health metrics as node features (requires health monitoring).",
+  "resample_packets": "If enabled, periodically resample packets from flows; otherwise reuses initial packets.",
+  "wandb.wb_tracking": "Track this run in Weights & Biases.",
+  "wandb.wb_project_name": "W&B project name used when tracking is enabled.",
+  "wandb.wb_run_name": "W&B run name used when tracking is enabled.",
+  "wandb.plots": "Log plots to W&B.",
+  "wandb.resource_monitor_interval_secs": "Interval (seconds) for system resource monitoring.",
+  "switching_args.flow_idle_timeout": "Idle seconds after which inactive flows are deleted from switch flow tables.",
+  "switching_args.arp_timeout": "Seconds before an ARP cache entry expires in the switch.",
+  "switching_args.max_buffered_packets": "Max packets buffered while waiting for destination MAC resolution.",
+  "switching_args.max_buffering_secs": "Max buffering time while waiting for destination MAC resolution.",
+  "switching_args.arp_req_exp_secs": "Wait time before retrying ARP request to avoid ARP flooding.",
+  "switching_args.sampling_rate_seconds": "Seconds between sampling rule installations when packet resampling is enabled.",
+  "switching_args.sampling_flow_hard_timeout": "Hard timeout (seconds) for installed sampling rules.",
+  "intrusion_detection.packets_per_sample": "Number of packets taken per flow sample when packet features are enabled.",
+  "intrusion_detection.flows_per_sample": "Flow-statistics time-window length used to build feature vectors.",
+  "neural_modules.dropout": "Dropout rate used in neural modules.",
+  "intrusion_detection.save_models": "Overwrite and save trained models to disk.",
+  "intrusion_detection.k_shot": "Support samples per class for k-shot learning.",
+  "intrusion_detection.batch_size": "Training batch size.",
+  "intrusion_detection.report_step_freq": "Frequency (steps) to print/report training progress.",
+  "intrusion_detection.plot_step_freq": "Frequency (steps) to emit plots/visual diagnostics.",
+  "intrusion_detection.online_eval_step_freq": "Frequency (steps) to run online evaluation.",
+  "intrusion_detection.online_evaluation": "Enable online evaluation mode.",
+  "intrusion_detection.online_evaluation_rounds": "Number of rounds for online evaluation.",
+  "intrusion_detection.pretrained_inference": "Use pretrained inference modules for run-time decisions.",
+  "intrusion_detection.agent": "Learning agent type (DQN/DDQN/DAI variants).",
+  "intrusion_detection.multi_class": "Enable multiclass (instead of binary) classification behavior.",
+  "intrusion_detection.bad_classif_penalisation": "Penalty regime for bad classifications: easy or hard.",
+  "intrusion_detection.no_confidence_penalty": "Penalty applied when management discards closed-set decision outputs.",
+  "intrusion_detection.automatic_cs_acceptance": "Automatically accept closed-set inference from decision module.",
+  "intrusion_detection.useless_epistemic_penalty": "Penalty cost for taking an unhelpful epistemic action.",
+  "intrusion_detection.boltzmann_sampling": "Use Boltzmann action sampling (DDQN uses epsilon-greedy unless enabled).",
+  "intrusion_detection.update_target_freq": "Step interval to update the target model.",
+  "intrusion_detection.actor_train_interval_steps": "Step interval to train actor/policy network.",
+  "intrusion_detection.epistemic_agency": "Enable management agent; disable to focus on inference module pretraining."
+};
+
+function getHelpTextByName(name) {
+  if (!name) return "TBD (to be defined).";
+  if (CONFIG_PARAM_HELP[name]) return CONFIG_PARAM_HELP[name];
+  if (name.startsWith("health.probe_metrics.")) return "Health metric included in node-feature probing.";
+  if (name.startsWith("rewards.")) return "Reward weight applied to this traffic-management signal.";
+  if (name.startsWith("intrusion_detection.")) return "TBD (to be defined).";
+  if (name.startsWith("neural_modules.")) return "TBD (to be defined).";
+  return "TBD (to be defined).";
+}
+
+function addConfigTooltips() {
+  const labels = document.querySelectorAll("#config-form label");
+  labels.forEach((label) => {
+    if (label.querySelector(".config-help-icon")) return;
+    const namedInput = label.querySelector("input[name], select[name], textarea[name]");
+    if (!namedInput) return;
+
+    const helpText = getHelpTextByName(namedInput.name);
+    const helpIcon = document.createElement("span");
+    helpIcon.className = "config-help-icon";
+    helpIcon.textContent = "ⓘ";
+    helpIcon.title = helpText;
+    helpIcon.setAttribute("aria-label", helpText);
+    helpIcon.setAttribute("role", "img");
+    label.appendChild(helpIcon);
+  });
+}
+
 
 // ---------- Knowledge drag & drop UI helpers ----------
 
@@ -312,6 +384,7 @@ window.addEventListener('DOMContentLoaded', (event) => {
     
 
     syncParams();
+    addConfigTooltips();
 
     updateConfigDict();
 
