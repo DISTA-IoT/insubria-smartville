@@ -306,6 +306,14 @@
                                 <label>Report Step Freq:
                                     <input type="number" name="intrusion_detection.report_step_freq" value="{{ rendering_params.intrusion_detection.report_step_freq }}" onchange="syncParams()">
                                 </label>
+                                <label>
+                                    Online Eval Step Freq:
+                                    <input type="number" name="intrusion_detection.online_eval_step_freq" value="{{ rendering_params.intrusion_detection.online_eval_step_freq }}" onchange="syncParams()">
+                                </label>
+                                <label>
+                                    Plot Step Freq:
+                                    <input type="number" name="intrusion_detection.plot_step_freq" value="{{ rendering_params.intrusion_detection.plot_step_freq }}" onchange="syncParams()">
+                                </label>
                                 <label><input type="checkbox" name="intrusion_detection.kernel_regression"         onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.kernel_regression         else "" }}> Kernel Regression</label>
                                 <label><input type="checkbox" name="intrusion_detection.use_neural_CS"             onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_neural_CS             else "" }}> Use Neural CS</label>
                                 <label><input type="checkbox" name="intrusion_detection.use_neural_AD"             onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_neural_AD             else "" }}> Use Neural AD</label>
