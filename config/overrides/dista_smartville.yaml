@@ -7,7 +7,6 @@ intrusion_detection:
   pretrained_inference: false
   epistemic_agency: false
   online_evaluation: true
-  report_step_freq: 10
   flowstats_freq_secs: 5
 
   
