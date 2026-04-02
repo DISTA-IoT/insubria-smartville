@@ -101,7 +101,11 @@ class DashboardCLI:
 
     def http(self, method: str, path: str, *, json_payload: Any | None = None) -> HttpResult:
         url = f"{self.base_url}{path}"
+        print(f"[waiting] {method.upper()} {url} ...", flush=True)
+        start = time.monotonic()
         response = self.session.request(method=method, url=url, json=json_payload, timeout=self.timeout)
+        elapsed = time.monotonic() - start
+        print(f"[done] HTTP {response.status_code} in {elapsed:.2f}s", flush=True)
 
         try:
             body: Any = response.json()
@@ -174,7 +178,15 @@ def read_wandb_api_key(repo_root: Path) -> str | None:
     return None
 
 
-def query_wandb_run(entity: str, project: str, run_name: str, api_key: str, top_n_runs: int = 50) -> dict[str, Any] | None:
+def query_wandb_run(
+    entity: str,
+    project: str,
+    run_name: str,
+    api_key: str,
+    top_n_runs: int = 50,
+    timeout_secs: int = 30,
+    retries: int = 2,
+) -> dict[str, Any] | None:
     endpoint = "https://api.wandb.ai/graphql"
     query = """
     query ProjectRuns($entity: String!, $project: String!, $first: Int!) {
@@ -199,9 +211,32 @@ def query_wandb_run(entity: str, project: str, run_name: str, api_key: str, top_
         "variables": {"entity": entity, "project": project, "first": top_n_runs},
     }
     headers = {"Authorization": f"Bearer {api_key}"}
-    response = requests.post(endpoint, headers=headers, json=payload, timeout=30)
-    response.raise_for_status()
-    data = response.json()
+    data: dict[str, Any] | None = None
+    last_error: requests.RequestException | None = None
+    attempts = max(1, retries + 1)
+    for attempt in range(1, attempts + 1):
+        print(f"[waiting] W&B poll {attempt}/{attempts} ...", flush=True)
+        start = time.monotonic()
+        try:
+            response = requests.post(endpoint, headers=headers, json=payload, timeout=timeout_secs)
+            response.raise_for_status()
+            data = response.json()
+            elapsed = time.monotonic() - start
+            print(f"[done] W&B poll succeeded in {elapsed:.2f}s", flush=True)
+            break
+        except requests.RequestException as exc:
+            last_error = exc
+            elapsed = time.monotonic() - start
+            print(f"[warn] W&B poll failed in {elapsed:.2f}s: {exc}", flush=True)
+            if attempt < attempts:
+                backoff = min(10, 2 ** (attempt - 1))
+                print(f"[waiting] retrying in {backoff}s ...", flush=True)
+                time.sleep(backoff)
+
+    if data is None:
+        assert last_error is not None
+        raise last_error
+
     edges = (data.get("data", {}).get("project", {}) or {}).get("runs", {}).get("edges", [])
     for edge in edges:
         node = edge.get("node", {})
@@ -235,9 +270,24 @@ def print_wandb_summary(run: dict[str, Any], max_metrics: int) -> None:
     print(json.dumps(summary, indent=2, sort_keys=True))
 
 
+def infer_base_url_from_cfg(cfg: DictConfig | None) -> str:
+    if cfg is None:
+        return "http://localhost:7777"
+    host_ip = cfg.get("host_ip", "localhost")
+    dashboard_port = cfg.get("dashboard_port", 7777)
+    return f"http://{host_ip}:{dashboard_port}"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="SmartVille dashboard CLI client")
-    parser.add_argument("--base-url", default="http://localhost:7777", help="Dashboard HTTP base URL")
+    parser.add_argument(
+        "--base-url",
+        default="",
+        help=(
+            "Dashboard HTTP base URL. If omitted, inherit from Hydra config "
+            "(host_ip + dashboard_port, including profile/overrides)."
+        ),
+    )
     parser.add_argument("--state-file", type=Path, default=DEFAULT_STATE_PATH, help="Persistent config state file")
     parser.add_argument("--config-dir", type=Path, default=DEFAULT_CONFIG_DIR, help="Hydra config directory")
     parser.add_argument("--profile", default="", help="config/overrides/<profile>.yaml to merge")
@@ -291,21 +341,37 @@ def main() -> int:
     p_wandb.add_argument("--max-metrics", type=int, default=25, help="Maximum number of metrics in summary output")
     p_wandb.add_argument("--watch", action="store_true", help="Continuously poll and print summaries")
     p_wandb.add_argument("--interval-secs", type=int, default=10, help="Polling interval in seconds when --watch is set")
+    p_wandb.add_argument("--wandb-timeout-secs", type=int, default=30, help="HTTP timeout in seconds per W&B poll")
+    p_wandb.add_argument("--wandb-retries", type=int, default=2, help="Retry count for failed W&B polls")
 
     args = parser.parse_args()
-    client = DashboardCLI(args.base_url, args.state_file, args.config_dir, timeout=args.timeout)
+
+    cfg_cache: DictConfig | None = None
+
+    def get_cfg() -> DictConfig:
+        nonlocal cfg_cache
+        if cfg_cache is None:
+            cfg_cache = DashboardCLI("http://localhost:7777", args.state_file, args.config_dir).load_hydra_config(
+                args.profile or None,
+                args.hydra_override,
+            )
+        return cfg_cache
+
+    resolved_base_url = args.base_url.strip() or infer_base_url_from_cfg(get_cfg())
+    client = DashboardCLI(resolved_base_url, args.state_file, args.config_dir, timeout=args.timeout)
 
     if args.command == "init-config":
-        cfg = client.load_hydra_config(args.profile or None, args.hydra_override)
+        cfg = get_cfg()
         state = client.build_frontend_config(cfg)
         client.save_state(state)
         print(f"Initialized config state at: {args.state_file}")
+        print(f"Using dashboard base URL: {client.base_url}")
         print("Tip: use `show-config`, `set`, and `unset` to tune values before sending requests.")
         return 0
 
     state = client.load_state()
     if not state and args.command not in {"show-config", "refresh-containers"}:
-        cfg = client.load_hydra_config(args.profile or None, args.hydra_override)
+        cfg = get_cfg()
         state = client.build_frontend_config(cfg)
         client.save_state(state)
         print(f"No state file found. Auto-initialized from Hydra into: {args.state_file}")
@@ -354,29 +420,39 @@ def main() -> int:
         if not tracking_enabled:
             print("Warning: wandb.wb_tracking is false in config; monitoring may find no active run.")
 
-        def do_poll() -> None:
+        def do_poll() -> bool:
             run = query_wandb_run(
                 entity=entity,
                 project=project,
                 run_name=run_name,
                 api_key=api_key,
                 top_n_runs=args.top_n_runs,
+                timeout_secs=args.wandb_timeout_secs,
+                retries=args.wandb_retries,
             )
             if not run:
                 print(f"No W&B run found for entity/project/name: {entity}/{project}/{run_name}")
-                return
+                return True
             print_wandb_summary(run, max_metrics=args.max_metrics)
+            return True
 
         if args.watch:
             try:
                 while True:
-                    do_poll()
+                    try:
+                        do_poll()
+                    except requests.RequestException as exc:
+                        print(f"[warn] W&B polling error: {exc}")
                     time.sleep(args.interval_secs)
             except KeyboardInterrupt:
                 print("\nStopped W&B monitoring.")
             return 0
 
-        do_poll()
+        try:
+            do_poll()
+        except requests.RequestException as exc:
+            print(f"W&B polling failed: {exc}")
+            return 2
         return 0
 
     route_table: dict[str, tuple[str, str, bool]] = {
@@ -403,7 +479,11 @@ def main() -> int:
     if args.command in route_table:
         method, path, use_config = route_table[args.command]
         payload = {"config_from_frontend": state} if use_config else None
-        result = client.http(method, path, json_payload=payload)
+        try:
+            result = client.http(method, path, json_payload=payload)
+        except requests.RequestException as exc:
+            print(f"Request failed: {exc}")
+            return 2
         pretty_print_result(result)
         return 0 if 200 <= result.status < 300 else 2
 
@@ -412,7 +492,11 @@ def main() -> int:
             "hostname": args.hostname,
             "config_from_frontend": state,
         }
-        result = client.http("POST", "/launch_traffic_single", json_payload=payload)
+        try:
+            result = client.http("POST", "/launch_traffic_single", json_payload=payload)
+        except requests.RequestException as exc:
+            print(f"Request failed: {exc}")
+            return 2
         pretty_print_result(result)
         return 0 if 200 <= result.status < 300 else 2
 
@@ -421,7 +505,11 @@ def main() -> int:
             "hostname": args.hostname,
             "origin": "MANUALLY",
         }
-        result = client.http("POST", "/stop_traffic_single", json_payload=payload)
+        try:
+            result = client.http("POST", "/stop_traffic_single", json_payload=payload)
+        except requests.RequestException as exc:
+            print(f"Request failed: {exc}")
+            return 2
         pretty_print_result(result)
         return 0 if 200 <= result.status < 300 else 2
 
