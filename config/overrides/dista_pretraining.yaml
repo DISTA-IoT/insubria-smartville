@@ -11,7 +11,7 @@ wandb:
 
 intrusion_detection:
   pretrained_inference: false
-  epistemic_agency: false
+  agency: false
   online_evaluation: true
   save_models: true
   

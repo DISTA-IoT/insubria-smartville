@@ -5,7 +5,7 @@ health_monitoring: true
 
 intrusion_detection:
   pretrained_inference: false
-  epistemic_agency: false
+  agency: false
   online_evaluation: true
   flowstats_freq_secs: 5
 

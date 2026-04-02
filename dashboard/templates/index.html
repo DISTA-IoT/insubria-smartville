@@ -325,6 +325,7 @@
                             </details>
                             <details open>
                                 <summary>Agents</summary>
+                                 <label><input type="checkbox" name="intrusion_detection.agency"          onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.agency          else "" }}> Agency</label>
                                 <label>Agent:
                                     <select name="intrusion_detection.agent" onchange="syncParams()">
                                         <option value="DQN"   {{ "selected" if rendering_params.intrusion_detection.agent == "DQN"   else "" }}>DQN</option>
@@ -416,7 +417,7 @@
                                 <label>Agent Discount Rate:
                                     <input type="number" step="0.01"  name="intrusion_detection.agent_discount_rate"  value="{{ rendering_params.intrusion_detection.agent_discount_rate }}"  onchange="syncParams()">
                                 </label>
-                                <label><input type="checkbox" name="intrusion_detection.epistemic_agency"          onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_agency          else "" }}> Epistemic Agency</label>
+                               
                                 <label>Wrong Inference Penalisation:
                                     <select name="intrusion_detection.wrong_inference_penalisation" onchange="syncParams()">
                                         <option value="easy" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'easy' else "" }}>Easy</option>

@@ -147,7 +147,7 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.boltzmann_sampling": "Use Boltzmann action sampling (DDQN uses epsilon-greedy unless enabled).",
   "intrusion_detection.update_target_freq": "Step interval to update the target model.",
   "intrusion_detection.actor_train_interval_steps": "Step interval to train actor/policy network.",
-  "intrusion_detection.epistemic_agency": "Enable management agent; disable to focus on inference module pretraining."
+  "intrusion_detection.agency": "Enable management agent; disable to focus on inference module pretraining."
 };
 
 function getHelpTextByName(name) {
