@@ -168,7 +168,7 @@ function addConfigTooltips() {
     const helpText = getHelpTextByName(namedInput.name);
     const helpIcon = document.createElement("span");
     helpIcon.className = "config-help-icon";
-    helpIcon.textContent = "ⓘ";
+    helpIcon.textContent = "i";
     helpIcon.title = helpText;
     helpIcon.setAttribute("aria-label", helpText);
     helpIcon.setAttribute("role", "img");
