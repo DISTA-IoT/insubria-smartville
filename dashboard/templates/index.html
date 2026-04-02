@@ -417,11 +417,17 @@
                                     <input type="number" step="0.01"  name="intrusion_detection.agent_discount_rate"  value="{{ rendering_params.intrusion_detection.agent_discount_rate }}"  onchange="syncParams()">
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.epistemic_agency"          onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_agency          else "" }}> Epistemic Agency</label>
-                                <label>Bad Classif Penalisation:
-                                    <select name="intrusion_detection.bad_classif_penalisation" onchange="syncParams()">
-                                        <option value="easy" {{ "selected" if rendering_params.intrusion_detection.bad_classif_penalisation == 'easy' else "" }}>Easy</option>
-                                        <option value="hard" {{ "selected" if rendering_params.intrusion_detection.bad_classif_penalisation == 'hard' else "" }}>Hard</option>
+                                <label>Wrong Inference Penalisation:
+                                    <select name="intrusion_detection.wrong_inference_penalisation" onchange="syncParams()">
+                                        <option value="easy" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'easy' else "" }}>Easy</option>
+                                        <option value="hard" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'hard' else "" }}>Hard</option>
                                     </select>
+                                </label>
+                                <label>Bad Classif Cost Factor:
+                                    <input type="number" name="intrusion_detection.bad_classif_cost_factor"       value="{{ rendering_params.intrusion_detection.bad_classif_cost_factor }}"       onchange="syncParams()">
+                                </label>
+                                <label>Bad Clustering Cost Factor:
+                                    <input type="number" name="intrusion_detection.bad_clustering_cost_factor"  value="{{ rendering_params.intrusion_detection.bad_clustering_cost_factor }}"  onchange="syncParams()">
                                 </label>
                                 <label>No Confidence Penalty:
                                     <input type="number" name="intrusion_detection.no_confidence_penalty" value="{{ rendering_params.intrusion_detection.no_confidence_penalty }}" onchange="syncParams()">
@@ -432,12 +438,8 @@
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.epistemic_is_blocking"    onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_is_blocking    else "" }}> Epistemic is Blocking</label>
                                 <label><input type="checkbox" name="intrusion_detection.boltzmann_sampling"       onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.boltzmann_sampling       else "" }}> Boltzmann Sampling</label>
-                                <label>Bad Classif Cost Factor:
-                                    <input type="number" name="intrusion_detection.bad_classif_cost_factor"       value="{{ rendering_params.intrusion_detection.bad_classif_cost_factor }}"       onchange="syncParams()">
-                                </label>
-                                <label>Hard Bad Classif Cost Factor:
-                                    <input type="number" name="intrusion_detection.hard_bad_classif_cost_factor"  value="{{ rendering_params.intrusion_detection.hard_bad_classif_cost_factor }}"  onchange="syncParams()">
-                                </label>
+                                
+                                
                             </details>
 
 
