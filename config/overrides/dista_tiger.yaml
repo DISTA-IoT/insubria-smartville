@@ -10,21 +10,12 @@ wandb:
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
-  bad_classif_penalisation: hard
-  max_budget: 300
-  min_budget: -60
   epistemic_is_blocking: false
-  hard_bad_classif_cost_factor: 8
   greedy_update: true
-  # epistemic_regularisation_factor: 0.05
-  # entropy_reg_coefficient: 0
-  # surrogate_policy_consistency: true
-  # use_critic_to_act: false
-  # variational_tmodel: true
+
 
 topology_creator:
   contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
-  # victim_start: sh # COMMENT THIS IF YOU WANT TO START THE VICTIM SERVER AUTOMATICALLY
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
     https_proxy=http://proxy.uninsubria.it:3128
@@ -33,3 +24,17 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
     
+rewards:
+    - echo: 0.02
+    - hakai: -0.10
+    - mirai: -0.20
+    - hajime: -0.13
+    - doorlock: 0.05
+    - gafgyt: -0.25
+    - muhstik: -0.36
+    - h_scan: -0.17
+    - okiru: -0.48
+    - generic_ddos: -0.29
+    - torii: -0.21
+    - cc_heartbeat: -0.31
+    - hue: 0.05
