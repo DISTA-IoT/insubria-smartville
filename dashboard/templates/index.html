@@ -358,11 +358,11 @@
                                 <label><input type="checkbox" name="intrusion_detection.surrogate_policy_consistency" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.surrogate_policy_consistency else "" }}> Surrogate Policy Consistency</label>
                                 <label><input type="checkbox" name="intrusion_detection.use_critic_to_act"             onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_critic_to_act             else "" }}> Use Critic to Act</label>
                                 <label><input type="checkbox" name="intrusion_detection.greedy_update"                 onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.greedy_update                 else "" }}> Greedy Update</label>
-                                <label>Max Budget:
-                                    <input type="number" name="intrusion_detection.max_budget" value="{{ rendering_params.intrusion_detection.max_budget }}" onchange="syncParams()">
-                                </label>
                                 <label>Max Episode Steps:
                                     <input type="number" name="intrusion_detection.max_episode_steps" value="{{ rendering_params.intrusion_detection.max_episode_steps }}" onchange="syncParams()">
+                                </label>
+                                <label>Max Budget:
+                                    <input type="number" name="intrusion_detection.max_budget" value="{{ rendering_params.intrusion_detection.max_budget }}" onchange="syncParams()">
                                 </label>
                                 <label>Min Budget:
                                     <input type="number" name="intrusion_detection.min_budget" value="{{ rendering_params.intrusion_detection.min_budget }}" onchange="syncParams()">
