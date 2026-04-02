@@ -190,6 +190,34 @@ Execute the dash script and it will guide you through the rest! (use overrides i
 
 You can now control everthing from your dashboard, which will be available at http://localhost:7777 (you can change the ip and port in the config file, e.g. you can connect to a different machine via ssh tunneling).
 
+### Dashboard CLI client
+
+If you prefer a terminal workflow, you can use `dashboard/dash_cli.py` to send the same HTTP requests used by the web GUI (`dashboard/static/js/dash.js`), while keeping a persistent local configuration generated from Hydra.
+
+```sh
+# initialize local CLI config from Hydra default + optional profile override
+python3 dashboard/dash_cli.py --profile acid init-config
+
+# inspect and edit persisted config values
+python3 dashboard/dash_cli.py show-config
+python3 dashboard/dash_cli.py set intrusion_detection.agent DAI_A
+python3 dashboard/dash_cli.py set health.probe_metrics.RAM true
+
+# experiment lifecycle
+python3 dashboard/dash_cli.py refresh-containers
+python3 dashboard/dash_cli.py start-experiment
+python3 dashboard/dash_cli.py start-traffic
+python3 dashboard/dash_cli.py check-traffic
+python3 dashboard/dash_cli.py stop-traffic
+python3 dashboard/dash_cli.py stop-experiment
+
+# monitor the active W&B run metrics (reads WANDB_API_KEY from .env or env vars)
+python3 dashboard/dash_cli.py wandb-monitor
+python3 dashboard/dash_cli.py wandb-monitor --watch --interval-secs 15
+```
+
+By default, CLI state is saved in `~/.smartville/dash_cli_state.yaml`. You can change dashboard URL and state path with `--base-url` and `--state-file`.
+
 ### Smart Controller
 
 For ease-of-experimenting, our current release of the smart controller node does not run automatically at the container's boot, so youll need to issue from your host:
@@ -357,5 +385,3 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 6. Trademarks. This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.
 
 7. Disclaimer of Warranty. Unless required by applicable law or agreed to in writing, Licensor provides the Work (and each Contributor provides its Contributions) on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated
-
-
