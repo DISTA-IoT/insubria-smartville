@@ -9,6 +9,9 @@ wandb:
   wb_project_name:  'TIGER2.0'
 
 intrusion_detection:
+  max_budget: 25
+  min_budget: -10
+  max_episode_steps: 50
   boltzmann_sampling: false
   agent: DDQN
   epistemic_is_blocking: false

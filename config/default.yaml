@@ -224,9 +224,9 @@ intrusion_detection:
   online_evaluation_rounds: 10
   pretrained_inference: True
 
-  max_budget: 25
+  max_budget: 300
+  min_budget: -60
   max_episode_steps: 750
-  min_budget: -10
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   tiger_init_budget: 1
   cti_price_factor: 4

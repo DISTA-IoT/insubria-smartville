@@ -11,8 +11,8 @@ intrusion_detection:
   agent: DAI_P
   bad_classif_penalisation: hard
   use_transition_model: true
-  max_budget: 300
-  min_budget: -60
+
+
   epistemic_is_blocking: false
   hard_bad_classif_cost_factor: 8
   greedy_update: true
