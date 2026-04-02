@@ -214,6 +214,8 @@ python3 dashboard/dash_cli.py stop-experiment
 # monitor the active W&B run metrics (reads WANDB_API_KEY from .env or env vars)
 python3 dashboard/dash_cli.py wandb-monitor
 python3 dashboard/dash_cli.py wandb-monitor --watch --interval-secs 15
+# optional advanced networking knobs for slow/proxy networks:
+python3 dashboard/dash_cli.py wandb-monitor --wandb-timeout-secs 60 --wandb-retries 4 --wandb-endpoint https://api.wandb.ai/graphql
 
 # delayed runner:
 # waits 2h, initializes dista_tiger, forces DQN, starts experiment+traffic,

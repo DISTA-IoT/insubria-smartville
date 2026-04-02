@@ -186,8 +186,8 @@ def query_wandb_run(
     top_n_runs: int = 50,
     timeout_secs: int = 30,
     retries: int = 2,
+    endpoint: str = "https://api.wandb.ai/graphql",
 ) -> dict[str, Any] | None:
-    endpoint = "https://api.wandb.ai/graphql"
     query = """
     query ProjectRuns($entity: String!, $project: String!, $first: Int!) {
       project(name: $project, entityName: $entity) {
@@ -343,6 +343,14 @@ def main() -> int:
     p_wandb.add_argument("--interval-secs", type=int, default=10, help="Polling interval in seconds when --watch is set")
     p_wandb.add_argument("--wandb-timeout-secs", type=int, default=30, help="HTTP timeout in seconds per W&B poll")
     p_wandb.add_argument("--wandb-retries", type=int, default=2, help="Retry count for failed W&B polls")
+    p_wandb.add_argument(
+        "--wandb-endpoint",
+        default="https://api.wandb.ai/graphql",
+        help=(
+            "W&B GraphQL endpoint URL. Advanced use only; can include custom host/port, "
+            "e.g. https://api.wandb.ai/graphql"
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -429,6 +437,7 @@ def main() -> int:
                 top_n_runs=args.top_n_runs,
                 timeout_secs=args.wandb_timeout_secs,
                 retries=args.wandb_retries,
+                endpoint=args.wandb_endpoint,
             )
             if not run:
                 print(f"No W&B run found for entity/project/name: {entity}/{project}/{run_name}")
