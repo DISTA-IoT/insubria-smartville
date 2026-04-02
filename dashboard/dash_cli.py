@@ -237,7 +237,7 @@ def print_wandb_summary(run: dict[str, Any], max_metrics: int) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="SmartVille dashboard CLI client")
-    parser.add_argument("--base-url", default="http://127.0.0.1:7777", help="Dashboard HTTP base URL")
+    parser.add_argument("--base-url", default="http://localhost:7777", help="Dashboard HTTP base URL")
     parser.add_argument("--state-file", type=Path, default=DEFAULT_STATE_PATH, help="Persistent config state file")
     parser.add_argument("--config-dir", type=Path, default=DEFAULT_CONFIG_DIR, help="Hydra config directory")
     parser.add_argument("--profile", default="", help="config/overrides/<profile>.yaml to merge")
