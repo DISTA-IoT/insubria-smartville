@@ -68,7 +68,23 @@ class DashboardCLI:
             overrides.append(f"override={profile}")
 
         with initialize_config_dir(config_dir=str(self.config_dir), version_base="1.2"):
-            return compose(config_name="default", overrides=overrides)
+            cfg = compose(config_name="default", overrides=overrides)
+
+        # Keep parity with dashboard/dash.py behavior:
+        # if cfg.override is set, merge config/overrides/<override>.yaml manually
+        # with the override file taking precedence over the composed base config.
+        override_name = str(cfg.get("override", "") or "").strip()
+        if override_name:
+            override_file = self.config_dir / "overrides" / f"{override_name}.yaml"
+            if not override_file.exists():
+                raise FileNotFoundError(
+                    f"Configuration override not found: {override_file}. "
+                    "Expected config/overrides/<profile>.yaml"
+                )
+            file_override = OmegaConf.load(str(override_file))
+            cfg = OmegaConf.merge(cfg, file_override)
+
+        return cfg
 
     def build_frontend_config(self, cfg: DictConfig) -> dict[str, Any]:
         conf = OmegaConf.to_container(cfg, resolve=True)
