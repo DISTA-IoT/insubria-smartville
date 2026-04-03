@@ -200,6 +200,7 @@ switching_args:
 intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)  
   learning_rate: 1e-3
+  use_huber_cs: true # Use Huber loss for the classification loss.
   pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   save_models: false # overwritte models on disk.
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
@@ -215,8 +216,8 @@ intrusion_detection:
   batch_size: 16 # Batch size for the neural network.
   kernel_regression: True
   report_step_freq: 5 # Step Frequency of reporting the training step. 
-  plot_step_freq: 100 # Step Frequency of plotting hidden states, score vectors and conf matrices.
-  online_eval_step_freq: 250 # Step Frequency of online evaluation.
+  plot_step_freq: 150 # Step Frequency of plotting hidden states, score vectors and conf matrices.
+  online_eval_step_freq: 100 # Step Frequency of online evaluation.
   use_neural_AD: True
   use_neural_KR: True
   use_neural_CS: True
@@ -250,11 +251,11 @@ intrusion_detection:
   epistemic_is_blocking: true
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
-  use_per: false # Use Prioritized Experience Replay
-  n_step_rewards: 1
+  use_per: true # Use Prioritized Experience Replay
+  n_step_rewards: 3
   per_alpha: 0.6
   per_beta: 0.4
-  use_soft_update: false # Use soft update for the target model
+  use_soft_update: true # Use soft update for the target model
   tau: 0.005 # tau for soft update
   #
   # for the DAI Agent:
