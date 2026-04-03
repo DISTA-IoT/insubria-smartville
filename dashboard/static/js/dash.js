@@ -164,6 +164,7 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.surrogate_policy_consistency": "Use surrogate policy consistency for DAI agent.",
   "intrusion_detection.use_critic_to_act": "Use critic to act for DAI agent.",
   "intrusion_detection.greedy_update": "Use greedy update.",
+  "intrusion_detection.use_huber_cs": "Use Huber loss for closed-set classification.",
 };
 
 function getHelpTextByName(name) {

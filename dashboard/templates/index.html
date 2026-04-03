@@ -298,6 +298,9 @@
                                 <label>K-Shot Learning:
                                     <input type="number" name="intrusion_detection.k_shot"     value="{{ rendering_params.intrusion_detection.k_shot }}"     onchange="syncParams()">
                                 </label>
+                                <label>Use Huber Loss:
+                                    <input type="checkbox" name="intrusion_detection.use_huber_cs"   onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_huber_cs   else "" }}>
+                                </label>
                             </details>
 
                             <details>
