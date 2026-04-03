@@ -250,6 +250,12 @@ intrusion_detection:
   epistemic_is_blocking: true
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
+  use_per: false # Use Prioritized Experience Replay
+  n_step_rewards: 1
+  per_alpha: 0.6
+  per_beta: 0.4
+  use_soft_update: false # Use soft update for the target model
+  tau: 0.005 # tau for soft update
   #
   # for the DAI Agent:
   #

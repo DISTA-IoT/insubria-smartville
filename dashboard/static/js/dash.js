@@ -147,7 +147,23 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.boltzmann_sampling": "Use Boltzmann action sampling (DDQN uses epsilon-greedy unless enabled).",
   "intrusion_detection.update_target_freq": "Step interval to update the target model.",
   "intrusion_detection.actor_train_interval_steps": "Step interval to train actor/policy network.",
-  "intrusion_detection.agency": "Enable management agent; disable to focus on inference module pretraining."
+  "intrusion_detection.agency": "Enable management agent; disable to focus on inference module pretraining.",
+  "intrusion_detection.use_per": "Use Prioritized Experience Replay (PER).",
+  "intrusion_detection.per_alpha": "PER alpha parameter.",
+  "intrusion_detection.per_beta": "PER beta parameter.",
+  "intrusion_detection.use_soft_update": "Use soft update for the target model.",
+  "intrusion_detection.tau": "Tau parameter for soft update.",
+  "intrusion_detection.use_transition_model": "Use transition model for DAI agent.",
+  "intrusion_detection.variational_tmodel": "Use variational transition model for DAI agent.",
+  "intrusion_detection.epistemic_regularisation_factor": "Epistemic regularisation factor for DAI agent.",
+  "intrusion_detection.transitionnet_kl_divergence_regularisation_factor": "KL divergence regularisation factor for DAI agent.",
+  "intrusion_detection.variational_variational_transition_loss": "Use variational variational transition loss for DAI agent.",
+  "intrusion_detection.leakyrelu_alpha": "LeakyReLU alpha parameter for DAI agent.",
+  "intrusion_detection.entropy_reg_coefficient": "Entropy regularisation coefficient for DAI agent.",
+  "intrusion_detection.temperature_for_action_sampling": "Temperature for action sampling for DAI agent.",
+  "intrusion_detection.surrogate_policy_consistency": "Use surrogate policy consistency for DAI agent.",
+  "intrusion_detection.use_critic_to_act": "Use critic to act for DAI agent.",
+  "intrusion_detection.greedy_update": "Use greedy update.",
 };
 
 function getHelpTextByName(name) {
