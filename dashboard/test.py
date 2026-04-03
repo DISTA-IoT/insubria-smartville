@@ -30,7 +30,7 @@ def main() -> int:
     parser.add_argument(
         "--initial-delay-seconds",
         type=int,
-        default=2 * 60 * 60,
+        default=1 * 60 * 60,
         help="Delay before starting workflow (default: 2 hours).",
     )
     parser.add_argument(
@@ -55,6 +55,8 @@ def main() -> int:
     print(f"[wait] Sleeping {args.initial_delay_seconds} seconds before starting workflow...", flush=True)
     time.sleep(args.initial_delay_seconds)
 
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
     run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
     run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DQN"])
     run_step(dash_cli_path, ["start-experiment"])
@@ -64,6 +66,7 @@ def main() -> int:
     time.sleep(args.run_duration_seconds)
 
     run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
     print("[done] Workflow completed.", flush=True)
     return 0
 
