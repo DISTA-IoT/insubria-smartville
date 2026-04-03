@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Delayed experiment runner for dash_cli.py.
+"""Experiment runner for dash_cli.py.
 
 Workflow:
-1) Wait 2 hours.
-2) Initialize CLI state with dista_tiger profile.
-3) Set intrusion_detection.agent to DQN.
-4) Start experiment and traffic.
-5) Wait 3 hours.
-6) Stop experiment.
+1) Initialize CLI state with some profile.
+Loop:
+    2) Set some additional params
+    4) Start experiment and traffic.
+    5) Wait 2 hours.
+    6) Stop experiment and traffic.
 """
 
 from __future__ import annotations
@@ -26,18 +26,18 @@ def run_step(script: Path, args: list[str]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Delayed dista_tiger Dash CLI automation")
+    parser = argparse.ArgumentParser(description="Smartville Tiger Test automation")
     parser.add_argument(
         "--initial-delay-seconds",
         type=int,
-        default=1 * 60 * 60,
-        help="Delay before starting workflow (default: 2 hours).",
+        default=0,
+        help="Delay before starting workflow (default: 0 seconds).",
     )
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=3 * 60 * 60,
-        help="Duration between starting and stopping experiment (default: 3 hours).",
+        default=2 * 60 * 60,
+        help="Duration between starting and stopping experiment (default: 2 hours).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -45,6 +45,8 @@ def main() -> int:
         default=Path(__file__).resolve().parent / "dash_cli.py",
         help="Path to dash_cli.py.",
     )
+    
+
     args = parser.parse_args()
 
     dash_cli_path = args.dash_cli_path.resolve()
@@ -55,19 +57,84 @@ def main() -> int:
     print(f"[wait] Sleeping {args.initial_delay_seconds} seconds before starting workflow...", flush=True)
     time.sleep(args.initial_delay_seconds)
 
+    print("[step] Starting workflow...", flush=True)
+
+
+    print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
+    print("[done] Previous run stopped.", flush=True)
+
+
+    
+    print("[step] Grabing dista_tiger config...", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DQN"])
+
+    ################################# DEFAULT ################################################
+    print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
     print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
     time.sleep(args.run_duration_seconds)
 
+    print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
-    print("[done] Workflow completed.", flush=True)
+    ####################################################################################
+
+
+    ##################################### DQN AGENT ############################################
+    print("[step] Setting agent to DQN", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DQN"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
+    time.sleep(args.run_duration_seconds)
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+
+    ######################################DUELINGDQN AGENT ###########################################
+    print("[step] Setting agent to DuelingDQN...", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DuelingDQN"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
+    time.sleep(args.run_duration_seconds)
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+
+    ######################################DEFAULT WITH BOLTZMANN SAMPLING ###########################################
+    print("[step] Setting agent to DuelingDQN...", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.boltzmann_sampling", "True"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
+    time.sleep(args.run_duration_seconds)
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    print("[done] Workflows completed.", flush=True)
     return 0
 
 
