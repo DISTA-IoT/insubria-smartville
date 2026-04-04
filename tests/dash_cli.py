@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from dataclasses import dataclass
@@ -164,12 +165,36 @@ def delete_by_dotpath(data: dict[str, Any], dotpath: str) -> bool:
 
 def pretty_print_result(result: HttpResult) -> None:
     print(f"\n=== {result.method} {result.url} ===")
-    print(f"Status: {result.status}")
+    print(f"HTTP status: {result.status}")
     print("Response:")
     if isinstance(result.body, (dict, list)):
         print(json.dumps(result.body, indent=2, sort_keys=True))
-    else:
+        return
+
+    if isinstance(result.body, str):
+        lines = [line.strip() for line in result.body.splitlines() if line.strip()]
+        service_pattern = re.compile(r"^([^:]+):(\d{3})\s*-\s*(.+)$")
+        parsed: list[tuple[str, int, str]] = []
+        for line in lines:
+            match = service_pattern.match(line)
+            if not match:
+                parsed = []
+                break
+            host, status_code, message = match.groups()
+            parsed.append((host, int(status_code), message))
+
+        if parsed:
+            ok_count = sum(1 for _, status, _ in parsed if 200 <= status < 300)
+            print(f"Service results: {ok_count}/{len(parsed)} successful")
+            for host, status_code, message in parsed:
+                status_symbol = "✅" if 200 <= status_code < 300 else "❌"
+                print(f"  {status_symbol} {host:<14} [{status_code}] {message}")
+            return
+
         print(result.body)
+        return
+
+    print(result.body)
 
 
 def read_wandb_api_key(repo_root: Path) -> str | None:
