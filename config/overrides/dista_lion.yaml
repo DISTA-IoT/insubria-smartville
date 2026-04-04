@@ -1,0 +1,27 @@
+host_ip: 192.168.183.146
+disable_proxy: true
+node_features: false
+
+wandb:
+  wb_tracking: true
+  wb_run_name: 'hard_rewards'
+  wb_project_name:  'TIGER2.0'
+  
+intrusion_detection:
+  max_budget: 25
+  min_budget: -10
+  max_episode_steps: 50
+  boltzmann_sampling: false
+  agent: DDQN
+
+
+topology_creator:
+  contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
+  use_gns3_config_file: false
+  ADDITIONAL_ENV_VARS: |
+    https_proxy=http://proxy.uninsubria.it:3128
+    HTTPS_PROXY=http://proxy.uninsubria.it:3128
+    HTTP_PROXY=http://proxy.uninsubria.it:3128
+    http_proxy=http://proxy.uninsubria.it:3128
+    no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
+ 
