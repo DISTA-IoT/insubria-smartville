@@ -25,6 +25,24 @@ def run_step(script: Path, args: list[str]) -> None:
     subprocess.run(cmd, check=True)
 
 
+def sleep_with_spinner(seconds: int, label: str) -> None:
+    spinner = "|/-\\"
+    start = time.monotonic()
+    tick = 0
+    while True:
+        elapsed = time.monotonic() - start
+        if elapsed >= seconds:
+            break
+        remaining = max(0, int(seconds - elapsed))
+        frame = spinner[tick % len(spinner)]
+        sys.stdout.write(f"\r[wait] {label} {frame} ({remaining}s remaining)")
+        sys.stdout.flush()
+        tick += 1
+        time.sleep(0.1)
+    sys.stdout.write(f"\r[done] {label} complete.{' ' * 20}\n")
+    sys.stdout.flush()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Smartville Tiger Test automation")
     parser.add_argument(
@@ -54,8 +72,8 @@ def main() -> int:
         print(f"dash_cli.py not found: {dash_cli_path}")
         return 1
 
-    print(f"[wait] Sleeping {args.initial_delay_seconds} seconds before starting workflow...", flush=True)
-    time.sleep(args.initial_delay_seconds)
+    if args.initial_delay_seconds > 0:
+        sleep_with_spinner(args.initial_delay_seconds, f"[wait] Sleeping {args.initial_delay_seconds} seconds before starting workflow...")
 
     print("[step] Starting workflow...", flush=True)
 
@@ -74,8 +92,7 @@ def main() -> int:
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
-    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
-    time.sleep(args.run_duration_seconds)
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
     print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
@@ -92,8 +109,7 @@ def main() -> int:
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
-    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
-    time.sleep(args.run_duration_seconds)
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
     print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
@@ -110,8 +126,7 @@ def main() -> int:
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
-    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
-    time.sleep(args.run_duration_seconds)
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
     print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
@@ -128,8 +143,7 @@ def main() -> int:
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
-    print(f"[wait] Experiment running for {args.run_duration_seconds} seconds...", flush=True)
-    time.sleep(args.run_duration_seconds)
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
     print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])

@@ -73,7 +73,7 @@ def main() -> int:
         return 1
 
     if args.initial_delay_seconds > 0:
-        sleep_with_spinner(args.initial_delay_seconds, "Initial delay")
+        sleep_with_spinner(args.initial_delay_seconds, "[wait] Sleeping {args.initial_delay_seconds} seconds before starting workflow...")
 
     print("[step] Starting workflow...", flush=True)
 
@@ -87,9 +87,56 @@ def main() -> int:
     
     
 
-    ################################# DIFFICULT REWARDS ###########################################
-    print("[step] Loading dista_lion config...", flush=True)
+    ################################# DIFFICULT REWARDS #####################################
+    print("[step] Grabing dista_LION config...", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
+
+    print("[step] Setting wrong_inference_penalisation to easy...", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.wrong_inference_penalisation", "easy"])
+
+    print("[step] Setting run name...", flush=True)
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "HardRewards"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    ################################# DIFFICULT REWARDS (DuelingDDQN) #####################################
+    print("[step] Grabing dista_LION config...", flush=True)
+    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
+
+    print("[step] Setting wrong_inference_penalisation to easy...", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.wrong_inference_penalisation", "easy"])
+
+    print("[step] Setting agent to DuelingDDQN...", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DuelingDDQN"])
+
+    print("[step] Setting run name...", flush=True)
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "HardRewards (DuelingDDQN)"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    ################################# LION GAME ###########################################
+    print("[step] Grabing dista_LION config...", flush=True)
+    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
+
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION"])
@@ -98,7 +145,8 @@ def main() -> int:
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
-    sleep_with_spinner(args.run_duration_seconds, "Experiment running")
+    # sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
 
     print("[step] Stopping previous run...", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
