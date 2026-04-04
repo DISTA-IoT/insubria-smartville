@@ -13,8 +13,7 @@ intrusion_detection:
   max_episode_steps: 50
   boltzmann_sampling: false
   agent: DDQN
-  epistemic_is_blocking: false
-  greedy_update: true
+  wrong_inference_penalisation: easy
 
 
 topology_creator:
