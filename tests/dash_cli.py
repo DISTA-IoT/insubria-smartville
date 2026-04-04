@@ -195,6 +195,8 @@ def pretty_print_result(result: HttpResult) -> None:
         return
 
     print(result.body)
+    print("="*80)
+    print("\n")
 
 
 def read_wandb_api_key(repo_root: Path) -> str | None:

@@ -21,7 +21,7 @@ from pathlib import Path
 
 def run_step(script: Path, args: list[str]) -> None:
     cmd = [sys.executable, str(script), *args]
-    print(f"[step] Running: {' '.join(cmd)}", flush=True)
+    print(f"[step] Running: dash_cli.py {' '.join(cmd[2:])}", flush=True)
     subprocess.run(cmd, check=True)
 
 
@@ -145,7 +145,7 @@ def main() -> int:
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
-    # sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
 
     print("[step] Stopping previous run...", flush=True)
@@ -154,7 +154,30 @@ def main() -> int:
     ####################################################################################
 
 
+    ################################# LION GAME with coarse thresholds for budget (as in ACID paper) ###########################
+    print("[step] Grabing dista_LION config...", flush=True)
+    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
 
+
+    print("[step] Setting run name...", flush=True)
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-coarse-budget"])
+
+
+    print("Setting new budget thresholds:")
+    run_step(dash_cli_path, ["set", "intrusion_detection.max_budget", "300"])
+    run_step(dash_cli_path, ["set", "intrusion_detection.min_budget", "-60"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
 
 
 

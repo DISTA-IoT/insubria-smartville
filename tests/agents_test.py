@@ -21,7 +21,7 @@ from pathlib import Path
 
 def run_step(script: Path, args: list[str]) -> None:
     cmd = [sys.executable, str(script), *args]
-    print(f"[step] Running: {' '.join(cmd)}", flush=True)
+    print(f"[step] Running: dash_cli.py {' '.join(cmd[2:])}", flush=True)
     subprocess.run(cmd, check=True)
 
 
