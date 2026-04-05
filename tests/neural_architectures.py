@@ -54,8 +54,8 @@ def main() -> int:
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=90 * 60,
-        help="Duration between starting and stopping experiment (default: 90 mins).",
+        default=30*60,
+        help="Duration between starting and stopping experiment (default: 30 mins).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -90,6 +90,8 @@ def main() -> int:
 
     print("[step] Deactivating node features..." , flush=True)
     run_step(dash_cli_path, ["set", "node_features", "false"])
+
+    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
 
     ################################# Optim modules ################################################
 
