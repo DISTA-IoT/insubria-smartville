@@ -37,14 +37,10 @@ class RecurrentModel(nn.Module):
         self.gru = nn.GRU(input_size, hidden_size, dropout=dropout, num_layers=int(recurrent_layers), batch_first=True)
 
     def forward(self, x):
-        # Initialize hidden state
-        h0 = torch.zeros(self.gru.num_layers, x.size(0), self.hidden_size, device=x.device)
         
-        # Forward pass through GRU layer
-        out, _ = self.gru(x, h0)
-        
+        out, _ = self.gru(x, None)
         return F.relu(out[:, -1, :])
-    
+        
 
 class ConfidenceDecoder(nn.Module):
 
@@ -60,11 +56,15 @@ class ConfidenceDecoder(nn.Module):
             self,
             scores):
 
-        scores = (1 - scores.unsqueeze(-1)).min(1)[0]
+        # scores = (1 - scores.unsqueeze(-1)).min(1)[0]
+        # unknown_indicators = torch.sigmoid(scores)
+        # return unknown_indicators
 
-        unknown_indicators = torch.sigmoid(scores)
-        return unknown_indicators
-    
+        # (1 - scores.unsqueeze(-1)).min(dim=1) == 1 - scores.max(dim=1).
+        # The max path avoids an extra unsqueeze and the min traversal.
+        min_scores = 1.0 - scores.max(dim=1, keepdim=True)[0]  # (N, 1)
+        return torch.sigmoid(min_scores)
+
 
 class KernelRegressionLoss(nn.Module):
 
@@ -79,19 +79,12 @@ class KernelRegressionLoss(nn.Module):
         self.device = device
 
     def forward(self, baseline_kernel, predicted_kernel):
-        # REPULSIVE force
-        repulsive_CE_term = -(1 - baseline_kernel) * torch.log(1-predicted_kernel + 1e-10)
-        repulsive_CE_term = repulsive_CE_term.sum(dim=1)
-        repulsive_CE_term = repulsive_CE_term.mean()
+        repulsive = -(1.0 - baseline_kernel) * torch.log(1.0 - predicted_kernel + 1e-10)
+        attractive = -(baseline_kernel * torch.log(predicted_kernel + 1e-10))
+        # preserve the original reduction: sum rows, then mean over rows
+        return (self.r_w * repulsive + self.a_w * attractive).sum(dim=1).mean()
 
-        # The following acts as an ATTRACTIVE force for the embedding learning:
-        attractive_CE_term = -(baseline_kernel * torch.log(predicted_kernel + 1e-10))
-        attractive_CE_term = attractive_CE_term.sum(dim=1)
-        attractive_CE_term = attractive_CE_term.mean()
 
-        return (self.r_w * repulsive_CE_term) + (self.a_w * attractive_CE_term)
-    
-    
 class SimmilarityNet(nn.Module):
     def __init__(
             self,
@@ -110,50 +103,35 @@ class SimmilarityNet(nn.Module):
         return symm
 
 
-class DistKernelRegressor(nn.Module):
-
-    def __init__(
-            self,
-            kwargs):
-
-        super(DistKernelRegressor, self).__init__()
-
-        self.device = kwargs['device']
-        self.w = nn.Parameter(torch.tensor(1.0))
-        self.b = nn.Parameter(torch.tensor(-0.5))
-        self.similarity_network = SimmilarityNet(hidden_size=kwargs['in_features'])
-
-    def forward(
-            self,
-            hiddens):
-        
-        h_pivot = hiddens.unsqueeze(1)
-        h_interleave = hiddens.unsqueeze(0)
-        
-        energies = self.similarity_network(h_pivot, h_interleave)
-
-        kernel = torch.sigmoid(energies).squeeze(-1)
-
-        return hiddens, kernel
-
-
 class DotProdKernelRegressor(nn.Module):
-
-    def __init__(
-            self,
-            kwargs):
-
+    """
+    Improved Dot-Product Kernel Regressor with projections and scaling for convergence.
+    """
+    def __init__(self, kwargs):
         super(DotProdKernelRegressor, self).__init__()
-
-        self.act = nn.Sigmoid()
-        self.device = kwargs['device']
-
-    def forward(
-            self,
-            hiddens):
+        self.device = kwargs.get('device', 'cpu')
+        hidden_dim = int(kwargs.get('in_features', 128))
         
-        kernel = self.act(hiddens @ hiddens.T)
+        # Learnable projections to improve representational capacity and convergence
+        self.query = nn.Linear(hidden_dim, hidden_dim)
+        self.key = nn.Linear(hidden_dim, hidden_dim)
+        self.ln = nn.LayerNorm(hidden_dim)
+        self.scale = hidden_dim ** 0.5
+        
+        # Learnable temperature for sigmoid scaling
+        self.temperature = nn.Parameter(torch.tensor(1.0))
 
+    def forward(self, hiddens):
+        h = self.ln(hiddens)
+        q = self.query(h)
+        k = self.key(h)
+        
+        # Scaled dot product similarity: [N, N]
+        scores = (q @ k.T) / self.scale
+        
+        # Sigmoid to normalize kernel values to [0, 1]
+        kernel = torch.sigmoid(scores * self.temperature)
+        
         return hiddens, kernel
 
 
@@ -277,7 +255,7 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
         self.third_stream_normalizer = nn.BatchNorm1d(third_stream_input_size)
         self.third_stream_rnn = RecurrentModel(third_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DotProdKernelRegressor(
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),
@@ -328,7 +306,7 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
         self.flow_rnn = RecurrentModel(flow_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
         self.second_stream_normalizer = nn.BatchNorm1d(second_stream_input_size)
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DotProdKernelRegressor(
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),
@@ -357,9 +335,9 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
  
 
 class OneStreamMulticlassFlowClassifier(nn.Module):
-    def __init__(self, device='cpu', kwargs=None):
+    def __init__(self, kwargs=None):
         super(OneStreamMulticlassFlowClassifier, self).__init__()
-        self.device=device
+        self.device=kwargs['device']
         rnn_input_dim = input_size = int(kwargs['first_stream_input_size'])
         self.normalizer = nn.BatchNorm1d(input_size)
         hidden_size = int(kwargs['hidden_size'])
@@ -369,7 +347,7 @@ class OneStreamMulticlassFlowClassifier(nn.Module):
             rnn_input_dim = hidden_size
             self.encoder = MLP(input_size, hidden_size, dropout_prob)
         self.rnn = RecurrentModel(rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DotProdKernelRegressor(
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),
@@ -387,4 +365,3 @@ class OneStreamMulticlassFlowClassifier(nn.Module):
         hiddens, predicted_kernel = self.kernel_regressor(hiddens)
         logits  = self.classifier(hiddens, labels, curr_known_attack_count, query_mask)
         return logits, hiddens, predicted_kernel
-

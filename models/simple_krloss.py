@@ -37,14 +37,10 @@ class RecurrentModel(nn.Module):
         self.gru = nn.GRU(input_size, hidden_size, dropout=dropout, num_layers=int(recurrent_layers), batch_first=True)
 
     def forward(self, x):
-        # Initialize hidden state
-        h0 = torch.zeros(self.gru.num_layers, x.size(0), self.hidden_size, device=x.device)
         
-        # Forward pass through GRU layer
-        out, _ = self.gru(x, h0)
-        
+        out, _ = self.gru(x, None)
         return F.relu(out[:, -1, :])
-    
+        
 
 class ConfidenceDecoder(nn.Module):
 
@@ -60,38 +56,34 @@ class ConfidenceDecoder(nn.Module):
             self,
             scores):
 
-        scores = (1 - scores.unsqueeze(-1)).min(1)[0]
+        # scores = (1 - scores.unsqueeze(-1)).min(1)[0]
+        # unknown_indicators = torch.sigmoid(scores)
+        # return unknown_indicators
 
-        unknown_indicators = torch.sigmoid(scores)
-        return unknown_indicators
-    
+        # (1 - scores.unsqueeze(-1)).min(dim=1) == 1 - scores.max(dim=1).
+        # The max path avoids an extra unsqueeze and the min traversal.
+        min_scores = 1.0 - scores.max(dim=1, keepdim=True)[0]  # (N, 1)
+        return torch.sigmoid(min_scores)
+
 
 class KernelRegressionLoss(nn.Module):
-
-    def __init__(
-            self,
-            repulsive_weigth: int = 1, 
-            attractive_weigth: int = 1,
-            device: str = "cpu"):
+    def __init__(self, repulsive_weigth: int = 1, attractive_weigth: int = 1, device: str = "cpu"):
         super(KernelRegressionLoss, self).__init__()
         self.r_w = repulsive_weigth
         self.a_w = attractive_weigth
         self.device = device
 
     def forward(self, baseline_kernel, predicted_kernel):
-        # REPULSIVE force
-        repulsive_CE_term = -(1 - baseline_kernel) * torch.log(1-predicted_kernel + 1e-10)
-        repulsive_CE_term = repulsive_CE_term.sum(dim=1)
-        repulsive_CE_term = repulsive_CE_term.mean()
-
-        # The following acts as an ATTRACTIVE force for the embedding learning:
-        attractive_CE_term = -(baseline_kernel * torch.log(predicted_kernel + 1e-10))
-        attractive_CE_term = attractive_CE_term.sum(dim=1)
-        attractive_CE_term = attractive_CE_term.mean()
-
-        return (self.r_w * repulsive_CE_term) + (self.a_w * attractive_CE_term)
+        """
+        Optimized Kernel Regression Loss using weighted Binary Cross Entropy.
+        Stable and efficient on CPU.
+        """
+        pred = predicted_kernel.clamp(min=1e-7, max=1-1e-7)
+        # Weight mask: attractive for positive pairs, repulsive for negative pairs
+        weights = baseline_kernel * self.a_w + (1 - baseline_kernel) * self.r_w
+        return F.binary_cross_entropy(pred, baseline_kernel, weight=weights, reduction='mean')
     
-    
+
 class SimmilarityNet(nn.Module):
     def __init__(
             self,
@@ -111,49 +103,41 @@ class SimmilarityNet(nn.Module):
 
 
 class DistKernelRegressor(nn.Module):
-
-    def __init__(
-            self,
-            kwargs):
-
+    """
+    Optimized Distance-based Kernel Regressor.
+    Computes only the upper triangle of the similarity matrix to save ~50% CPU.
+    """
+    def __init__(self, kwargs):
         super(DistKernelRegressor, self).__init__()
-
-        self.device = kwargs['device']
-        self.w = nn.Parameter(torch.tensor(1.0))
-        self.b = nn.Parameter(torch.tensor(-0.5))
-        self.similarity_network = SimmilarityNet(hidden_size=kwargs['in_features'])
-
-    def forward(
-            self,
-            hiddens):
+        self.device = kwargs.get('device', 'cpu')
+        in_features = int(kwargs.get('in_features', 128))
         
-        h_pivot = hiddens.unsqueeze(1)
-        h_interleave = hiddens.unsqueeze(0)
+        sim_net = SimmilarityNet(hidden_size=in_features)
         
-        energies = self.similarity_network(h_pivot, h_interleave)
+        self.similarity_network = sim_net
 
-        kernel = torch.sigmoid(energies).squeeze(-1)
+    def forward(self, hiddens):
+        n = hiddens.shape[0]
+        if n <= 1:
+            return hiddens, torch.ones((n, n), device=hiddens.device)
 
-        return hiddens, kernel
-
-
-class DotProdKernelRegressor(nn.Module):
-
-    def __init__(
-            self,
-            kwargs):
-
-        super(DotProdKernelRegressor, self).__init__()
-
-        self.act = nn.Sigmoid()
-        self.device = kwargs['device']
-
-    def forward(
-            self,
-            hiddens):
+        # 1. Get indices for the upper triangle (i < j)
+        indices = torch.triu_indices(n, n, offset=1, device=hiddens.device)
         
-        kernel = self.act(hiddens @ hiddens.T)
-
+        # 2. Extract unique pairs
+        h1 = hiddens[indices[0]]
+        h2 = hiddens[indices[1]]
+        
+        # 3. Compute similarity for all unique pairs in one batch
+        upper_tri_energies = self.similarity_network(h1, h2)
+        upper_tri_sim = torch.sigmoid(upper_tri_energies).squeeze(-1)
+        
+        # 4. Fill symmetric matrix
+        # Self-similarity (diagonal) is 1.0
+        kernel = torch.eye(n, device=hiddens.device)
+        kernel[indices[0], indices[1]] = upper_tri_sim
+        kernel[indices[1], indices[0]] = upper_tri_sim
+        
         return hiddens, kernel
 
 
@@ -277,7 +261,7 @@ class ThreeStreamMulticlassFlowClassifier(nn.Module):
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
         self.third_stream_normalizer = nn.BatchNorm1d(third_stream_input_size)
         self.third_stream_rnn = RecurrentModel(third_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DistKernelRegressor(
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),
@@ -328,7 +312,7 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
         self.flow_rnn = RecurrentModel(flow_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
         self.second_stream_normalizer = nn.BatchNorm1d(second_stream_input_size)
         self.second_stream_rnn = RecurrentModel(second_stream_rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DistKernelRegressor(
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),
@@ -357,9 +341,9 @@ class TwoStreamMulticlassFlowClassifier(nn.Module):
  
 
 class OneStreamMulticlassFlowClassifier(nn.Module):
-    def __init__(self, device='cpu', kwargs=None):
+    def __init__(self, kwargs=None):
         super(OneStreamMulticlassFlowClassifier, self).__init__()
-        self.device=device
+        self.device=kwargs['device']
         rnn_input_dim = input_size = int(kwargs['first_stream_input_size'])
         self.normalizer = nn.BatchNorm1d(input_size)
         hidden_size = int(kwargs['hidden_size'])
@@ -369,7 +353,7 @@ class OneStreamMulticlassFlowClassifier(nn.Module):
             rnn_input_dim = hidden_size
             self.encoder = MLP(input_size, hidden_size, dropout_prob)
         self.rnn = RecurrentModel(rnn_input_dim, hidden_size, dropout_prob, int(kwargs['recurrent_layers']), device=self.device)
-        self.kernel_regressor = DistKernelRegressor( # Try also DotProdKernelRegressor
+        self.kernel_regressor = DistKernelRegressor(
             {'device': self.device,
             'dropout': dropout_prob,
             'n_heads': int(kwargs['kernel_regressor_heads']),
@@ -387,4 +371,3 @@ class OneStreamMulticlassFlowClassifier(nn.Module):
         hiddens, predicted_kernel = self.kernel_regressor(hiddens)
         logits  = self.classifier(hiddens, labels, curr_known_attack_count, query_mask)
         return logits, hiddens, predicted_kernel
-
