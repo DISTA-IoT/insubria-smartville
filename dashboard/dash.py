@@ -120,15 +120,31 @@ def append_ips_to_no_proxy():
     print(f"Current no_proxy value: {current_no_proxy}")
 
 
-def get_models_source():
-    # Read the model class from a Python file
+def get_models_source(models_path: str, logger) -> str:
+    """
+    Read the neural model class definitions from a Python file.
+    
+    Args:
+        models_path: Path to the models file, relative to the project's main directory.
+        logger: Logger instance for error reporting.
+    
+    Returns:
+        Source code string of the models file.
+    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     main_dir = os.path.dirname(current_dir)
-    code_dir = os.path.join(main_dir, 'models')
-    with open(code_dir+'/models.py', 'r') as f:
-        source_code = f.read()
+    abs_models_path = os.path.join(main_dir, models_path)
     
-    return source_code
+    try:
+        with open(abs_models_path, 'r') as f:
+            logger.info(f"\033[95m 🧠 Using inference neural architectues from file: {abs_models_path}\033[0m")
+            return f.read()
+    except FileNotFoundError:
+        logger.error(f"Models file not found at resolved path: {abs_models_path}")
+        raise
+    except Exception as e:
+        logger.error(f"Error reading models file at {abs_models_path}: {e}")
+        raise
 
 def kill_socat_grafana():
     global grafana_socat_proc
@@ -777,7 +793,7 @@ def main(cfg: DictConfig) -> None:
         controller_init_args['ips_containers'] = internal_ips_containers
         controller_init_args['traffic_dict'] = traffic_dict
         controller_init_args['monitor_ip'] = containers_external_ips['monitor']
-        controller_init_args['models'] = get_models_source()
+        controller_init_args['models'] = get_models_source(cfg.inference_models_path, app.logger)
 
 
     refresh_containers() 
