@@ -54,8 +54,8 @@ def main() -> int:
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=30*60,
-        help="Duration between starting and stopping experiment (default: 30 mins).",
+        default=2 * 60 * 60,
+        help="Duration between starting and stopping experiment (default: 2 hours).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -86,43 +86,16 @@ def main() -> int:
 
     
     print("[step] Grabing dista_tiger config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_pretraining", "init-config"])
+    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
 
-    print("[step] Deactivating node features..." , flush=True)
-    run_step(dash_cli_path, ["set", "node_features", "false"])
 
-    print("[step] Setting seed...", flush=True)
-    run_step(dash_cli_path, ["set", "intrusion_detection.seed", "444"])
+    ################################# ep len 70 ################################################
 
-    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
-
-    ################################# Optim modules ################################################
-
-    print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/optim.py"])
+    print("[step] Setting episode len to 70", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.max_episode_steps", "70"])
 
     print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "optim"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-    ################################# DotProd KR ################################################
-    
-    print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr.py"])
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "dotprod_kr"])
-
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_70"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -136,13 +109,13 @@ def main() -> int:
     ####################################################################################
 
 
-    ################################# Simple KR Loss ################################################
+    ################################# ep len 60 ################################################
 
-    print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/simple_krloss.py"])
+    print("[step] Setting episode len to 60", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.max_episode_steps", "60"])
 
     print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "simple_krloss"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_60"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -155,13 +128,12 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
 
-    ################################# Dotprod KR and Simple KR Loss ################################################
-    
-    print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr_simple_krloss.py"])
+    ################################# ep len 40 ################################################
+    print("[step] Setting episode len to 40", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.max_episode_steps", "40"])
 
     print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "dotprod and simple krloss"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_40"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -173,8 +145,28 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
+
+    ################################# ep len 30 ################################################
+    print("[step] Setting episode len to 30", flush=True)
+    run_step(dash_cli_path, ["set", "intrusion_detection.max_episode_steps", "30"])
+
+    print("[step] Setting run name...", flush=True)
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_30"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
 
    
+
     print("[done] Workflows completed.", flush=True)
     return 0
 
