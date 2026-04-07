@@ -165,6 +165,10 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.use_critic_to_act": "Use critic to act for DAI agent.",
   "intrusion_detection.greedy_update": "Use greedy update.",
   "intrusion_detection.use_huber_cs": "Use Huber loss for closed-set classification.",
+  "neural_modules.custom_inference_model_path": "If false, the names of inference modules (pretrained and to-save) are automatically generated.",
+  "neural_modules.custom_classifier_path": "If custom_inference_model_path is true, this is the filename to the classifier module (without extension).",
+  "neural_modules.custom_confidence_decoder_path": "If custom_inference_model_path is true, this is the filename to the confidence decoder module (without extension).",
+  "intrusion_detection.confidence_strategy": "Strategy to compute inference module confidence scores.",
 };
 
 function getHelpTextByName(name) {

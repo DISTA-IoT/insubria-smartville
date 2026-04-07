@@ -301,6 +301,15 @@
                                 <label>Use Huber Loss:
                                     <input type="checkbox" name="intrusion_detection.use_huber_cs"   onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_huber_cs   else "" }}>
                                 </label>
+                                <label>Custom files for models:
+                                    <input type="checkbox" name="intrusion_detection.custom_inference_model_path"   onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.custom_inference_model_path   else "" }}>
+                                </label>
+                                <label>Custom filename for classifier model:    
+                                    <input type="text" name="intrusion_detection.custom_classifier_path" value="{{ rendering_params.intrusion_detection.custom_classifier_path }}" onchange="syncParams()">
+                                </label>
+                                <label> Custom filename for confidence decoder model:
+                                    <input type="text" name="intrusion_detection.custom_confidence_decoder_path" value="{{ rendering_params.intrusion_detection.custom_confidence_decoder_path }}" onchange="syncParams()">
+                                </label>
                             </details>
 
                             <details>
@@ -340,6 +349,15 @@
                                         <option value="DAI_SA"{{ "selected" if rendering_params.intrusion_detection.agent == "DAI_SA"else "" }}>DAI_SA</option>
                                         <option value="DAI_F" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_F" else "" }}>DAI_F</option>
                                     </select>
+                                </label>
+                                <label>Confidence Approx. Strategy:
+                                    <select name="intrusion_detection.confidence_strategy" onchange="syncParams()">
+                                        <option value="baseline" {{ "selected" if rendering_params.intrusion_detection.confidence_strategy == "baseline" else "" }}>Baseline</option>
+                                        <option value="entropy"  {{ "selected" if rendering_params.intrusion_detection.confidence_strategy == "entropy"  else "" }}>Entropy</option>
+                                        <option value="energy"   {{ "selected" if rendering_params.intrusion_detection.confidence_strategy == "energy"   else "" }}>Energy</option>
+                                        <option value="margin"   {{ "selected" if rendering_params.intrusion_detection.confidence_strategy == "margin"   else "" }}>Margin</option>
+                                    </select>
+
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.use_transition_model"  onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_transition_model  else "" }}> Use Transition Model</label>
                                 <label><input type="checkbox" name="intrusion_detection.variational_tmodel"   onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.variational_tmodel   else "" }}> Variational Transition Model</label>

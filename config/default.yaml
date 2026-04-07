@@ -187,7 +187,9 @@ neural_modules:
   dropout: 0.2 # Dropout rate for the neural network.
   use_encoder: false
   recurrent_layers: 1
-
+  custom_inference_model_path: false
+  custom_classifier_path: emptystring
+  custom_confidence_decoder_path: emptystring
 
 switching_args:
   flow_idle_timeout:  10 # Number of no-activity seconds for a flow that triggers the switch to delete the corresponding entry in the flow table. 
