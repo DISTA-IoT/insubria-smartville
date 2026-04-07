@@ -227,6 +227,8 @@ intrusion_detection:
   online_evaluation: false
   online_evaluation_rounds: 10
   pretrained_inference: True
+  greedy_cti: False
+  cti_period: -1
 
   max_budget: 300
   min_budget: -60

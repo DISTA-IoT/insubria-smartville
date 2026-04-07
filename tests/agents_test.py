@@ -48,13 +48,13 @@ def main() -> int:
     parser.add_argument(
         "--initial-delay-seconds",
         type=int,
-        default=5,
+        default=3,
         help="Delay before starting workflow (default: 0 seconds).",
     )
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=2 * 60 * 60,
+        default=2*60*60,
         help="Duration between starting and stopping experiment (default: 2 hours).",
     )
     parser.add_argument(
@@ -87,7 +87,80 @@ def main() -> int:
     
     print("[step] Grabing dista_tiger config...", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+
+    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+
+
     ################################# DEFAULT ################################################
+
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DDQN (Default)"])
+
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    ################################# GREEDY ################################################
+
+    run_step(dash_cli_path, ["set", "intrusion_detection.greedy_cti", "true"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "Greedy-CTI (DDQN)"])
+
+
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    ################################# PERIODIC ################################################
+
+    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+    run_step(dash_cli_path, ["set", "intrusion_detection.cti_period", "10"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "Periodic CTI (DDQN)"])
+
+
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    
+
+    ##################################### PPO AGENT ############################################
+    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "PPO"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "PPO"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping previous run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ####################################################################################
+
+    ##################################### A2C AGENT ############################################
+    
+    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "A2C"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "A2C"])
+
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
@@ -134,10 +207,10 @@ def main() -> int:
     ####################################################################################
 
 
-    ######################################DEFAULT WITH BOLTZMANN SAMPLING ###########################################
+    ######################################DUELINGDDQN AGENT ###########################################
     print("[step] Setting agent to DuelingDQN...", flush=True)
-    run_step(dash_cli_path, ["set", "intrusion_detection.boltzmann_sampling", "True"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "Boltzmann"])
+    run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DuelingDDQN"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DuelingDDQN"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])

@@ -344,6 +344,8 @@
                                         <option value="DDQN"  {{ "selected" if rendering_params.intrusion_detection.agent == "DDQN"  else "" }}>DDQN</option>
                                         <option value="DuelingDQN"{{ "selected" if rendering_params.intrusion_detection.agent == "DuelingDQN"else "" }}>DuelingDQN</option>
                                         <option value="DuelingDDQN" {{ "selected" if rendering_params.intrusion_detection.agent == "DuelingDDQN" else "" }}>DuelingDDQN</option>
+                                        <option value="PPO"   {{ "selected" if rendering_params.intrusion_detection.agent == "PPO"   else "" }}>PPO</option>
+                                        <option value="A2C"   {{ "selected" if rendering_params.intrusion_detection.agent == "A2C"   else "" }}>A2C</option>
                                         <option value="DAI_P" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_P" else "" }}>DAI_P</option>
                                         <option value="DAI_A" {{ "selected" if rendering_params.intrusion_detection.agent == "DAI_A" else "" }}>DAI_A</option>
                                         <option value="DAI_SA"{{ "selected" if rendering_params.intrusion_detection.agent == "DAI_SA"else "" }}>DAI_SA</option>
@@ -358,6 +360,12 @@
                                         <option value="margin"   {{ "selected" if rendering_params.intrusion_detection.confidence_strategy == "margin"   else "" }}>Margin</option>
                                     </select>
 
+                                </label>
+                                <label>Greedy CTI
+                                    <input type="checkbox" name="intrusion_detection.greedy_cti" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.greedy_cti else "" }}> 
+                                </label>
+                                <label>CTI Period
+                                    <input type="number" name="intrusion_detection.cti_period" value="{{ rendering_params.intrusion_detection.cti_period }}" onchange="syncParams()"> 
                                 </label>
                                 <label><input type="checkbox" name="intrusion_detection.use_transition_model"  onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_transition_model  else "" }}> Use Transition Model</label>
                                 <label><input type="checkbox" name="intrusion_detection.variational_tmodel"   onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.variational_tmodel   else "" }}> Variational Transition Model</label>
