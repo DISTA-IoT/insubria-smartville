@@ -1,0 +1,47 @@
+host_ip: 192.168.183.146
+disable_proxy: true
+node_features: false
+inference_models_path: "./models/optim.py"
+
+wandb:
+  wb_tracking: true
+  wb_run_name: 'rewardscale_100'
+  wb_project_name:  'TIGER2.0'
+  
+intrusion_detection:
+  max_budget: 2500
+  min_budget: -1000
+  max_episode_steps: 50
+  boltzmann_sampling: false
+  agent: DDQN
+  wrong_inference_penalisation: easy
+
+neural_modules:
+  custom_inference_model_path: true
+  custom_classifier_path: multiclass_flow_packet_classifier_pretrained_h200_optim.pt
+  custom_confidence_decoder_path: flow_packet_confidence_decoder_pretrained_h200_optim.pt
+
+topology_creator:
+  contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
+  use_gns3_config_file: false
+  ADDITIONAL_ENV_VARS: |
+    https_proxy=http://proxy.uninsubria.it:3128
+    HTTPS_PROXY=http://proxy.uninsubria.it:3128
+    HTTP_PROXY=http://proxy.uninsubria.it:3128
+    http_proxy=http://proxy.uninsubria.it:3128
+    no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
+    
+rewards:
+    - echo: 2
+    - hakai: -10
+    - mirai: -20
+    - hajime: -13
+    - doorlock: 5
+    - gafgyt: -25
+    - muhstik: -36
+    - h_scan: -17
+    - okiru: -48
+    - generic_ddos: -29
+    - torii: -21
+    - cc_heartbeat: -31
+    - hue: 5
