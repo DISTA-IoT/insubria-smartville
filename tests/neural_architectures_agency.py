@@ -21,7 +21,7 @@ from pathlib import Path
 
 def run_step(script: Path, args: list[str]) -> None:
     cmd = [sys.executable, str(script), *args]
-    print(f"[step] Running: dash_cli.py {' '.join(cmd[2:])}", flush=True)
+    print(f"\n[step] Running: dash_cli.py {' '.join(cmd[2:])}\n", flush=True)
     subprocess.run(cmd, check=True)
 
 
@@ -48,14 +48,14 @@ def main() -> int:
     parser.add_argument(
         "--initial-delay-seconds",
         type=int,
-        default=5,
+        default=3,
         help="Delay before starting workflow (default: 0 seconds).",
     )
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=2*60*60,
-        help="Duration between starting and stopping experiment (default: 2 hours).",
+        default=60*60,
+        help="Duration between starting and stopping experiment (default: 1 hour).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -75,91 +75,90 @@ def main() -> int:
     if args.initial_delay_seconds > 0:
         sleep_with_spinner(args.initial_delay_seconds, f"[wait] Sleeping {args.initial_delay_seconds} seconds before starting workflow...")
 
-    print("[step] Starting workflow...", flush=True)
+    print("\n[step] Starting workflow...\n", flush=True)
 
 
-    print("[step] Stopping previous run...", flush=True)
+    print("\n[step] Stopping previous run...\n", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
-    print("[done] Previous run stopped.", flush=True)
-
-
     
-    print("[step] Grabing dista_tiger config...", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
 
-    print("[step] Enabling custom inference model...", flush=True)
+    print("\n[step] Enabling custom inference model...\n", flush=True)
     run_step(dash_cli_path, ["set", "neural_modules.custom_inference_model_path", "true"])
 
     # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
 
     ################################# simple krloss ################################################
 
-    print("[step] Setting inference models path...", flush=True)
+    print("[step] Setting inference models path...\n", flush=True)
     run_step(dash_cli_path, ["set", "inference_models_path", "./models/simple_krloss.py"])
 
-    print("[step] Setting modules path...", flush=True)
+    print("[step] Setting modules path...\n", flush=True)
     run_step(dash_cli_path, ["set", "neural_modules.custom_classifier_path", "multiclass_flow_packet_classifier_pretrained_h200_simple_krloss.pt"])
     run_step(dash_cli_path, ["set", "neural_modules.custom_confidence_decoder_path", "flow_packet_confidence_decoder_pretrained_h200simple_krloss.pt"])
 
-    print("[step] Setting run name...", flush=True)
+    print("[step] Setting run name...\n", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "agency_simple_krloss"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "asap_archs"])
 
-    print("[step] Starting run...", flush=True)
+    print("[step] Starting run...\n", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
     sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    print("[step] Stopping run...", flush=True)
+    print("[step] Stopping run...\n", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
 
     ################################# optim ################################################
 
-    print("[step] Setting inference models path...", flush=True)
+    print("[step] Setting inference models path...\n", flush=True)
     run_step(dash_cli_path, ["set", "inference_models_path", "./models/optim.py"])
 
 
-    print("[step] Setting modules path...", flush=True)
+    print("[step] Setting modules path...\n", flush=True)
     run_step(dash_cli_path, ["set", "neural_modules.custom_classifier_path", "multiclass_flow_packet_classifier_pretrained_h200_optim.pt"])
     run_step(dash_cli_path, ["set", "neural_modules.custom_confidence_decoder_path", "flow_packet_confidence_decoder_pretrained_h200_optim.pt"])
 
-    print("[step] Setting run name...", flush=True)
+    print("[step] Setting run name...\n", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "agency_optim"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "asap_archs"])
 
-    print("[step] Starting run...", flush=True)
+    print("[step] Starting run...\n", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
     sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    print("[step] Stopping run...", flush=True)
+    print("[step] Stopping run...\n", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
 
     ################################# dotprod KR ################################################
 
-    print("[step] Setting inference models path...", flush=True)
+    print("[step] Setting inference models path...\n", flush=True)
     run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr.py"])
 
 
-    print("[step] Setting modules path...", flush=True)
+    print("[step] Setting modules path...\n", flush=True)
     run_step(dash_cli_path, ["set", "neural_modules.custom_classifier_path", "multiclass_flow_packet_classifier_pretrained_h200_dotprod_kr.pt"])
     run_step(dash_cli_path, ["set", "neural_modules.custom_confidence_decoder_path", "flow_packet_confidence_decoder_pretrained_h200_dotprod_kr.pt"])
 
-    print("[step] Setting run name...", flush=True)
+    print("[step] Setting run name...\n", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "agency_dotprod_kr"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "asap_archs"])
 
-    print("[step] Starting run...", flush=True)
+    print("[step] Starting run...\n", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
     sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    print("[step] Stopping run...", flush=True)
+    print("[step] Stopping run...\n", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
     ##################################################################################
@@ -167,25 +166,26 @@ def main() -> int:
 
     ################################# dotprod KR + simple krloss ############################################
 
-    print("[step] Setting inference models path...", flush=True)
+    print("[step] Setting inference models path...\n", flush=True)
     run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr_simple_krloss.py"])
 
 
-    print("[step] Setting modules path...", flush=True)
+    print("[step] Setting modules path...\n", flush=True)
     run_step(dash_cli_path, ["set", "neural_modules.custom_classifier_path", "multiclass_flow_packet_classifier_pretrained_h200_dotprod_simple krloss.pt"])
     run_step(dash_cli_path, ["set", "neural_modules.custom_confidence_decoder_path", "flow_packet_confidence_decoder_pretrained_h200dotprod_simple krloss.pt"])
 
-    print("[step] Setting run name...", flush=True)
+    print("[step] Setting run name...\n", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "agency_dotprod_kr_simplekrloss"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "asap_archs"])
 
 
-    print("[step] Starting run...", flush=True)
+    print("[step] Starting run...\n", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
     run_step(dash_cli_path, ["start-traffic"])
 
     sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    print("[step] Stopping run...", flush=True)
+    print("[step] Stopping run...\n", flush=True)
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
