@@ -12,6 +12,9 @@ intrusion_detection:
   max_budget: 2500
   min_budget: -1000
   max_episode_steps: 50
+  cti_price_factor: 50
+  price_decay: true
+  bad_classif_cost_factor: 400 # we have a semantic erro in the controller by which we need to scale also this parameter (default is 4).
   boltzmann_sampling: false
   agent: DDQN
   wrong_inference_penalisation: easy

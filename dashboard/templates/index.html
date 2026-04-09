@@ -153,6 +153,9 @@
                                 <label>Run Name:
                                     <input type="text" name="wandb.wb_run_name" value="{{ rendering_params.wandb.wb_run_name }}">
                                 </label>
+                                <label>Group Name:
+                                    <input type="text" name="wandb.wb_group_name" value="{{ rendering_params.wandb.wb_group_name }}">
+                                </label>
                                 <label><input type="checkbox" name="wandb.plots"       {{ "checked" if rendering_params.wandb.plots       else "" }}> Log plots</label>
                                 <label><input type="checkbox" name="wandb.wb_tracking" {{ "checked" if rendering_params.wandb.wb_tracking  else "" }}> Online Tracking</label>
                                 <label>Resource Monitor Interval Secs:
@@ -419,6 +422,9 @@
                                 </label>
                                 <label>CTI Price Factor:
                                     <input type="number" name="intrusion_detection.cti_price_factor" value="{{ rendering_params.intrusion_detection.cti_price_factor }}" onchange="syncParams()">
+                                </label>
+                                <label>Price Decay:
+                                    <input type="checkbox" name="intrusion_detection.price_decay" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.price_decay else "" }}>
                                 </label>
                                 <label>Replay Batch Size:
                                     <input type="number" name="intrusion_detection.replay_batch_size" value="{{ rendering_params.intrusion_detection.replay_batch_size }}" onchange="syncParams()">

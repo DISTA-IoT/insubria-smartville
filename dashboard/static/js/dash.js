@@ -170,7 +170,8 @@ const CONFIG_PARAM_HELP = {
   "neural_modules.custom_confidence_decoder_path": "If custom_inference_model_path is true, this is the filename to the confidence decoder module (without extension).",
   "intrusion_detection.confidence_strategy": "Strategy to compute inference module confidence scores.",
   "intrusion_detection.greedy_cti": "If True, the agent will perform CTI actions whenever possible on clusters. Otherwise it will use the agent for this actions.",
-  "intrusion_detection.cti_period": "If different from -1, then the agent will perform CTI actions every n steps. Otherwise it will use the agent for this actions."
+  "intrusion_detection.cti_period": "If different from -1, then the agent will perform CTI actions every n steps. Otherwise it will use the agent for this actions.",
+  "intrusion_detection.price_decay": "Use price decay. (Decay's CTI_price by a gaussian factor (mean 0.7, std 0.4)",
 };
 
 function getHelpTextByName(name) {

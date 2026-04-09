@@ -143,6 +143,7 @@ wandb:
   wb_tracking: false #  Track this run with WeightsAndBiases. (default is False)
   wb_project_name:  'SmartVille' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'My_new_run' # if 'wb_tracking'=True, the name of the W&B run to track training metrics.
+  wb_group_name: 'default'
   entity: jfcevallos
   plots: false
   resource_monitor_interval_secs: 12 # for wholistic system resource monitoring
@@ -236,6 +237,7 @@ intrusion_detection:
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   tiger_init_budget: 1
   cti_price_factor: 4
+  price_decay: false
   replay_batch_size: 32
   replay_buffer_max_capacity: 10000
   agent_memory_size: 2000
