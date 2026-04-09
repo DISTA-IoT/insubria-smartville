@@ -12,6 +12,8 @@ intrusion_detection:
   min_budget: -10
   max_episode_steps: 50
   boltzmann_sampling: false
+  cti_price_factor: 50 # this is not included in the ACID paper. is an retrocompat for the tiger paper
+  price_decay: true # this is not included in the ACID paper. is an retrocompat for the tiger paper
   agent: DDQN
 
 
