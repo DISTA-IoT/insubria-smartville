@@ -21,7 +21,7 @@ from pathlib import Path
 
 def run_step(script: Path, args: list[str]) -> None:
     cmd = [sys.executable, str(script), *args]
-    print(f"[step] Running: dash_cli.py {' '.join(cmd[2:])}", flush=True)
+    print(f"\n[step] Running: dash_cli.py {' '.join(cmd[2:])}\n", flush=True)
     subprocess.run(cmd, check=True)
 
 
@@ -54,8 +54,8 @@ def main() -> int:
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=2*60*60,
-        help="Duration between starting and stopping experiment (default: 120 mins).",
+        default=60*60,
+        help="Duration between starting and stopping experiment (default: 60 mins).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -84,12 +84,13 @@ def main() -> int:
     print("\n[done] Previous run stopped.\n", flush=True)
 
 
-    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+    run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
 
     ################################# Scale 0.1 ################################################
 
     print("\n[step] Setting profile...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger_rewards01", "init-config"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "reward_scale"])
 
 
     print("\n[step] Starting run...\n", flush=True)
@@ -107,6 +108,7 @@ def main() -> int:
     
     print("\n[step] Setting profile...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger_rewards10", "init-config"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "reward_scale"])
 
 
 
@@ -125,6 +127,7 @@ def main() -> int:
     
     print("\n[step] Setting profile...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger_rewards100", "init-config"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "reward_scale"])
 
 
 

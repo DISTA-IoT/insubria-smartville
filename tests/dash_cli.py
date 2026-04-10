@@ -56,7 +56,7 @@ class HttpResult:
 
 
 class DashboardCLI:
-    def __init__(self, base_url: str, state_file: Path, config_dir: Path, timeout: int = 30) -> None:
+    def __init__(self, base_url: str, state_file: Path, config_dir: Path, timeout: int = 60) -> None:
         self.base_url = base_url.rstrip("/")
         self.state_file = state_file
         self.config_dir = config_dir
