@@ -91,7 +91,7 @@ def main() -> int:
     print("\n[step] Setting profile...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger_rewards01", "init-config"])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", "reward_scale"])
-
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "rewards01"])
 
     print("\n[step] Starting run...\n", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -109,7 +109,7 @@ def main() -> int:
     print("\n[step] Setting profile...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger_rewards10", "init-config"])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", "reward_scale"])
-
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "rewards10"])
 
 
     print("\n[step] Starting run...\n", flush=True)
@@ -128,7 +128,7 @@ def main() -> int:
     print("\n[step] Setting profile...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_tiger_rewards100", "init-config"])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", "reward_scale"])
-
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "rewards100"])
 
 
     print("\n[step] Starting run...\n", flush=True)
