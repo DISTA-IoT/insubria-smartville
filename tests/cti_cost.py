@@ -143,7 +143,39 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-traffic"])
     ##################################################################################
 
+    ################################# CTI PRICE FACTOR = 150 ################################################
+    run_step(dash_cli_path, ["set", "intrusion_detection.cti_price_factor", "150"])
 
+    print("[step] Setting run name...", flush=True)
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "cti_price_factor_150"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ##################################################################################
+
+    ################################# CTI PRICE FACTOR = 200 ################################################
+    run_step(dash_cli_path, ["set", "intrusion_detection.cti_price_factor", "200"])
+
+    print("[step] Setting run name...", flush=True)
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "cti_price_factor_200"])
+
+    print("[step] Starting run...", flush=True)
+    run_step(dash_cli_path, ["start-experiment"])
+    run_step(dash_cli_path, ["start-traffic"])
+
+    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+    print("[step] Stopping run...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+    ##################################################################################
 
 
     print("[done] Workflows completed.", flush=True)

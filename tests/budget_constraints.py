@@ -238,30 +238,6 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
 
-    ################################ min_budget -1 ###########################
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-
-
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "l-minus1"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "budget_constraints"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.min_budget", "-1"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
 
 
 

@@ -340,7 +340,7 @@ def main() -> int:
         default=[],
         help="Additional Hydra override (repeatable), e.g. --hydra-override intrusion_detection.agent=DQN",
     )
-    parser.add_argument("--timeout", type=int, default=30, help="HTTP timeout in seconds")
+    parser.add_argument("--timeout", type=int, default=120, help="HTTP timeout in seconds")
 
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -384,7 +384,7 @@ def main() -> int:
     p_wandb.add_argument("--max-metrics", type=int, default=25, help="Maximum number of metrics in summary output")
     p_wandb.add_argument("--watch", action="store_true", help="Continuously poll and print summaries")
     p_wandb.add_argument("--interval-secs", type=int, default=10, help="Polling interval in seconds when --watch is set")
-    p_wandb.add_argument("--wandb-timeout-secs", type=int, default=30, help="HTTP timeout in seconds per W&B poll")
+    p_wandb.add_argument("--wandb-timeout-secs", type=int, default=120, help="HTTP timeout in seconds per W&B poll")
     p_wandb.add_argument("--wandb-retries", type=int, default=2, help="Retry count for failed W&B polls")
     p_wandb.add_argument(
         "--wandb-endpoint",
