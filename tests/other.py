@@ -495,46 +495,9 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-traffic"])
     ###################################################################################
 
-    ################################ ################################################
-
-    print("\n[step] Setting profile...\n", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.agent_memory_size", "5000"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "agent_memory_size"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "agent_memory_size5000"])
-   
-
-    print("\n[step] Starting run...\n", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("\n[step] Stopping run...\n", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ###################################################################################
+ 
 
 
-    # ################################ ################################################
-
-    print("\n[step] Setting profile...\n", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.no_epistemic_actions", "true"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "other"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "no_epistemic_actions"])
-   
-
-    print("\n[step] Starting run...\n", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("\n[step] Stopping run...\n", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    # ###################################################################################
    
     print("\n[done] Workflows completed.\n", flush=True)
     return 0

@@ -4,15 +4,18 @@ node_features: false
 
 wandb:
   wb_tracking: true
-  wb_run_name: 'hard_rewards'
+  wb_run_name: 'DDQN'
   wb_project_name:  'TIGER2.0'
   
 intrusion_detection:
-
+  max_budget: 25
+  min_budget: -10
+  max_episode_steps: 50
+  cti_price_factor: 50
+  price_decay: true
   boltzmann_sampling: false
-  cti_price_factor: 50 # this is not included in the ACID paper. is an retrocompat for the tiger paper
-  price_decay: true # this is not included in the ACID paper. is an retrocompat for the tiger paper
   agent: DDQN
+  wrong_inference_penalisation: easy
 
 
 topology_creator:
@@ -24,4 +27,3 @@ topology_creator:
     HTTP_PROXY=http://proxy.uninsubria.it:3128
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
- 

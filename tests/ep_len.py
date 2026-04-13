@@ -96,6 +96,7 @@ def main() -> int:
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_70"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "ep_len_bis"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -116,6 +117,7 @@ def main() -> int:
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_60"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "ep_len_bis"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -134,6 +136,7 @@ def main() -> int:
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_40"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "ep_len_bis"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -152,6 +155,7 @@ def main() -> int:
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "ep_len_30"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "ep_len_bis"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])

@@ -48,8 +48,8 @@ def main() -> int:
     parser.add_argument(
         "--initial-delay-seconds",
         type=int,
-        default=35*60,
-        help="Delay before starting workflow (default: 5 seconds).",
+        default=3,
+        help="Delay before starting workflow (default: 3 seconds).",
     )
     parser.add_argument(
         "--run-duration-seconds",
