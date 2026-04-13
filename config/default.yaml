@@ -256,6 +256,7 @@ intrusion_detection:
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   useless_epistemic_penalty: 7 # Cost of taking a useless epistemic action
   epistemic_is_blocking: false
+  no_epistemic_actions: false
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
   use_per: true # Use Prioritized Experience Replay
