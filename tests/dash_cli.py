@@ -8,6 +8,7 @@ while making configuration editable from the command line and persisted on disk.
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
 import os
 import re
@@ -150,6 +151,26 @@ def set_by_dotpath(data: dict[str, Any], dotpath: str, value: Any) -> None:
             cursor[key] = node
         cursor = node
     cursor[keys[-1]] = value
+
+
+def has_dotpath(data: dict[str, Any], dotpath: str) -> bool:
+    keys = dotpath.split(".")
+    cursor: Any = data
+    for key in keys:
+        if not isinstance(cursor, dict) or key not in cursor:
+            return False
+        cursor = cursor[key]
+    return True
+
+
+def collect_dotpaths(data: dict[str, Any], prefix: str = "") -> set[str]:
+    paths: set[str] = set()
+    for key, value in data.items():
+        current = f"{prefix}.{key}" if prefix else key
+        paths.add(current)
+        if isinstance(value, dict):
+            paths.update(collect_dotpaths(value, current))
+    return paths
 
 
 def delete_by_dotpath(data: dict[str, Any], dotpath: str) -> bool:
@@ -435,6 +456,21 @@ def main() -> int:
         return 0
 
     if args.command == "set":
+        allowed_schema = client.build_frontend_config(get_cfg())
+        if not has_dotpath(allowed_schema, args.key):
+            known_paths = sorted(collect_dotpaths(allowed_schema))
+            suggestions = difflib.get_close_matches(args.key, known_paths, n=3, cutoff=0.55)
+            print(
+                f"Error: `{args.key}` does not exist in the composed config schema "
+                f"(default.yaml + optional override profile `{args.profile or 'none'}`)."
+            )
+            if suggestions:
+                print("Did you mean:")
+                for suggestion in suggestions:
+                    print(f"  - {suggestion}")
+            else:
+                print("Use `show-config` to inspect valid keys before calling `set`.")
+            return 1
         set_by_dotpath(state, args.key, infer_value(args.value))
         client.save_state(state)
         print(f"Set `{args.key}` and saved {args.state_file}")
