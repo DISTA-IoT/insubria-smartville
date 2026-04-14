@@ -84,27 +84,24 @@ def main() -> int:
     print("\n[done] Previous run stopped.\n", flush=True)
 
 
-    ################################# DIFFICULT REWARDS #####################################
-    print("[step] Grabing dista_LION config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
+    ############################### ################################################
 
-    print("[step] Setting wrong_inference_penalisation to easy...", flush=True)
-    run_step(dash_cli_path, ["set", "intrusion_detection.wrong_inference_penalisation", "easy"])
+    # print("\n[step] Setting profile...\n", flush=True)
+    # run_step(dash_cli_path, ["--profile", "dista_tiger_hard_rewards", "init-config"])
+    # run_step(dash_cli_path, ["set", "wandb.wb_group_name", "hard_rewards"])
+    # run_step(dash_cli_path, ["set", "wandb.wb_run_name", "hard_rewards"])
+   
 
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "HardRewards"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
+    # print("\n[step] Starting run...\n", flush=True)
+    # run_step(dash_cli_path, ["start-experiment"])
+    # run_step(dash_cli_path, ["start-traffic"])
 
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
+    # sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
+    # print("\n[step] Stopping run...\n", flush=True)
+    # run_step(dash_cli_path, ["stop-experiment"])
+    # run_step(dash_cli_path, ["stop-traffic"])
+    ##################################################################################
 
 
     ################################# LION GAME ###########################################
@@ -129,18 +126,14 @@ def main() -> int:
     ####################################################################################
 
 
-    ################################# LION with min_budget -20 ###########################
+
+    ################################# LION GAME no epistemic actions ###########################################
     print("[step] Grabing dista_LION config...", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
 
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-l-minus20"])
+    run_step(dash_cli_path, ["set", "intrusion_detection.no_epistemic_actions", "true"])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION_no_epistemic_actions"])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.min_budget", "-20"])
 
     print("[step] Starting run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
@@ -154,137 +147,6 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-traffic"])
     ####################################################################################
 
-
-    ################################# LION with min_budget -30 ###########################
-    print("[step] Grabing dista_LION config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-l-minus30"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.min_budget", "-30"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-
-    ################################# LION with max_budget 35 ###########################
-    print("[step] Grabing dista_LION config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-h-35"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.max_budget", "35"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-
-    ################################# LION with max_budget 45 ###########################
-    print("[step] Grabing dista_LION config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-h-45"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.max_budget", "45"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-
-    ################################# LION coarse 1 ###########################
-    print("[step] Grabing dista_LION config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-lminus20-h35"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.min_budget", "-20"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.max_budget", "35"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-
-    ################################# LION coarse 2 ###########################
-    print("[step] Grabing dista_LION config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "LION-lminus30-h45"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "tiger_lion"])
-
-
-    print("Setting new budget thresholds:")
-    run_step(dash_cli_path, ["set", "intrusion_detection.min_budget", "-30"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.max_budget", "45"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
 
 
 

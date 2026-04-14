@@ -10,9 +10,13 @@ wandb:
 intrusion_detection:
 
   boltzmann_sampling: false
-  cti_price_factor: 50 # this is not included in the ACID paper. is an retrocompat for the tiger paper
-  price_decay: true # this is not included in the ACID paper. is an retrocompat for the tiger paper
+  cti_price_factor: 4 
+  price_decay: true
+  bad_clustering_cost_factor: 3
+  bad_classif_cost_factor: 3
+  no_confidence_penalty: 5
   agent: DDQN
+  uncertainty_blocking_penalty: 0.05
 
 
 topology_creator:
@@ -24,4 +28,3 @@ topology_creator:
     HTTP_PROXY=http://proxy.uninsubria.it:3128
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
- 
