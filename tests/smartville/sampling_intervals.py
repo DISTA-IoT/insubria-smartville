@@ -54,8 +54,8 @@ def main() -> int:
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=15,#15*60,
-        help="Duration between starting and stopping experiment (default: 15 mins).",
+        default=20*60,
+        help="Duration between starting and stopping experiment (default: 20 mins).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -119,10 +119,10 @@ def main() -> int:
         start_experiment()
         stop_experiment()
 
-        run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "45"])
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_45"])
-        start_experiment()
-        stop_experiment()
+        # run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "45"])
+        # run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_45"])
+        # start_experiment()
+        # stop_experiment()
 
 
     print("\n[step] Starting workflow...\n", flush=True)
@@ -132,10 +132,9 @@ def main() -> int:
 
     print("\n[step] Grabing  config...\n", flush=True)
     run_step(dash_cli_path, ["--profile", "dista_pretraining", "init-config"])
-    run_step(dash_cli_path, ["set", "foo", "false"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "sampling_rates"])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "sampling_rates_bis"])
     run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
-    run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
 
 
     for seed in ["444", "555", "666", "777", "888"]:
