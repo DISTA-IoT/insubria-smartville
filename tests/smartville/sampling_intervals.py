@@ -94,14 +94,26 @@ def main() -> int:
 
     def sampling_frequency_sweep():
         
+        run_step(dash_cli_path, ["set", "resample_packets", "true"])
         run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "30"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_30"])
         start_experiment()
         stop_experiment()
 
-        run_step(dash_cli_path, ["set", "resample_packets", "true"])
+        
         run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "5"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_5"])
+        start_experiment()
+        stop_experiment()
+
+        run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "25"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_25"])
+        start_experiment()
+        stop_experiment()
+
+        
+        run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "20"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_20"])
         start_experiment()
         stop_experiment()
 
@@ -115,15 +127,15 @@ def main() -> int:
         start_experiment()
         stop_experiment()
 
+        run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "45"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_45"])
+        start_experiment()
+        stop_experiment()
+
         run_step(dash_cli_path, ["set", "resample_packets", "false"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "no_sampling"])
         start_experiment()
         stop_experiment()
-
-        # run_step(dash_cli_path, ["set", "switching_args.sampling_rate_seconds", "45"])
-        # run_step(dash_cli_path, ["set", "wandb.wb_run_name", "sampling_rate_45"])
-        # start_experiment()
-        # stop_experiment()
 
 
     print("\n[step] Starting workflow...\n", flush=True)
