@@ -54,7 +54,7 @@ def main() -> int:
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default= 20, #30*60,
+        default= 30*60,
         help="Duration between starting and stopping experiment (default: 30 mins).",
     )
     parser.add_argument(
@@ -108,10 +108,10 @@ def main() -> int:
         start_experiment()
         stop_experiment()
         
-        run_step(dash_cli_path, ["set", "node_features", "true"]) # this is the default
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "flow_node"])
-        start_experiment()
-        stop_experiment()
+        # run_step(dash_cli_path, ["set", "node_features", "true"]) 
+        # run_step(dash_cli_path, ["set", "wandb.wb_run_name", "flow_node"])
+        # start_experiment()
+        # stop_experiment()
 
 
     print("\n[step] Starting workflow...\n", flush=True)
@@ -123,7 +123,7 @@ def main() -> int:
     run_step(dash_cli_path, ["--profile", "dista_pretraining", "init-config"])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", "modalities"])
     run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
-    run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
 
 
     run_step(dash_cli_path, ["set", "intrusion_detection.seed", "444"])
