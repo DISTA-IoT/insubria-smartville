@@ -19,6 +19,8 @@ resample_packets : true # wheter to periocially sample new packets from flows, i
 
 device: cpu # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
 
+synthetic_data: false # for ablation, overwrites real data with gaussian blobs
+separability: 1.0 # if using synthetic data, this indicates separability among clusters (1 -> perfectly separable, 0 -> non-separable)
 
 topology_creator:
   # Topology creation configuration
