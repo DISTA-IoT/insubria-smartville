@@ -111,14 +111,14 @@ def main() -> int:
         start_experiment()
         stop_experiment()
 
-        # run_step(dash_cli_path, ["--profile", "dista_pretraining", "init-config"])
-        # run_step(dash_cli_path, ["set", "wandb.wb_group_name", "curricula"])
-        # run_step(dash_cli_path, ["set", "wandb.wb_run_name", "curr_a_"+str(seed)])
-        # run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
-        # run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
-        # # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
-        # start_experiment()
-        # stop_experiment()
+        run_step(dash_cli_path, ["--profile", "dista_pretraining", "init-config"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "curricula"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "curr_a_"+str(seed)])
+        run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+        start_experiment()
+        stop_experiment()
 
     
 
@@ -126,23 +126,9 @@ def main() -> int:
 
     stop_experiment()
 
-
     
-    seed = 777
-
-    run_step(dash_cli_path, ["--profile", "dista_pretraining_curr_c", "init-config"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "curricula"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "curr_c_"+str(seed)])
-    run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
-    # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
-    start_experiment()
-    stop_experiment()
-
-    curricula_sweep(888)
-    
-    # for seed in [555, 666, 777, 888]:
-    #     curricula_sweep(seed)
+    for seed in [555, 666, 777, 888]:
+        curricula_sweep(seed)
     
    
     print("[done] Workflows completed.", flush=True)
