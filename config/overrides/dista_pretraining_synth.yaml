@@ -1,20 +1,21 @@
 host_ip: 192.168.183.146
-# container_manager_replay_from_file : false
 disable_proxy: true
-node_features: false
 
+synthetic_data: true # for ablation, overwrites real data with gaussian blobs
+
+neural_modules:
+  custom_inference_model_path: true
 
 wandb:
   wb_tracking: true
   wb_project_name:  'ACID2.0' # if 'wb_tracking'=True, The name of the W&B project to associate the run with. Default is 'SmartVille'
   wb_run_name: 'DAI_P'
 
-# intrusion_detection:
-  # epistemic_regularisation_factor: 0.05
-  # entropy_reg_coefficient: 0
-  # surrogate_policy_consistency: true
-  # use_critic_to_act: false
-  # variational_tmodel: true
+intrusion_detection:
+  pretrained_inference: false
+  agency: false
+  online_evaluation: true
+  save_models: true
 
 topology_creator:
   use_gns3_config_file: false
