@@ -1,13 +1,5 @@
 #!/usr/bin/env python3
 """Experiment runner for dash_cli.py.
-
-Workflow:
-1) Initialize CLI state with some profile.
-Loop:
-    2) Set some additional params
-    4) Start experiment and traffic.
-    5) Wait 2 hours.
-    6) Stop experiment and traffic.
 """
 
 from __future__ import annotations
@@ -48,7 +40,7 @@ def main() -> int:
     parser.add_argument(
         "--initial-delay-seconds",
         type=int,
-        default=3,
+        default=20*60,
         help="Delay before starting workflow (default: 3 seconds).",
     )
     parser.add_argument(
@@ -93,28 +85,28 @@ def main() -> int:
 
     def curricula_sweep(seed):
 
-        run_step(dash_cli_path, ["--profile", "dista_acid_pretraining_curr_b", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "pt_curricula"])
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "curr_b_"+str(seed)])
-        run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
+        run_step(dash_cli_path, ["--profile", "dista_pretraining_curr_b", "init-config"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "pt_curricula_real"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "pt_curr_b_"+str(seed)])
+        # run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
         # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
         start_experiment()
         stop_experiment()
 
-        run_step(dash_cli_path, ["--profile", "dista_acid_pretraining_curr_c", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "pt_curricula"])
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "curr_c_"+str(seed)])
-        run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
+        run_step(dash_cli_path, ["--profile", "dista_pretraining_curr_c", "init-config"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "pt_curricula_real"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "pt_curr_c_"+str(seed)])
+        # run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
         # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
         start_experiment()
         stop_experiment()
 
-        run_step(dash_cli_path, ["--profile", "dista_acid_pretraining", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "pt_curricula"])
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "curr_a_"+str(seed)])
-        run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
+        run_step(dash_cli_path, ["--profile", "dista_pretraining", "init-config"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "pt_curricula_real"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "pt_curr_a_"+str(seed)])
+        # run_step(dash_cli_path, ["set", "intrusion_detection.save_models", "false"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
         # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
         start_experiment()
@@ -127,7 +119,7 @@ def main() -> int:
     stop_experiment()
 
     
-    for seed in [555, 666, 777, 888]:
+    for seed in [555, 666, 777]:
         curricula_sweep(seed)
     
    

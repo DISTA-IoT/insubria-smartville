@@ -14,7 +14,7 @@ intrusion_detection:
   agency: false
   online_evaluation: true
   save_models: true
-  
+
 topology_creator:
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
