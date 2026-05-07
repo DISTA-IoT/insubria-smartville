@@ -1,6 +1,8 @@
 host_ip: 192.168.183.146
 disable_proxy: true
 
+# synthetic_data: true
+
 wandb:
  wb_tracking: true
  wb_run_name: 'PT'

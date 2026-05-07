@@ -1,6 +1,8 @@
 host_ip: 192.168.183.146
-# container_manager_replay_from_file : false
 disable_proxy: true
+
+# synthetic_data: true
+
 
 wandb:
  wb_tracking: true
