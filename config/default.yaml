@@ -190,6 +190,7 @@ neural_modules:
   dropout: 0.2 # Dropout rate for the neural network.
   use_encoder: false
   recurrent_layers: 1
+  frozen_decoder: false
   custom_inference_model_path: false
   custom_classifier_path: emptystring
   custom_confidence_decoder_path: emptystring
