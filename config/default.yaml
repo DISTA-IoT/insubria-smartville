@@ -233,7 +233,7 @@ intrusion_detection:
   pretrained_inference: True
   greedy_cti: False
   cti_period: -1
-
+  confidence_strategy: 'energy' # can be 'energy', 'entropy', 'margin' or 'baseline' which corresponds to MSP, used by the results in the tiger paper
   max_budget: 300
   min_budget: -60
   max_episode_steps: 750
