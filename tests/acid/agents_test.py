@@ -83,17 +83,37 @@ def main() -> int:
         print("\n[done] Previous run stopped.\n", flush=True)
 
 
-    def start_experiment():
+    def start_experiment(override_duration_seconds=None):
         print("\n[step] Starting run...\n", flush=True)
         run_step(dash_cli_path, ["start-experiment"])
         run_step(dash_cli_path, ["start-traffic"])
-        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+        duration = args.run_duration_seconds if override_duration_seconds is None else override_duration_seconds
+        sleep_with_spinner(duration, f"[wait] Experiment running for {duration} seconds...")
 
 
     def agent_sweep(seed):
 
         run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION3"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DDQN_"+str(seed)])
+        run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DDQN"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.boltzmann_sampling", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+        start_experiment()
+        stop_experiment()
+
+        run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION3"])
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "NO_EP_ACTION_"+str(seed)])
+        run_step(dash_cli_path, ["set", "intrusion_detection.no_epistemic_actions", "true"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
+        start_experiment(20*60)
+        stop_experiment()
+
+        run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION3"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DAI_F_"+str(seed)])
         run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DAI_F"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
@@ -102,7 +122,7 @@ def main() -> int:
         stop_experiment()
 
         run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION3"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DAI_P_"+str(seed)])
         run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DAI_P"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
@@ -111,7 +131,7 @@ def main() -> int:
         stop_experiment()
 
         run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION2"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DAI_SA_"+str(seed)])
         run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DAI_SA"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
@@ -120,7 +140,7 @@ def main() -> int:
         stop_experiment()
 
         run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION"])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION2"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DAI_A_"+str(seed)])
         run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DAI_A"])
         run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
@@ -128,25 +148,12 @@ def main() -> int:
         start_experiment()
         stop_experiment()
 
-
-        run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION"])
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "DDQN_"+str(seed)])
-        run_step(dash_cli_path, ["set", "intrusion_detection.agent", "DDQN"])
-        run_step(dash_cli_path, ["set", "intrusion_detection.boltzmann_sampling", "false"])
-        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
-        # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
-        start_experiment()
-        stop_experiment()
         
-        run_step(dash_cli_path, ["--profile", "dista_lion", "init-config"])
-        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "LION"])
-        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "NO_EP_ACTION_"+str(seed)])
-        run_step(dash_cli_path, ["set", "intrusion_detection.no_epistemic_actions", "true"])
-        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
-        # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
-        start_experiment()
-        stop_experiment()
+
+
+        
+        
+        
         
 
 
