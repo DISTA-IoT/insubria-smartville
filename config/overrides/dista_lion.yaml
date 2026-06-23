@@ -19,6 +19,7 @@ intrusion_detection:
   automatic_cs_acceptance: true
   bad_classif_cost_factor: 10
   bad_clustering_cost_factor: 10
+  uncertainty_blocking_penalty: 5
 
 topology_creator:
   contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
