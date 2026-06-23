@@ -19,6 +19,8 @@ resample_packets : true # wheter to periocially sample new packets from flows, i
 
 device: cpu # Can be 'cpu' or 'cuda:0', 'cuda:1', etc. Depending on hw availability
 
+synthetic_data: false # for ablation, overwrites real data with gaussian blobs
+separability: 1.0 # if using synthetic data, this indicates separability among clusters (1 -> perfectly separable, 0 -> non-separable)
 
 topology_creator:
   # Topology creation configuration
@@ -188,6 +190,7 @@ neural_modules:
   dropout: 0.2 # Dropout rate for the neural network.
   use_encoder: false
   recurrent_layers: 1
+  frozen_decoder: false
   custom_inference_model_path: false
   custom_classifier_path: emptystring
   custom_confidence_decoder_path: emptystring
@@ -230,7 +233,7 @@ intrusion_detection:
   pretrained_inference: True
   greedy_cti: False
   cti_period: -1
-
+  confidence_strategy: 'energy' # can be 'energy', 'entropy', 'margin' or 'baseline' which corresponds to MSP, used by the results in the tiger paper
   max_budget: 300
   min_budget: -60
   max_episode_steps: 750
@@ -281,7 +284,7 @@ intrusion_detection:
   surrogate_policy_consistency: false
   use_critic_to_act: true
   greedy_update: true
-  uncertainty_blocking_penalty: 0.0
+  uncertainty_blocking_penalty: 1.5
 
 
 honeypots:

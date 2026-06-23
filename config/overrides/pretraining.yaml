@@ -1,6 +1,5 @@
 host_ip: 10.23.10.175
 health_monitoring: true
-use_packet_feats: false
 
 
 wandb:

@@ -1,23 +1,25 @@
 host_ip: 192.168.183.146
 disable_proxy: true
 node_features: false
+health_monitoring: false
 
 wandb:
   wb_tracking: true
-  wb_run_name: 'hard_rewards'
-  wb_project_name:  'TIGER2.0'
+  wb_run_name: 'DDQN'
+  wb_project_name:  'ACID_2.0'
   
 intrusion_detection:
-
-  boltzmann_sampling: false
-  cti_price_factor: 4 
+  max_budget: 25
+  min_budget: -10
+  max_episode_steps: 50
+  cti_price_factor: 40
   price_decay: true
-  bad_clustering_cost_factor: 3
-  bad_classif_cost_factor: 3
-  no_confidence_penalty: 5
-  agent: DDQN
-  uncertainty_blocking_penalty: 0.05
-
+  boltzmann_sampling: true
+  agent: DAI_P
+  automatic_cs_acceptance: true
+  bad_classif_cost_factor: 10
+  bad_clustering_cost_factor: 10
+  uncertainty_blocking_penalty: 5
 
 topology_creator:
   contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
@@ -28,3 +30,18 @@ topology_creator:
     HTTP_PROXY=http://proxy.uninsubria.it:3128
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
+    
+rewards:
+    - echo: 0.02
+    - hakai: -0.10
+    - mirai: -0.20
+    - hajime: -0.13
+    - doorlock: 0.05
+    - gafgyt: -0.25
+    - muhstik: -0.36
+    - h_scan: -0.17
+    - okiru: -0.48
+    - generic_ddos: -0.29
+    - torii: -0.21
+    - cc_heartbeat: -0.31
+    - hue: 0.05

@@ -1,7 +1,6 @@
 host_ip: 192.168.183.146
+# container_manager_replay_from_file : false
 disable_proxy: true
-
-# synthetic_data: true
 
 wandb:
  wb_tracking: true
@@ -15,7 +14,7 @@ intrusion_detection:
   agency: false
   online_evaluation: true
   save_models: true
-  
+
 topology_creator:
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
@@ -25,3 +24,21 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
     
+
+
+
+knowledge:
+
+    G1s:
+        - mirai
+        - gafgyt
+        - hajime
+
+    G2s:
+        - h_scan
+        - muhstik
+        - doorlock
+        - echo
+        - okiru
+        - cc_heartbeat
+        - generic_ddos

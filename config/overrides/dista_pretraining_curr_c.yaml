@@ -3,6 +3,7 @@ disable_proxy: true
 
 # synthetic_data: true
 
+
 wandb:
  wb_tracking: true
  wb_run_name: 'PT'
@@ -25,3 +26,21 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
     
+
+
+
+knowledge:
+
+    G1s:
+        - h_scan
+        - muhstik
+        - doorlock
+
+    G2s:
+        - mirai
+        - gafgyt
+        - hajime
+        - echo
+        - okiru
+        - cc_heartbeat
+        - generic_ddos
