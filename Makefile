@@ -9,11 +9,16 @@ endif
 # Generate a timestamp to use as cache-busting value
 CACHE_BUST := $(shell date +%s)
 
-.PHONY: all build-controller build-attacker build-victim build-openvswitch build-monitor
+.PHONY: all build-controller build-attacker build-victim build-openvswitch build-monitor \
+        all-scache all-scache-nolib scache-nolib \
+        build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-mockserver-scache \
+        build-controller-scache-nolib build-attacker-scache-nolib build-victim-scache-nolib build-monitor-scache-nolib build-mockserver-scache-nolib
 
 all: build-controller build-attacker build-victim build-openvswitch build-monitor
 all-nocache: build-victim-nocache build-attacker-nocache build-controller-nocache build-monitor-nocache
 all-scache: build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-openvswitch
+all-scache-nolib: build-controller-scache-nolib build-attacker-scache-nolib build-victim-scache-nolib build-monitor-scache-nolib build-openvswitch
+scache-nolib: all-scache-nolib
 
 build-controller:
 	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) -t pox-controller -f poxController/controller.Dockerfile poxController/.
@@ -48,6 +53,7 @@ build-monitor:
 build-monitor-nocache:
 	docker build --no-cache -t monitor -f smartville-monitor/monitor.Dockerfile smartville-monitor/.
 
+# scache builds (full rebuild of dependencies and code)
 build-controller-scache:
 	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) \
 	             --build-arg CACHE_BUST=$(shell date +%s) \
@@ -69,9 +75,35 @@ build-victim-scache:
 	             -t victim \
 	             -f VictimNode/victim.Dockerfile VictimNode/.
 
-
 build-mockserver-scache:
 	docker build --build-arg CACHE_BUST=$(shell date +%s) \
+	             -t mockserver \
+	             -f mockserver/mockserver.Dockerfile mockserver/.
+
+# scache-nolib builds (reuse cached pip dependencies, rebuild code clone only)
+build-controller-scache-nolib:
+	docker build --build-arg WANDB_API_KEY=$(WANDB_API_KEY) \
+	             --build-arg CODE_BUST=$(shell date +%s) \
+	             -t pox-controller \
+	             -f poxController/controller.Dockerfile poxController/.
+
+build-monitor-scache-nolib:
+	docker build --build-arg CODE_BUST=$(shell date +%s) \
+	             -t monitor \
+	             -f smartville-monitor/monitor.Dockerfile smartville-monitor/.
+
+build-attacker-scache-nolib:
+	docker build --build-arg CODE_BUST=$(shell date +%s) \
+	             -t attacker \
+	             -f AttackerNode/attacker.Dockerfile AttackerNode/.
+
+build-victim-scache-nolib:
+	docker build --build-arg CODE_BUST=$(shell date +%s) \
+	             -t victim \
+	             -f VictimNode/victim.Dockerfile VictimNode/.
+
+build-mockserver-scache-nolib:
+	docker build --build-arg CODE_BUST=$(shell date +%s) \
 	             -t mockserver \
 	             -f mockserver/mockserver.Dockerfile mockserver/.
 
