@@ -14,10 +14,10 @@ CACHE_BUST := $(shell date +%s)
         build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-mockserver-scache \
         build-controller-scache-nolib build-attacker-scache-nolib build-victim-scache-nolib build-monitor-scache-nolib build-mockserver-scache-nolib
 
-all: build-controller build-attacker build-victim build-openvswitch build-monitor
-all-nocache: build-victim-nocache build-attacker-nocache build-controller-nocache build-monitor-nocache
-all-scache: build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-openvswitch
-all-scache-nolib: build-controller-scache-nolib build-attacker-scache-nolib build-victim-scache-nolib build-monitor-scache-nolib build-openvswitch
+all: build-controller build-attacker build-victim build-openvswitch build-monitor build-mockserver
+all-nocache: build-victim-nocache build-attacker-nocache build-controller-nocache build-monitor-nocache build-mockserver-nocache
+all-scache: build-controller-scache build-attacker-scache build-victim-scache build-monitor-scache build-openvswitch build-mockserver-scache
+all-scache-nolib: build-controller-scache-nolib build-attacker-scache-nolib build-victim-scache-nolib build-monitor-scache-nolib build-openvswitch build-mockserver-scache-nolib
 scache-nolib: all-scache-nolib
 
 build-controller:
