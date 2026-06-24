@@ -11,7 +11,7 @@ intrusion_detection:
   data_collection_dir: '/pox/pox/smartController/tiger_data_collection/'
   data_collection_shard_size: 200
   data_collection_flush_interval_secs: 30
-  data_collection_use_packet_feats: false
+  data_collection_use_packet_feats: true
   data_collection_use_node_feats: false
   data_collection_skip_training: true
   agency: false

@@ -19,7 +19,7 @@ intrusion_detection:
 
 
 topology_creator:
-  contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
+  # contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
     https_proxy=http://proxy.uninsubria.it:3128
