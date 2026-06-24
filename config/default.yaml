@@ -210,6 +210,13 @@ intrusion_detection:
   use_huber_cs: true # Use Huber loss for the classification loss.
   pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   save_models: false # overwritte models on disk.
+  data_collection_mode: false  # If true, TigerBrain records every fully-labelled batch it sees to disk (see FlowDataRecorder) for later offline replay.
+  data_collection_dir: '/pox/pox/smartController/tiger_data_collection/'  # Path inside the controller docker container where recorded shards are written.
+  data_collection_shard_size: 2000  # Number of samples buffered in memory before a shard is flushed to disk.
+  data_collection_flush_interval_secs: 30  # Max seconds a partial shard can sit in memory before being flushed, even if shard_size hasn't been reached.
+  data_collection_use_packet_feats: false  # Whether to additionally persist packet_features in each shard (raises disk usage).
+  data_collection_use_node_feats: false  # Whether to additionally persist node_features in each shard.
+  data_collection_skip_training: true  # If true, process_input returns right after recording -- no IM/DM compute, pure capture run.
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DAI_P  # can be DQN, DDQN or DAI
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
