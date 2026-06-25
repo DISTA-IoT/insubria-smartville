@@ -221,6 +221,7 @@ intrusion_detection:
   agent: DAI_P  # can be DQN, DDQN or DAI
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
   max_packet_samples_per_flow_per_tick: 32 # Caps how many packet-feature samples a single flow can contribute to one inference/training tick; excess backlog drains over subsequent ticks instead of blowing up the batch size.
+  max_pending_packet_feats: 1024 # Caps how many freshly-captured packets a single flow can queue up awaiting consumption (pending_packet_feats); once full, newly captured packets for that flow are dropped instead of growing the queue unbounded.
   packet_feat_dim: 64
   anonymize_transport_ports: true
   flow_feat_dim: 4
