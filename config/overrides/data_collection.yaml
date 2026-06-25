@@ -3,8 +3,14 @@
 # Turns on TigerBrain's data_collection_mode so the controller
 # records fully-labelled batches to disk for later offline replay.
 
+node_features: false
+
+
 wandb:
-  wb_tracking: false
+  wb_tracking: true
+  wb_project_name:  'TIGER3.0'
+  wb_run_name: 'data_collection'
+  wb_group_name: 'data_collection'
 
 intrusion_detection:
   data_collection_mode: true

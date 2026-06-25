@@ -300,12 +300,12 @@ honeypots:
   - victim-0: #192.168.1.4
       pattern: 'doorlock'
       destination: 'victim-1'
-      speed_multiplier: 5000
+      speed_multiplier: 10000
 
   - victim-1: #192.168.1.5
       pattern: 'echo'
       destination: 'victim-2'
-      speed_multiplier: 5000
+      speed_multiplier: 10000
 
   - victim-2: #192.168.1.6
       pattern: 'hue' 
@@ -317,12 +317,12 @@ attackers:
   - attacker-1: #192.168.1.7
       pattern: 'cc_heartbeat'
       destination: 'victim-0'
-      speed_multiplier: 10000
+      speed_multiplier: 50000
 
   - attacker-2: #192.168.1.8
       pattern: 'generic_ddos'
       destination: 'victim-1'
-      speed_multiplierd: 10
+      speed_multiplierd: 100
 
   - attacker-3: #192.168.1.9
       pattern: 'h_scan'
@@ -332,12 +332,12 @@ attackers:
   - attacker-4: #192.168.1.10
       pattern: 'hakai'
       destination: 'victim-0'
-      speed_multiplier: 10000
+      speed_multiplier: 50000
 
   - attacker-5: #192.168.1.11
       pattern: 'torii'
       destination: 'victim-1'
-      speed_multiplier: 10000
+      speed_multiplier: 50000
 
   - attacker-6: #192.168.1.12
       pattern: 'mirai'
