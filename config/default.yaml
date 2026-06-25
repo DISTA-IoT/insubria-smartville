@@ -220,6 +220,7 @@ intrusion_detection:
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DAI_P  # can be DQN, DDQN or DAI
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
+  max_packet_samples_per_flow_per_tick: 32 # Caps how many packet-feature samples a single flow can contribute to one inference/training tick; excess backlog drains over subsequent ticks instead of blowing up the batch size.
   packet_feat_dim: 64
   anonymize_transport_ports: true
   flow_feat_dim: 4
