@@ -347,7 +347,7 @@ attackers:
   - attacker-7: #192.168.1.13
       pattern: 'gafgyt'
       destination: 'victim-0'
-      speed_multiplier: 1
+      speed_multiplier: 10
 
   - attacker-8: #192.168.1.14
       pattern: 'hajime'
