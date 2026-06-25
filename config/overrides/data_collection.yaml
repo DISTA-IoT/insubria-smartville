@@ -1,7 +1,7 @@
 
-# Override profile for pure data-collection runs (see smartville-controller/data_recorder.py).
-# Turns on TigerBrain's data_collection_mode and skips training so the controller
-# does nothing but record fully-labelled batches to disk for later offline replay.
+# Override profile for  data-collection runs (see smartville-controller/data_recorder.py).
+# Turns on TigerBrain's data_collection_mode so the controller
+# records fully-labelled batches to disk for later offline replay.
 
 wandb:
   wb_tracking: false
@@ -9,50 +9,10 @@ wandb:
 intrusion_detection:
   data_collection_mode: true
   data_collection_dir: '/pox/pox/smartController/tiger_data_collection/'
-  data_collection_shard_size: 200
+  # data_collection_shard_size: 200
   data_collection_flush_interval_secs: 30
   data_collection_use_packet_feats: true
   data_collection_use_node_feats: false
-  data_collection_skip_training: true
+  # data_collection_skip_training: true
   agency: false
   pretrained_inference: false
-
-honeypots:
-  - victim-0:
-      pattern: 'doorlock'
-      destination: 'victim-1'
-      speed_multiplier: 10
-
-  - victim-1:
-      pattern: 'doorlock'
-      destination: 'victim-0'
-      speed_multiplier: 5
-
-attackers:
-  - attacker-1:
-      pattern: 'cc_heartbeat'
-      destination: 'victim-0'
-      speed_multiplier: 100
-
-  - attacker-2:
-      pattern: 'hakai'
-      destination: 'victim-1'
-      speed_multiplier: 1
-
-knowledge:
-
-    bening_patterns:
-        - doorlock
-
-    attack_patterns:
-        - hakai
-        - cc_heartbeat
-
-    Knowns:
-        - doorlock
-        - hakai
-        - cc_heartbeat
-
-    G1s: []
-
-    G2s: []

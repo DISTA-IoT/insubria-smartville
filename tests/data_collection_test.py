@@ -76,24 +76,8 @@ def main() -> int:
         help="Value to set for intrusion_detection.data_collection_dir on the controller "
              "(path is inside the controller container's filesystem).",
     )
-    parser.add_argument(
-        "--shard-size",
-        type=int,
-        default=200,
-        help="Samples buffered before a shard is flushed (intrusion_detection.data_collection_shard_size). "
-             "Kept small by default so a short test run still produces multiple shards.",
-    )
-    parser.add_argument(
-        "--use-packet-feats",
-        action="store_true",
-        help="Also record packet_features in each shard (intrusion_detection.data_collection_use_packet_feats).",
-    )
-    parser.add_argument(
-        "--run-name",
-        default="data_collection_smoketest",
-        help="wandb.wb_run_name to tag this run with (wandb tracking itself stays disabled by the profile).",
-    )
 
+   
     args = parser.parse_args()
 
     dash_cli_path = args.dash_cli_path.resolve()
@@ -112,12 +96,6 @@ def main() -> int:
     print("[step] Initializing config from the data_collection override profile...", flush=True)
     run_step(dash_cli_path, ["--profile", "data_collection", "init-config"])
 
-    print("[step] Setting run-specific knobs...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", args.run_name])
-    run_step(dash_cli_path, ["set", "intrusion_detection.data_collection_dir", args.data_collection_dir])
-    run_step(dash_cli_path, ["set", "intrusion_detection.data_collection_shard_size", str(args.shard_size)])
-    if args.use_packet_feats:
-        run_step(dash_cli_path, ["set", "intrusion_detection.data_collection_use_packet_feats", "true"])
 
     print("[step] Starting capture run...", flush=True)
     run_step(dash_cli_path, ["start-experiment"])
