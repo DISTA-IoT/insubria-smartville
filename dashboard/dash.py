@@ -674,7 +674,11 @@ def main(cfg: DictConfig) -> None:
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=controller_init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
-        return response.json()
+        # Forward the controller's real HTTP status, not a blanket 200: the
+        # controller now returns proper error statuses on init failure, and
+        # collapsing everything to 200 here would silently hide that from
+        # any caller (CLI sweep scripts included) that checks HTTP status.
+        return response.json(), response.status_code
 
 
     @app.route('/stop_controller', methods=['POST'])
@@ -684,6 +688,13 @@ def main(cfg: DictConfig) -> None:
         response = response.json()
         app.logger.info(f"Replay from controller answered with status code: {response['status_code']}")
         return response
+
+
+    @app.route('/controller_health', methods=['GET'])
+    def controller_health():
+        controller_external_ip = containers_external_ips['pox-controller']
+        response = requests.get(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/health")
+        return response.json(), response.status_code
 
 
     @app.route('/attach_controller',  methods=['POST'])
