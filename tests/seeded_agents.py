@@ -78,6 +78,23 @@ DEFAULT_CTI_PERIOD = 10
 # sets exactly one of them.
 ABLATION_MODES = ["baseline", "no_epistemic", "periodic_cti", "greedy_cti"]
 
+# wandb.wb_run_name uses these short labels instead of the agent name whenever
+# mode != "baseline", so that W&B's "group by name" groups all agents sharing
+# an ablation together (the agent itself is still recorded in the run's
+# wandb config dict, same as the seed, so neither is lost -- just not in the
+# run name).
+ABLATION_RUN_NAME = {
+    "no_epistemic": "no_epis",
+    "periodic_cti": "periodic",
+    "greedy_cti": "greedy",
+}
+
+
+def wb_run_name(agent: str, mode: str) -> str:
+    if mode == "baseline":
+        return agent
+    return ABLATION_RUN_NAME[mode]
+
 
 def ablation_overrides(mode: str, cti_period: int) -> dict[str, Any]:
     if mode == "baseline":
@@ -194,6 +211,11 @@ def run_one(
     group_name: str,
     health_poll_interval_seconds: int,
 ) -> None:
+    # run_name is just for console/log messages and error reporting, so it
+    # stays fully descriptive. wb_run_name is what actually gets sent to
+    # W&B, and is intentionally collapsed to just the agent (mode=="baseline")
+    # or just the ablation label (otherwise) for grouping; agent and seed are
+    # both still recorded in the run's wandb config dict regardless.
     run_name = f"{agent}-{mode}-seed{seed}"
     print(f"[step] Setting up {run_name}...", flush=True)
 
@@ -202,7 +224,7 @@ def run_one(
     run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
     for key, value in overrides.items():
         run_step(dash_cli_path, ["set", key, value])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", run_name])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", wb_run_name(agent, mode)])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", group_name])
 
     print(f"[step] Starting {run_name} and verifying applied config...", flush=True)
