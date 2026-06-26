@@ -457,19 +457,7 @@
                                 <label>Agent Discount Rate:
                                     <input type="number" step="0.01"  name="intrusion_detection.agent_discount_rate"  value="{{ rendering_params.intrusion_detection.agent_discount_rate }}"  onchange="syncParams()">
                                 </label>
-                               
-                                <label>Wrong Inference Penalisation:
-                                    <select name="intrusion_detection.wrong_inference_penalisation" onchange="syncParams()">
-                                        <option value="easy" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'easy' else "" }}>Easy</option>
-                                        <option value="hard" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'hard' else "" }}>Hard</option>
-                                    </select>
-                                </label>
-                                <label>Bad Classif Cost Factor:
-                                    <input type="number" name="intrusion_detection.bad_classif_cost_factor"       value="{{ rendering_params.intrusion_detection.bad_classif_cost_factor }}"       onchange="syncParams()">
-                                </label>
-                                <label>Bad Clustering Cost Factor:
-                                    <input type="number" name="intrusion_detection.bad_clustering_cost_factor"  value="{{ rendering_params.intrusion_detection.bad_clustering_cost_factor }}"  onchange="syncParams()">
-                                </label>
+
                                 <label>Use PER:
                                     <input type="checkbox" name="intrusion_detection.use_per" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_per else "" }}>  
                                 </label>
@@ -485,13 +473,7 @@
                                 <label>Tau for soft-update:
                                     <input type="number" name="intrusion_detection.tau" value="{{ rendering_params.intrusion_detection.tau }}" onchange="syncParams()">
                                 </label>
-                                <label>No Confidence Penalty:
-                                    <input type="number" name="intrusion_detection.no_confidence_penalty" value="{{ rendering_params.intrusion_detection.no_confidence_penalty }}" onchange="syncParams()">
-                                </label>
                                 <label><input type="checkbox" name="intrusion_detection.automatic_cs_acceptance"  onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.automatic_cs_acceptance  else "" }}> Automatic CS Acceptance</label>
-                                <label>Useless Epistemic Penalty:
-                                    <input type="number" name="intrusion_detection.useless_epistemic_penalty" value="{{ rendering_params.intrusion_detection.useless_epistemic_penalty }}" onchange="syncParams()">
-                                </label>
                                 <label><input type="checkbox" name="intrusion_detection.epistemic_is_blocking"    onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_is_blocking    else "" }}> Epistemic is Blocking</label>
                                 <label><input type="checkbox" name="intrusion_detection.boltzmann_sampling"       onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.boltzmann_sampling       else "" }}> Boltzmann Sampling</label>
                                 

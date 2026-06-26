@@ -393,68 +393,6 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-traffic"])
     ###################################################################################
 
-
-    ################################ ################################################
-
-    print("\n[step] Setting profile...\n", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.useless_epistemic_penalty", "12"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "useless_epis_penalty"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "useless_epis_penalty12"])
-   
-
-    print("\n[step] Starting run...\n", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("\n[step] Stopping run...\n", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ###################################################################################
-
-
-    ################################ ################################################
-
-    print("\n[step] Setting profile...\n", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.useless_epistemic_penalty", "3"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "useless_epis_penalty"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "useless_epis_penalty3"])
-   
-
-    print("\n[step] Starting run...\n", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("\n[step] Stopping run...\n", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ###################################################################################
-
-    ################################ ################################################
-
-    print("\n[step] Setting profile...\n", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.useless_epistemic_penalty", "20"])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", "useless_epis_penalty"])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "useless_epis_penalty20"])
-   
-
-    print("\n[step] Starting run...\n", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("\n[step] Stopping run...\n", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ###################################################################################
-    
     ################################ ################################################
 
     print("\n[step] Setting profile...\n", flush=True)

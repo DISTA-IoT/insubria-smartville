@@ -15,7 +15,6 @@ intrusion_detection:
   price_decay: true
   boltzmann_sampling: false
   agent: DDQN
-  wrong_inference_penalisation: easy
 
 
 topology_creator:
