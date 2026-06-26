@@ -8,8 +8,7 @@ wandb:
   wb_project_name:  'TIGER3.0'
   
 intrusion_detection:
-  max_budget: 25
-  min_budget: -10
+  max_budget: 100
   cti_price_factor: 50
   price_decay: true
   boltzmann_sampling: false
@@ -27,17 +26,4 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
     
-rewards:
-    - echo: 0.02
-    - hakai: -0.10
-    - mirai: -0.20
-    - hajime: -0.13
-    - doorlock: 0.05
-    - gafgyt: -0.25
-    - muhstik: -0.36
-    - h_scan: -0.17
-    - okiru: -0.48
-    - generic_ddos: -0.29
-    - torii: -0.21
-    - cc_heartbeat: -0.31
-    - hue: 0.05
+
