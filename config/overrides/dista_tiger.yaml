@@ -10,7 +10,6 @@ wandb:
 intrusion_detection:
   max_budget: 25
   min_budget: -10
-  max_episode_steps: 50
   cti_price_factor: 50
   price_decay: true
   boltzmann_sampling: false
