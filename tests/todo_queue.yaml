@@ -1,0 +1,73 @@
+# Queue of DQN-family x epistemic-action-ablation experiments to run.
+#
+# tests/run_todo_queue.py runs these top-to-bottom, one at a time, and
+# stops (loudly) on the first failure. After a crash or a finished batch,
+# check W&B for which runs actually completed, delete those rows from
+# this file, then re-run run_todo_queue.py -- it will pick up exactly
+# where the trimmed list says to resume, nothing is tracked elsewhere.
+#
+# Rows are pre-ordered seed-major (every agent x mode config for seed 1,
+# then all of seed 2, then all of seed 3) so that whatever prefix of the
+# queue has run so far gives complete coverage of as many whole seeds
+# as possible.
+#
+# mode is one of: baseline, no_epistemic, periodic_cti, greedy_cti
+#   (see tests/seeded_agents.py module docstring for what each one sets).
+# cti_period only matters for mode: periodic_cti; omit it elsewhere or to
+# use --cti-period's default.
+
+profile: dista_tiger
+wandb_group_name: agents-seeded
+run_duration_seconds: 3600
+health_poll_interval_seconds: 60
+cti_period: 10
+
+queue:
+  - {agent: DQN, mode: baseline, seed: 1}
+  - {agent: DQN, mode: no_epistemic, seed: 1}
+  - {agent: DQN, mode: periodic_cti, seed: 1}
+  - {agent: DQN, mode: greedy_cti, seed: 1}
+  - {agent: DDQN, mode: baseline, seed: 1}
+  - {agent: DDQN, mode: no_epistemic, seed: 1}
+  - {agent: DDQN, mode: periodic_cti, seed: 1}
+  - {agent: DDQN, mode: greedy_cti, seed: 1}
+  - {agent: DuelingDQN, mode: baseline, seed: 1}
+  - {agent: DuelingDQN, mode: no_epistemic, seed: 1}
+  - {agent: DuelingDQN, mode: periodic_cti, seed: 1}
+  - {agent: DuelingDQN, mode: greedy_cti, seed: 1}
+  - {agent: DuelingDDQN, mode: baseline, seed: 1}
+  - {agent: DuelingDDQN, mode: no_epistemic, seed: 1}
+  - {agent: DuelingDDQN, mode: periodic_cti, seed: 1}
+  - {agent: DuelingDDQN, mode: greedy_cti, seed: 1}
+  - {agent: DQN, mode: baseline, seed: 2}
+  - {agent: DQN, mode: no_epistemic, seed: 2}
+  - {agent: DQN, mode: periodic_cti, seed: 2}
+  - {agent: DQN, mode: greedy_cti, seed: 2}
+  - {agent: DDQN, mode: baseline, seed: 2}
+  - {agent: DDQN, mode: no_epistemic, seed: 2}
+  - {agent: DDQN, mode: periodic_cti, seed: 2}
+  - {agent: DDQN, mode: greedy_cti, seed: 2}
+  - {agent: DuelingDQN, mode: baseline, seed: 2}
+  - {agent: DuelingDQN, mode: no_epistemic, seed: 2}
+  - {agent: DuelingDQN, mode: periodic_cti, seed: 2}
+  - {agent: DuelingDQN, mode: greedy_cti, seed: 2}
+  - {agent: DuelingDDQN, mode: baseline, seed: 2}
+  - {agent: DuelingDDQN, mode: no_epistemic, seed: 2}
+  - {agent: DuelingDDQN, mode: periodic_cti, seed: 2}
+  - {agent: DuelingDDQN, mode: greedy_cti, seed: 2}
+  - {agent: DQN, mode: baseline, seed: 3}
+  - {agent: DQN, mode: no_epistemic, seed: 3}
+  - {agent: DQN, mode: periodic_cti, seed: 3}
+  - {agent: DQN, mode: greedy_cti, seed: 3}
+  - {agent: DDQN, mode: baseline, seed: 3}
+  - {agent: DDQN, mode: no_epistemic, seed: 3}
+  - {agent: DDQN, mode: periodic_cti, seed: 3}
+  - {agent: DDQN, mode: greedy_cti, seed: 3}
+  - {agent: DuelingDQN, mode: baseline, seed: 3}
+  - {agent: DuelingDQN, mode: no_epistemic, seed: 3}
+  - {agent: DuelingDQN, mode: periodic_cti, seed: 3}
+  - {agent: DuelingDQN, mode: greedy_cti, seed: 3}
+  - {agent: DuelingDDQN, mode: baseline, seed: 3}
+  - {agent: DuelingDDQN, mode: no_epistemic, seed: 3}
+  - {agent: DuelingDDQN, mode: periodic_cti, seed: 3}
+  - {agent: DuelingDDQN, mode: greedy_cti, seed: 3}
