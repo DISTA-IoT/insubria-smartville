@@ -1,16 +1,44 @@
 #!/usr/bin/env python3
-"""Multi-seed experiment runner for dash_cli.py.
+"""Multi-seed DQN-ablation experiment runner for dash_cli.py.
 
-For each agent in --agents, runs --seeds independent repetitions, varying only
-intrusion_detection.seed, so paper results can report mean +/- std across
-seeds instead of a single run per configuration. Every run reloads the
---profile config fresh (same pretrained inference module checkpoint every
-time) before overriding the agent type and seed, so settings from a previous
-agent/seed never leak into the next run.
+Sweeps only the value-learning (DQN-family) agents -- DQN, DDQN, DuelingDQN,
+DuelingDDQN -- across the three mutually-exclusive epistemic-action ablation
+modes described in drl_description.md / tiger_brain_new.py's
+`_select_unknown_cluster_action`:
 
-Workflow per (agent, seed) pair:
-1) Reload base profile config.
-2) Set intrusion_detection.agent and intrusion_detection.seed.
+- "baseline":     learned policy decides action 2 (buy CTI) on its own,
+                   i.e. greedy_cti=False, cti_period=-1, no_epistemic_actions=False
+                   (the config/default.yaml ablation-knob defaults).
+- "no_epistemic": intrusion_detection.no_epistemic_actions=True -- any agent-chosen
+                   action 2 is remapped to 1 (block); epistemic actions are
+                   effectively disabled.
+- "periodic_cti": intrusion_detection.cti_period=<N> -- action is hard-forced to 2
+                   every N steps, otherwise the agent is queried but its own 2's
+                   are remapped to 1.
+- "greedy_cti":   intrusion_detection.greedy_cti=True -- action is forced to 2
+                   whenever an unbought G2 class is available, otherwise the
+                   agent is queried but its own 2's are remapped to 1.
+
+For each (agent, mode) config, runs --seeds independent repetitions, varying
+only intrusion_detection.seed, so paper results can report mean +/- std
+across seeds instead of a single run per configuration. Every run reloads
+the --profile config fresh (same pretrained inference module checkpoint
+every time) before overriding the agent type, ablation mode, and seed, so
+settings from a previous run never leak into the next one.
+
+Sweep order: seeds are the OUTERMOST loop, configs (agent x mode) the
+innermost -- i.e. every (agent, mode) config is run once with seed[0] before
+any config is run with seed[1], and so on. This way, if the sweep is
+interrupted partway through, every seed that was started has a complete set
+of configs to compare, rather than some seeds having full coverage and the
+in-progress seed having only a few configs.
+
+Workflow per (seed, agent, mode) triple:
+1) Reload base profile config (this also resets all ablation knobs to the
+   profile's defaults).
+2) Set intrusion_detection.agent and intrusion_detection.seed, plus whichever
+   single ablation knob this mode turns on ("baseline" sets none, leaving the
+   profile defaults in place).
 3) Start experiment, then verify from the controller's own response that
    the seed/agent it actually applied match what was requested. Aborts the
    whole sweep loudly (non-zero exit, clear message) on any mismatch or
@@ -37,14 +65,30 @@ import time
 from pathlib import Path
 from typing import Any
 
-DEFAULT_AGENTS = [
-    "DQN", "DDQN", "DuelingDQN", "DuelingDDQN",
-    "PPO", "A2C",
-    "DAI_P", "DAI_A", "DAI_SA", "DAI_F",
-]
+DEFAULT_AGENTS = ["DQN", "DDQN", "DuelingDQN", "DuelingDDQN"]
 
 DEFAULT_SEEDS = [1, 2, 3]
 DEFAULT_HEALTH_POLL_INTERVAL_SECONDS = 60
+DEFAULT_CTI_PERIOD = 10
+
+# The three ablation knobs in tiger_brain_new.py's
+# `_select_unknown_cluster_action` are mutually exclusive, so "baseline"
+# leaves all of them at the profile's defaults (greedy_cti=False,
+# cti_period=-1, no_epistemic_actions=False) and each ablation mode below
+# sets exactly one of them.
+ABLATION_MODES = ["baseline", "no_epistemic", "periodic_cti", "greedy_cti"]
+
+
+def ablation_overrides(mode: str, cti_period: int) -> dict[str, Any]:
+    if mode == "baseline":
+        return {}
+    if mode == "no_epistemic":
+        return {"intrusion_detection.no_epistemic_actions": "true"}
+    if mode == "periodic_cti":
+        return {"intrusion_detection.cti_period": str(cti_period)}
+    if mode == "greedy_cti":
+        return {"intrusion_detection.greedy_cti": "true"}
+    raise ValueError(f"Unknown ablation mode: {mode!r}")
 
 
 def fail_loudly(message: str) -> None:
@@ -143,17 +187,21 @@ def run_one(
     dash_cli_path: Path,
     profile: str,
     agent: str,
+    mode: str,
+    overrides: dict[str, Any],
     seed: int,
     run_duration_seconds: int,
     group_name: str,
     health_poll_interval_seconds: int,
 ) -> None:
-    run_name = f"{agent}-seed{seed}"
+    run_name = f"{agent}-{mode}-seed{seed}"
     print(f"[step] Setting up {run_name}...", flush=True)
 
     run_step(dash_cli_path, ["--profile", profile, "init-config"])
     run_step(dash_cli_path, ["set", "intrusion_detection.agent", agent])
     run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+    for key, value in overrides.items():
+        run_step(dash_cli_path, ["set", key, value])
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", run_name])
     run_step(dash_cli_path, ["set", "wandb.wb_group_name", group_name])
 
@@ -185,7 +233,10 @@ def run_one(
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run multiple seeded repetitions per agent for statistical significance."
+        description=(
+            "Run multiple seeded repetitions of DQN-family agents x epistemic-"
+            "action ablation modes for statistical significance."
+        )
     )
     parser.add_argument(
         "--agents",
@@ -202,7 +253,31 @@ def main() -> int:
             f"Seeds to run per agent (default: {DEFAULT_SEEDS}). Each run starts "
             "from the same pretrained inference module checkpoint; the seed only "
             "controls exploration/sampling order and the DM agent's initial "
-            "network weights."
+            "network weights. Seeds are the outermost loop: every (agent, "
+            "ablation-mode) config is run once per seed before moving to the "
+            "next seed."
+        ),
+    )
+    parser.add_argument(
+        "--ablation-modes",
+        nargs="+",
+        default=ABLATION_MODES,
+        choices=ABLATION_MODES,
+        help=(
+            f"Epistemic-action ablation modes to sweep (default: {ABLATION_MODES}). "
+            "'baseline' leaves greedy_cti/cti_period/no_epistemic_actions at the "
+            "profile's defaults (i.e. the learned policy decides action 2 on its "
+            "own); the other three each force exactly one of those mutually-"
+            "exclusive override knobs in tiger_brain_new.py."
+        ),
+    )
+    parser.add_argument(
+        "--cti-period",
+        type=int,
+        default=DEFAULT_CTI_PERIOD,
+        help=(
+            f"Value of intrusion_detection.cti_period used by the 'periodic_cti' "
+            f"ablation mode (default: {DEFAULT_CTI_PERIOD})."
         ),
     )
     parser.add_argument(
@@ -258,21 +333,29 @@ def main() -> int:
     run_step(dash_cli_path, ["stop-experiment"])
     run_step(dash_cli_path, ["stop-traffic"])
 
-    total_runs = len(args.agents) * len(args.seeds)
+    total_runs = len(args.seeds) * len(args.agents) * len(args.ablation_modes)
     run_idx = 0
-    for agent in args.agents:
-        for seed in args.seeds:
-            run_idx += 1
-            print(f"\n===== Run {run_idx}/{total_runs}: agent={agent} seed={seed} =====", flush=True)
-            run_one(
-                dash_cli_path=dash_cli_path,
-                profile=args.profile,
-                agent=agent,
-                seed=seed,
-                run_duration_seconds=args.run_duration_seconds,
-                group_name=args.wandb_group_name,
-                health_poll_interval_seconds=args.health_poll_interval_seconds,
-            )
+    for seed in args.seeds:
+        for agent in args.agents:
+            for mode in args.ablation_modes:
+                run_idx += 1
+                overrides = ablation_overrides(mode, args.cti_period)
+                print(
+                    f"\n===== Run {run_idx}/{total_runs}: "
+                    f"seed={seed} agent={agent} mode={mode} =====",
+                    flush=True,
+                )
+                run_one(
+                    dash_cli_path=dash_cli_path,
+                    profile=args.profile,
+                    agent=agent,
+                    mode=mode,
+                    overrides=overrides,
+                    seed=seed,
+                    run_duration_seconds=args.run_duration_seconds,
+                    group_name=args.wandb_group_name,
+                    health_poll_interval_seconds=args.health_poll_interval_seconds,
+                )
 
     print("[done] Seeded sweep completed.", flush=True)
     return 0
