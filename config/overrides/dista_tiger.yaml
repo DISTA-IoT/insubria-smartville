@@ -5,7 +5,7 @@ node_features: false
 wandb:
   wb_tracking: true
   wb_run_name: 'DDQN'
-  wb_project_name:  'TIGER2.0'
+  wb_project_name:  'TIGER3.0'
   
 intrusion_detection:
   max_budget: 25
