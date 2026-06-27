@@ -1,7 +1,6 @@
 # TIGER / Smartville — Data Supply Chain (IM/DM, controller-side)
 
-This document describes, strictly from the code on `TIGER_PAPER_DO_NOT_DELETE`
-in `smartville-controller`, how data is produced, buffered, transformed and
+This document describes, strictly from the code on `smartville-controller`, how data is produced, buffered, transformed and
 finally consumed by the Inference Module (IM) and Decision Module (DM) inside
 `TigerBrain`. It does not describe RL theory or the MDP definition (see
 `drl_description.md` in the same repo for that) — it is strictly about the

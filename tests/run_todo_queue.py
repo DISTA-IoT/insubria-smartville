@@ -94,7 +94,7 @@ def main() -> int:
     queue = todo["queue"]
     profile = todo.get("profile", "dista_tiger")
     group_name = todo.get("wandb_group_name", "agents-seeded")
-    run_duration_seconds = int(todo.get("run_duration_seconds", 60 * 60))
+    run_duration_seconds = int(todo.get("run_duration_seconds", 60 * 100))
     health_poll_interval_seconds = int(todo.get("health_poll_interval_seconds", 60))
     default_cti_period = int(todo.get("cti_period", 10))
 
