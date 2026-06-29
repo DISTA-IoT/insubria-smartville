@@ -262,6 +262,7 @@ intrusion_detection:
   agent_discount_rate: 0.99
   agency: true # activates the management agent, false to only pretrain the inference modules.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
+  unknown_accept_reward_scale: 1.0 # downscales the reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy), relative to accepting a known-class group (always unscaled). Does not affect block rewards.
   epistemic_is_blocking: false
   no_epistemic_actions: false
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
