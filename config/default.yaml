@@ -263,6 +263,7 @@ intrusion_detection:
   agency: true # activates the management agent, false to only pretrain the inference modules.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   unknown_accept_reward_scale: 0.01 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
+  unknown_malicious_accept_penalty_scale: 1.0 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
   epistemic_is_blocking: false
   no_epistemic_actions: false
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
