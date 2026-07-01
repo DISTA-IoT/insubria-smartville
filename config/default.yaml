@@ -243,12 +243,12 @@ intrusion_detection:
   greedy_cti: False
   cti_period: -1
   confidence_strategy: 'energy' # can be 'energy', 'entropy', 'margin' or 'baseline' which corresponds to MSP, used by the results in the tiger paper
-  max_budget: 300
-  min_budget: -60
-  max_episode_steps: 200
+  max_budget: 600
+  min_budget: -650
+  max_episode_steps: 10000
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   tiger_init_budget: 1
-  cti_price_factor: 4
+  cti_price_factor: 5
   price_decay: false
   replay_batch_size: 32
   replay_buffer_max_capacity: 10000
@@ -262,8 +262,8 @@ intrusion_detection:
   agent_discount_rate: 0.99
   agency: true # activates the management agent, false to only pretrain the inference modules.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
-  unknown_accept_reward_scale: 0.01 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
-  unknown_malicious_accept_penalty_scale: 1.0 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
+  unknown_accept_reward_scale: 0.75 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
+  unknown_malicious_accept_penalty_scale: 1.25 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
   epistemic_is_blocking: false
   no_epistemic_actions: false
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
@@ -362,14 +362,14 @@ attackers:
 
 
 rewards:
-    - echo: 0.02
+    - echo: 0.2
     - hakai: -0.20
-    - mirai: -0.40
-    - hajime: -0.26
-    - doorlock: 0.01
-    - gafgyt: -0.5
-    - muhstik: -0.6
-    - h_scan: -0.7
+    - mirai: -0.040
+    - hajime: -0.026
+    - doorlock: 0.1
+    - gafgyt: -0.05
+    - muhstik: -0.06
+    - h_scan: -0.07
     - okiru: -0.8
     - generic_ddos: -0.9
     - torii: -0.51
