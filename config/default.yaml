@@ -237,6 +237,7 @@ intrusion_detection:
   use_neural_AD: True
   use_neural_KR: True
   use_neural_CS: True
+  exclude_g1_from_ad_known_set: false # if True, the online anomaly detector scores each sample only against the true Known-class prototypes, dropping G1 columns from its known-set. By default (false) G1 is folded into the inference known-set (G1 carries zda_label 0 at inference), so a real zero-day (G2) sitting near a G1 prototype is scored as non-anomalous and missed; enabling this removes that specific "G2-near-G1" blind spot. Skipped automatically if excluding G1 would empty the known-set.
   online_evaluation: false
   online_evaluation_rounds: 10
   pretrained_inference: True
@@ -261,6 +262,7 @@ intrusion_detection:
   greedy_decay: 0.999
   agent_discount_rate: 0.99
   agency: true # activates the management agent, false to only pretrain the inference modules.
+  relational_state: false # if True, the DM's exteroceptive state is a fixed-size relational summary of the group's/cluster's similarity to the known-class prototypes (nearest/farthest/mean closeness, spread, top-2 margin, entropy, energy), instead of the absolute hidden-space centroid. Keeps the decision layer consistent with the prototypical/relational-bottleneck inductive bias of the perception layers, is invariant to the number of known classes, and is more stable than absolute coordinates under representation drift. Default false (legacy raw-centroid state). Changes the RL state dimension, so pretrained DM weights are not compatible across this flag.
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   unknown_accept_reward_scale: 0.01 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
   unknown_malicious_accept_penalty_scale: 1.0 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
