@@ -142,11 +142,21 @@ class ConfidenceDecoder(nn.Module):
         known_support = torch.cat(known_support_chunks, dim=0)   # [Sk, D]
 
         # Tied within-class diagonal covariance (pooled second moment of the
-        # residuals, which have ~zero mean by construction).
-        within_var = self._diag_cov(residuals.pow(2).mean(dim=0))            # [D]
+        # residuals, which have ~zero mean by construction). The whitening
+        # denominators are DETACHED: differentiating through 1/variance yields
+        # a 1/variance^2 gradient that explodes as classes tighten (variance ->
+        # var_floor), which diverges the encoder to NaN over many training
+        # steps (surfaces as an inf priority crashing the DM's PER sum-tree,
+        # seen under offline_replay's repeated passes). Detaching treats the
+        # covariance as a fixed preconditioner of the current representation:
+        # the AD loss still shapes the encoder through the class means and the
+        # query embeddings (below), just not through the variance estimate.
+        # This changes only the backward pass -- forward/inference scores are
+        # identical.
+        within_var = self._diag_cov(residuals.pow(2).mean(dim=0)).detach()    # [D]
         # Class-agnostic background diagonal Gaussian over the known support.
         mu0 = known_support.mean(dim=0)                                       # [D]
-        var0 = self._diag_cov(((known_support - mu0) ** 2).mean(dim=0))       # [D]
+        var0 = self._diag_cov(((known_support - mu0) ** 2).mean(dim=0)).detach()  # [D]
 
         # Diagonal Mahalanobis^2 from each query point to each known centroid
         # and to the background.
