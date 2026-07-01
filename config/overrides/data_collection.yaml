@@ -2,7 +2,8 @@
 # Override profile for  data-collection runs (see smartville-controller/data_recorder.py).
 # Turns on TigerBrain's data_collection_mode so the controller
 # records fully-labelled batches to disk for later offline replay.
-
+host_ip: 192.168.183.146
+disable_proxy: true
 node_features: false
 
 
