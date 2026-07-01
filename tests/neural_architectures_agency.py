@@ -92,7 +92,7 @@ def main() -> int:
     ################################# simple krloss ################################################
 
     print("[step] Setting inference models path...\n", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/simple_krloss.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "simple_krloss"])
 
     print("[step] Setting modules path...\n", flush=True)
     run_step(dash_cli_path, ["set", "neural_modules.custom_classifier_path", "multiclass_flow_packet_classifier_pretrained_h200_simple_krloss.pt"])
@@ -116,7 +116,7 @@ def main() -> int:
     ################################# optim ################################################
 
     print("[step] Setting inference models path...\n", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/optim.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "optim"])
 
 
     print("[step] Setting modules path...\n", flush=True)
@@ -141,7 +141,7 @@ def main() -> int:
     ################################# dotprod KR ################################################
 
     print("[step] Setting inference models path...\n", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "dotprod_kr"])
 
 
     print("[step] Setting modules path...\n", flush=True)
@@ -167,7 +167,7 @@ def main() -> int:
     ################################# dotprod KR + simple krloss ############################################
 
     print("[step] Setting inference models path...\n", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr_simple_krloss.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "dotprod_kr_simple_krloss"])
 
 
     print("[step] Setting modules path...\n", flush=True)

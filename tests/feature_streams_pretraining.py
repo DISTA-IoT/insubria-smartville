@@ -94,7 +94,7 @@ def main() -> int:
 
 
     print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/optim.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "optim"])
 
     # run_step(dash_cli_path, ["set", "wandb.wb_tracking", "false"])
 
