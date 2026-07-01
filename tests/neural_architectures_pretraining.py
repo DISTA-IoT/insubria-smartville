@@ -99,7 +99,7 @@ def main() -> int:
     ################################# Optim modules ################################################
 
     print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/optim.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "optim"])
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "optim"])
@@ -118,7 +118,7 @@ def main() -> int:
     ################################# DotProd KR ################################################
     
     print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "dotprod_kr"])
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "dotprod_kr"])
@@ -139,7 +139,7 @@ def main() -> int:
     ################################# Simple KR Loss ################################################
 
     print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/simple_krloss.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "simple_krloss"])
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "simple_krloss"])
@@ -158,7 +158,7 @@ def main() -> int:
     ################################# Dotprod KR and Simple KR Loss ################################################
     
     print("[step] Setting inference models path...", flush=True)
-    run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr_simple_krloss.py"])
+    run_step(dash_cli_path, ["set", "inference_model_variant", "dotprod_kr_simple_krloss"])
 
     print("[step] Setting run name...", flush=True)
     run_step(dash_cli_path, ["set", "wandb.wb_run_name", "dotprod and simple krloss"])
