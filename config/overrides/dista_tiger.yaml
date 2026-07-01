@@ -8,9 +8,6 @@ wandb:
   wb_project_name:  'TIGER3.0'
   
 intrusion_detection:
-  max_budget: 100
-  cti_price_factor: 50
-  price_decay: true
   boltzmann_sampling: false
   agent: DDQN
 
