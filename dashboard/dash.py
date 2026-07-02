@@ -220,9 +220,14 @@ def main(cfg: DictConfig) -> None:
         # Kept as a float (not int) since tcpreplay -x accepts fractional
         # multipliers (e.g. 0.001) as well as integers.
         rendering_params['traffic_speeds'] = {}
+        # Per-node traffic pattern (e.g. 'doorlock', 'mirai'), so the button
+        # label can read "replay <pattern> from <node>" instead of just the
+        # node name.
+        rendering_params['traffic_patterns'] = {}
         for hostname, host_info in traffic_dict.items():
             rendering_params["traffic_buttons"].append(hostname)
             rendering_params["traffic_speeds"][hostname] = float(host_info.get('speed_multiplier') or 1)
+            rendering_params["traffic_patterns"][hostname] = host_info.get('pattern') or '?'
         return render_template('index.html', rendering_params=rendering_params)
 
 
