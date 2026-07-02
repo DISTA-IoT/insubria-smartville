@@ -67,16 +67,20 @@ def _apply_speed_multiplier(host_info, raw_value):
     Overlay a frontend-supplied speed multiplier onto a node's host_info,
     mutating it in place before it is POSTed to the node's /replay endpoint.
     Ignores None/blank/invalid values (leaving the node's configured
-    multiplier untouched) and clamps to a minimum of 1, so a node can never
-    be told to replay at 0x (which would stall the replay).
+    multiplier untouched). The value is passed straight through to
+    `tcpreplay -x <multiplier>` (see attacker_server.py/honeypot_server.py),
+    which accepts fractional multipliers (e.g. 0.001 to replay at 1/1000th
+    speed) as well as integers/large values -- so this stays a float, only
+    floored just above 0 to rule out a 0x/negative multiplier that would
+    stall or break the replay.
     """
     if raw_value is None or raw_value == "":
         return
     try:
-        speed = int(float(raw_value))
+        speed = float(raw_value)
     except (TypeError, ValueError):
         return
-    host_info['speed_multiplier'] = max(1, speed)
+    host_info['speed_multiplier'] = max(1e-6, speed)
 
 
 def init_traffic_stuff(cfg):
@@ -213,10 +217,12 @@ def main(cfg: DictConfig) -> None:
         # Per-node default speed multiplier for the traffic-speed knobs. Some
         # config entries carry a typo'd 'speed_multiplierd' key and thus no
         # real multiplier; fall back to 1 so the knob always shows a value.
+        # Kept as a float (not int) since tcpreplay -x accepts fractional
+        # multipliers (e.g. 0.001) as well as integers.
         rendering_params['traffic_speeds'] = {}
         for hostname, host_info in traffic_dict.items():
             rendering_params["traffic_buttons"].append(hostname)
-            rendering_params["traffic_speeds"][hostname] = int(host_info.get('speed_multiplier') or 1)
+            rendering_params["traffic_speeds"][hostname] = float(host_info.get('speed_multiplier') or 1)
         return render_template('index.html', rendering_params=rendering_params)
 
 
