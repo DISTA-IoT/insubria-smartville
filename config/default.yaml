@@ -299,17 +299,17 @@ honeypots:
   - victim-0: #192.168.1.4
       pattern: 'doorlock'
       destination: 'victim-1'
-      speed_multiplier: 5000
+      speed_multiplier: 1000
 
   - victim-1: #192.168.1.5
       pattern: 'echo'
       destination: 'victim-2'
-      speed_multiplier: 5000
+      speed_multiplier: 500
 
   - victim-2: #192.168.1.6
       pattern: 'hue' 
       destination: 'victim-0'
-      speed_multiplier: 50000
+      speed_multiplier: 5000
 
 
 attackers:
