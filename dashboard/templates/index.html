@@ -91,6 +91,7 @@
             <div class="tabs">
                 <button class="tablink active" onclick="openTab(event, 'gns3')">GNS3</button>
                 <button class="tablink" onclick="openTab(event, 'config')">CONFIGURATION</button>
+                <button class="tablink" onclick="openTab(event, 'packetqueues')">PACKET QUEUES</button>
             </div>
 
             <!-- ═══════════════ GNS3 TAB ═══════════════ -->
@@ -99,6 +100,39 @@
                     iframe { border-radius: 10px; }
                 </style>
                 <iframe src="http://{{ rendering_params.host_ip }}:{{ rendering_params.gns3_web_gui_port }}"></iframe>
+            </div>
+
+            <!-- ═══════════════ PACKET QUEUES TAB ═══════════════ -->
+            <div id="packetqueues" class="tabcontent">
+                <div class="ppf-panel">
+                    <div class="ppf-header">
+                        <h2 style="margin:0;">Pending Packet Features — queue utilisation</h2>
+                        <span id="ppf-status" class="ppf-status">idle</span>
+                    </div>
+                    <p class="ppf-explainer">
+                        One gauge per traffic class, showing how full that class's
+                        <code>pending_packet_feats</code> queue is (packets captured but not yet
+                        turned into samples), as a fraction of <code>max_pending_packet_feats</code>.
+                        The solid bar is the instantaneous fill; the ◆ marker is the
+                        <strong>peak since the last refresh</strong>. Because the inference loop drains
+                        these queues continuously, the instantaneous bar sits near 0 (red) almost
+                        always even under heavy replay — that is why you see
+                        <em>“no packets captured this tick”</em> so often. The peak marker reveals the
+                        capture bursts, and <strong>“consumed /s”</strong> is the real throughput of
+                        packets turned into samples: as long as it is non-zero, packets <em>are</em>
+                        flowing even when the queue looks empty. Updates every 3&nbsp;s from the controller.
+                    </p>
+                    <div class="ppf-legend">
+                        <span><i class="ppf-swatch" style="background:hsl(0,75%,45%)"></i>empty (0%)</span>
+                        <span><i class="ppf-swatch" style="background:hsl(60,75%,45%)"></i>half</span>
+                        <span><i class="ppf-swatch" style="background:hsl(120,70%,40%)"></i>full (100%+)</span>
+                        <span><i class="ppf-peak-key">◆</i> peak since last refresh</span>
+                        <span><i class="ppf-swatch" style="background:hsl(120,70%,40%);border-radius:50%"></i> consuming · <i class="ppf-swatch" style="background:#bbb;border-radius:50%"></i> idle</span>
+                    </div>
+                    <div id="ppf-gauges" class="ppf-gauges">
+                        <div class="ppf-empty">Waiting for controller data…</div>
+                    </div>
+                </div>
             </div>
 
             <!-- ═══════════════ CONFIG TAB ═══════════════ -->

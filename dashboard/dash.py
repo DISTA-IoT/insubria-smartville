@@ -671,6 +671,34 @@ def main(cfg: DictConfig) -> None:
         return response.json(), response.status_code
 
 
+    @app.route('/pending_packet_feats_stats', methods=['GET'])
+    def pending_packet_feats_stats():
+        """
+        Proxy the controller's live pending_packet_feats utilisation to the
+        dashboard's packet-queue gauges (polled every few seconds by dash.js).
+        The controller may be unreachable (not started yet / between
+        experiments); surface that as a normal payload with reachable=False so
+        the gauges can show an idle state instead of the poll throwing.
+        """
+        try:
+            controller_external_ip = containers_external_ips['pox-controller']
+        except KeyError:
+            return {"reachable": False, "initialized": False,
+                    "msg": "pox-controller IP not known yet (refresh containers?)",
+                    "classes": {}, "flows": []}
+        try:
+            response = requests.get(
+                f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/pending_packet_feats_stats",
+                timeout=3)
+            payload = response.json()
+            payload["reachable"] = True
+            return payload, response.status_code
+        except Exception as e:
+            return {"reachable": False, "initialized": False,
+                    "msg": f"controller unreachable: {e}",
+                    "classes": {}, "flows": []}
+
+
     @app.route('/attach_controller',  methods=['POST'])
     def  attach_controller():
         switch_container = containers_dict['openvswitch-1']

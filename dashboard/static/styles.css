@@ -457,3 +457,127 @@ body {
         @media (max-width: 640px) {
             #config .config-grid { grid-template-columns: 1fr; }
         }
+
+
+/* ===== Pending Packet Features gauges ===== */
+#packetqueues { overflow-y: auto; }
+
+.ppf-panel {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 18px 22px;
+  box-sizing: border-box;
+}
+
+.ppf-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ppf-header h2 { color: #222; }
+
+.ppf-status {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: #eee;
+  color: #555;
+  white-space: nowrap;
+}
+.ppf-status.ok   { background: #e5f5e5; color: #1b6d1b; }
+.ppf-status.warn { background: #fff3e0; color: #b26a00; }
+.ppf-status.err  { background: #fdecec; color: #b02020; }
+
+.ppf-explainer {
+  font-size: 0.82rem;
+  color: #555;
+  line-height: 1.5;
+  margin: 8px 0 14px;
+}
+.ppf-explainer code {
+  background: #eef;
+  padding: 0 4px;
+  border-radius: 3px;
+  font-size: 0.78rem;
+}
+
+.ppf-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 0.78rem;
+  color: #555;
+  margin-bottom: 16px;
+}
+.ppf-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.ppf-swatch {
+  display: inline-block;
+  width: 13px; height: 13px;
+  border-radius: 3px;
+}
+.ppf-peak-key { color: #222; font-style: normal; font-size: 0.95rem; }
+
+.ppf-gauges { display: flex; flex-direction: column; gap: 14px; }
+
+.ppf-empty {
+  color: #888;
+  font-style: italic;
+  padding: 24px 0;
+  text-align: center;
+}
+
+.ppf-row { display: flex; flex-direction: column; gap: 5px; }
+
+.ppf-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+.ppf-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.12);
+}
+.ppf-class { font-weight: 700; color: #222; }
+.ppf-nums { color: #777; font-size: 0.76rem; font-family: 'Courier New', monospace; }
+
+.ppf-track {
+  position: relative;
+  height: 18px;
+  border-radius: 4px;
+  /* subtle red -> yellow -> green backdrop so position also reads as level */
+  background: linear-gradient(90deg,
+      hsl(0,70%,88%) 0%, hsl(60,70%,88%) 50%, hsl(120,55%,86%) 100%);
+  border: 1px solid #d5d5d5;
+  overflow: hidden;
+}
+.ppf-fill {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  border-radius: 3px 0 0 3px;
+  transition: width 0.4s ease, background 0.4s ease;
+  min-width: 0;
+}
+.ppf-peak {
+  position: absolute;
+  top: -2px; bottom: -2px;
+  width: 0; height: auto;
+  border-left: 2px solid #1a1a1a;
+  transition: left 0.4s ease;
+}
+.ppf-peak::after {
+  content: "◆";
+  position: absolute;
+  top: -13px;
+  left: -5px;
+  font-size: 11px;
+  color: #1a1a1a;
+}
+/* ===== end Pending Packet Features gauges ===== */
