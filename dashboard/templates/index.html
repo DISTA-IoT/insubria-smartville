@@ -8,6 +8,9 @@
     <script>
     // data from server: cfg.knowledge
     const initialKnowledge = JSON.parse('{{ rendering_params.knowledge | tojson | safe }}');
+    // config knob: cfg.pending_packet_feats_poll_secs (default 3) -- how
+    // often the PACKET QUEUES tab polls the controller for gauge data.
+    const ppfPollSecs = {{ rendering_params.pending_packet_feats_poll_secs | tojson }};
     </script>
     <title>SmartVille</title>
 </head>
@@ -125,7 +128,8 @@
                         <em>“no packets captured this tick”</em> so often. The peak marker reveals the
                         capture bursts, and <strong>“consumed /s”</strong> is the real throughput of
                         packets turned into samples: as long as it is non-zero, packets <em>are</em>
-                        flowing even when the queue looks empty. Updates every 3&nbsp;s from the controller.
+                        flowing even when the queue looks empty. Updates every
+                        {{ rendering_params.pending_packet_feats_poll_secs }}&nbsp;s from the controller.
                     </p>
                     <div class="ppf-legend">
                         <span><i class="ppf-swatch" style="background:hsl(0,75%,45%)"></i>empty (0%)</span>

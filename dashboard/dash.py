@@ -25,12 +25,29 @@ import hydra
 import json
 import requests
 from flask import Flask, render_template, request, Response
+from werkzeug.serving import WSGIRequestHandler
 import os
 import ipaddress
 import atexit
 import signal
-from threading import Lock, Thread 
+from threading import Lock, Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+# Endpoints polled every few seconds by the frontend (e.g. the PACKET QUEUES
+# gauges) that would otherwise drown the dashboard's own request log, same
+# rationale as SUPPRESSED_ENDPOINTS on the controller side (tiger_server.py).
+SUPPRESSED_DASH_ENDPOINTS = [
+    '/pending_packet_feats_stats',
+]
+
+
+class QuietWSGIRequestHandler(WSGIRequestHandler):
+    def log_request(self, code="-", size="-"):
+        path = self.path.split('?', 1)[0]
+        if path in SUPPRESSED_DASH_ENDPOINTS:
+            return
+        super().log_request(code, size)
 
 
 containers_dict = {}
@@ -852,7 +869,7 @@ def main(cfg: DictConfig) -> None:
     init_controller_args() 
 
     # Run the Flask app
-    app.run(host='0.0.0.0',port=cfg['dashboard_port'])
+    app.run(host='0.0.0.0', port=cfg['dashboard_port'], request_handler=QuietWSGIRequestHandler)
 
 
 

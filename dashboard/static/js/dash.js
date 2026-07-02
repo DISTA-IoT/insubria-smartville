@@ -61,7 +61,14 @@ function openTab(evt, tabId) {
 // ---------- Pending-packet-features utilisation gauges ----------
 
 let ppfPollTimer = null;
-const PPF_POLL_MS = 3000;
+// Poll interval comes from the config knob cfg.pending_packet_feats_poll_secs
+// (rendered into the page as `ppfPollSecs`, default 3s -- see index.html).
+// Read lazily (not at module top level): dash.js's <script> tag runs before
+// the inline <script> that defines ppfPollSecs, same as initialKnowledge.
+function ppfPollMs() {
+  const secs = (typeof ppfPollSecs !== 'undefined' && ppfPollSecs > 0) ? ppfPollSecs : 3;
+  return secs * 1000;
+}
 // Per-class {packet_count, t} from the previous poll, used to derive the
 // consumption rate (packets/sec actually drained) client-side. This is the
 // number that stays clearly non-zero under replay even while the pending
@@ -176,7 +183,7 @@ function fetchPendingPacketStats() {
 function startPpfPolling() {
   if (ppfPollTimer) return;
   fetchPendingPacketStats();
-  ppfPollTimer = setInterval(fetchPendingPacketStats, PPF_POLL_MS);
+  ppfPollTimer = setInterval(fetchPendingPacketStats, ppfPollMs());
 }
 
 function stopPpfPolling() {
