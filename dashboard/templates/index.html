@@ -67,10 +67,10 @@
                     <summary class="h4">Expand Traffic Manager</summary>
                     {% for button in rendering_params.traffic_buttons %}
                     <nav class="traffic-node-row">
-                        <button id="{{ button }}_start_traffic" class="small">replay from {{ button }}</button>
-                        <button id="{{ button }}_stop_traffic" class="stop small">stop replay from {{ button }}</button>
-                        <label class="speed-knob-label" title="Speed multiplier for {{ button }} — stop this node's traffic to change it, then restart">
-                            ×<input type="number" min="1" step="1" class="speed-knob"
+                        <button id="{{ button }}_start_traffic" class="small">replay {{ rendering_params.traffic_patterns[button] }} from {{ button }}</button>
+                        <button id="{{ button }}_stop_traffic" class="stop small">stop replay {{ rendering_params.traffic_patterns[button] }} from {{ button }}</button>
+                        <label class="speed-knob-label" title="Speed multiplier for {{ button }} — fractional values (e.g. 0.001) replay slower than real-time; stop this node's traffic to change it, then restart">
+                            ×<input type="number" min="0.0001" step="any" class="speed-knob"
                                     id="{{ button }}_speed" data-node="{{ button }}"
                                     value="{{ rendering_params.traffic_speeds[button] }}">
                         </label>
