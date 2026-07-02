@@ -52,7 +52,7 @@ attackers:
   - attacker-2:
       pattern: 'hakai'
       destination: 'victim-1'
-      speed_multiplierd: 1
+      speed_multiplier: 1
 
   - benign-1:
       pattern: 'doorlock'

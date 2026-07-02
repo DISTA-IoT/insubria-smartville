@@ -18,13 +18,13 @@
 
 profile: dista_tiger
 wandb_group_name: agents-seeded
-run_duration_seconds: 3600
+run_duration_seconds: 2700
 health_poll_interval_seconds: 60
 cti_period: 10
 
 queue:
-  # - {agent: DQN, mode: baseline, seed: 1}
-  # - {agent: DDQN, mode: baseline, seed: 1}
+  - {agent: DQN, mode: baseline, seed: 1}
+  - {agent: DDQN, mode: baseline, seed: 1}
   - {agent: DuelingDQN, mode: baseline, seed: 1}
   - {agent: DuelingDDQN, mode: baseline, seed: 1}
   - {agent: DQN, mode: no_epistemic, seed: 1}
