@@ -189,6 +189,53 @@ function stopPpfPolling() {
 // ---------- end pending-packet gauges ----------
 
 
+// ---------- Per-node traffic speed knobs ----------
+// The speed knob for a node is locked (disabled) while that node's traffic is
+// running, so the user must stop the node to change its multiplier and then
+// restart it -- the multiplier is only read at /replay time.
+
+function nodeFromTrafficButtonId(id) {
+  // e.g. "attacker-3_start_traffic" / "victim-0_stop_traffic" -> node name
+  return id.replace(/_(start|stop)_traffic$/, "");
+}
+
+function speedKnobFor(node) {
+  return document.getElementById(`${node}_speed`);
+}
+
+function nodeSpeedValue(node) {
+  const knob = speedKnobFor(node);
+  return knob ? knob.value : undefined;
+}
+
+// { hostname: value } for every knob, for the "start all" path.
+function collectNodeSpeeds() {
+  const out = {};
+  document.querySelectorAll(".speed-knob").forEach(knob => {
+    out[knob.dataset.node] = knob.value;
+  });
+  return out;
+}
+
+function lockSpeedKnob(node, locked) {
+  const knob = speedKnobFor(node);
+  if (!knob) return;
+  knob.disabled = locked;
+  const label = knob.closest(".speed-knob-label");
+  if (label) label.classList.toggle("locked", locked);
+}
+
+function lockAllSpeedKnobs(locked) {
+  document.querySelectorAll(".speed-knob").forEach(knob => {
+    knob.disabled = locked;
+    const label = knob.closest(".speed-knob-label");
+    if (label) label.classList.toggle("locked", locked);
+  });
+}
+
+// ---------- end traffic speed knobs ----------
+
+
 function syncRewardInputs(rewardId, newValue) {
   const slider = document.getElementById(`reward_slider_${rewardId}`);
   const number = document.getElementById(`reward_number_${rewardId}`);
@@ -563,21 +610,25 @@ window.addEventListener('DOMContentLoaded', (event) => {
     });
   
     startTrafficButton.addEventListener("click", function() {
+        // starting all nodes -> lock every knob and send the current values
+        lockAllSpeedKnobs(true);
         fetch("/launch_traffic", {
           method: "POST",
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            config_from_frontend: config
+            config_from_frontend: config,
+            speeds: collectNodeSpeeds()
           })
         })
           .then(response => response.text())
           .then(data => logToConsole(data));
     });
-    
+
 
     stopTrafficButton.addEventListener("click", function() {
+        lockAllSpeedKnobs(false);   // all stopped -> knobs editable again
         fetch("/stop_traffic", {method: "POST"})
           .then(response => response.text())
           .then(data => logToConsole(data));
@@ -585,14 +636,17 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     startTrafficButtons.forEach(button => {
         button.addEventListener("click", function() {
+            const node = nodeFromTrafficButtonId(button.id);
+            lockSpeedKnob(node, true);   // running -> lock this node's knob
             fetch("/launch_traffic_single", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                   hostname: button.id,
-                  config_from_frontend: config 
+                  config_from_frontend: config,
+                  speed_multiplier: nodeSpeedValue(node)
                 })
             })
             .then(response => response.text())
@@ -602,6 +656,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     stopTrafficButtons.forEach(button => {
         button.addEventListener("click", function() {
+            const node = nodeFromTrafficButtonId(button.id);
+            lockSpeedKnob(node, false);   // stopped -> knob editable again
             fetch("/stop_traffic_single", {
                 method: "POST",
                 headers: {

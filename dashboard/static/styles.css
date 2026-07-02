@@ -581,3 +581,43 @@ body {
   color: #1a1a1a;
 }
 /* ===== end Pending Packet Features gauges ===== */
+
+
+/* ===== Per-node traffic speed knobs ===== */
+.traffic-node-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.speed-knob-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  color: #333;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.speed-knob {
+  width: 78px;
+  padding: 3px 5px;
+  font-size: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* locked = the node's traffic is running; multiplier can't be changed until
+   it is stopped and restarted (it is only read at /replay time). */
+.speed-knob:disabled {
+  background: #ececec;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.speed-knob-label.locked {
+  color: #999;
+}
+/* ===== end traffic speed knobs ===== */

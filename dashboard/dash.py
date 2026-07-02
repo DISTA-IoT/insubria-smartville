@@ -62,6 +62,23 @@ def merge_dicts(d1: dict, d2: dict) -> dict:
         return result
 
 
+def _apply_speed_multiplier(host_info, raw_value):
+    """
+    Overlay a frontend-supplied speed multiplier onto a node's host_info,
+    mutating it in place before it is POSTed to the node's /replay endpoint.
+    Ignores None/blank/invalid values (leaving the node's configured
+    multiplier untouched) and clamps to a minimum of 1, so a node can never
+    be told to replay at 0x (which would stall the replay).
+    """
+    if raw_value is None or raw_value == "":
+        return
+    try:
+        speed = int(float(raw_value))
+    except (TypeError, ValueError):
+        return
+    host_info['speed_multiplier'] = max(1, speed)
+
+
 def init_traffic_stuff(cfg):
     global traffic_dict, labelled_traffic_dict
 
@@ -193,8 +210,13 @@ def main(cfg: DictConfig) -> None:
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         rendering_params['traffic_buttons'] = []
+        # Per-node default speed multiplier for the traffic-speed knobs. Some
+        # config entries carry a typo'd 'speed_multiplierd' key and thus no
+        # real multiplier; fall back to 1 so the knob always shows a value.
+        rendering_params['traffic_speeds'] = {}
         for hostname, host_info in traffic_dict.items():
             rendering_params["traffic_buttons"].append(hostname)
+            rendering_params["traffic_speeds"][hostname] = int(host_info.get('speed_multiplier') or 1)
         return render_template('index.html', rendering_params=rendering_params)
 
 
@@ -273,14 +295,18 @@ def main(cfg: DictConfig) -> None:
     def launch_traffic():
 
         data = request.get_json(force=True)
+        # Per-node speed multipliers set on the frontend knobs (may be absent
+        # or partial); applied over each node's configured default below.
+        speeds = data.get('speeds', {}) or {}
 
         def call_node(hostname, host_info):
             node_external_ip = containers_external_ips[hostname]
-            
+
             host_info['health_monitoring'] = data['config_from_frontend']['health_monitoring']
             host_info['node_features'] = data['config_from_frontend']['node_features']
             host_info['health_params']['probe_metrics'] = [
                 key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val]
+            _apply_speed_multiplier(host_info, speeds.get(hostname))
             port = (cfg.topology_creator.victim.SERVER_PORT
                         if hostname.startswith('victim')
                         else cfg.topology_creator.attacker.SERVER_PORT)
@@ -321,8 +347,9 @@ def main(cfg: DictConfig) -> None:
         # update params from frontend configuration:
         host_info['health_monitoring'] = data['config_from_frontend']['health_monitoring']
         host_info['node_features'] = data['config_from_frontend']['node_features']
-        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val] 
-        
+        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val]
+        _apply_speed_multiplier(host_info, data.get('speed_multiplier'))
+
         port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
         response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"
