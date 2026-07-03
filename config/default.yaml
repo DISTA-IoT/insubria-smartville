@@ -328,7 +328,7 @@ attackers:
   - attacker-2: #192.168.1.8
       pattern: 'generic_ddos'
       destination: 'victim-1'
-      speed_multiplierd: 0.1
+      speed_multiplier: 0.1
 
   - attacker-3: #192.168.1.9
       pattern: 'h_scan'
