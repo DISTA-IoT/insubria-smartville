@@ -7,7 +7,7 @@ disable_proxy: false  # Whether to disable the proxy for the nodes of the topolo
 dashboard_port: 7777 # Port of the Flask dashboard in the host machine
 pending_packet_feats_poll_secs: 2 # How often (seconds) the dashboard's PACKET QUEUES tab polls the controller for pending_packet_feats queue utilisation
 browser_path: firefox
-inference_model_variant: mahalanobis # Picks im_models/<name>.py inside smartville-controller (default, mahalanobis, optim, dotprod_kr, dotprod_kr_simple_krloss, simple_krloss)
+inference_model_variant: deafult # Picks im_models/<name>.py inside smartville-controller (default, mahalanobis, optim, dotprod_kr, dotprod_kr_simple_krloss, simple_krloss)
 
 smart_controller_log_level: info
 smart_switch_log_level: info
@@ -189,8 +189,8 @@ neural_modules:
   hidden_size: 200
   kernel_regressor_heads: 2
   dropout: 0.2 # Dropout rate for the neural network.
-  use_encoder: false
-  recurrent_layers: 1
+  use_encoder: true
+  recurrent_layers: 2
   frozen_decoder: false
   custom_inference_model_path: false
   custom_classifier_path: emptystring
