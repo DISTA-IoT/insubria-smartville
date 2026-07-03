@@ -26,14 +26,15 @@ pipeline for node telemetry. All three are read once per "tick" by
             |                          (reason == OFPR_ACTION)
    FlowLogger.process_received_flow    FlowLogger.cache_unprocessed_packets
             |                                  |
-   flow.flow_feat_circular_buffer      flow.packet_feat_circular_buffer
-   (sliding window, 10000 cap)         (sticky last-packet slot)
+   flow.flow_feat_window                flow.packet_feat_window (uint8)
+   (deque, cap = flows_per_sample)      (sticky last-packets slot,
+                                          deque, cap = packets_per_sample)
                                               + flow.pending_packet_feats
                                               (FIFO queue, burst absorber)
                                                     |
                     \                             /
                      \                           /
-                TigerBrain.process_input (tight loop, no sleep)
+                TigerBrain.process_input (paced by its own cost, see §5)
                      |
             stack_flow_tensors -> Batch(flow_features, packet_features, node_features)
                      |
@@ -79,16 +80,15 @@ pipeline for node telemetry. All three are read once per "tick" by
 * **Feature extraction:** `extract_flow_feature_tensor` builds a 4-dim vector
   `[byte_count, duration_nsec/1e10, duration_sec, packet_count]`
   (`flow_feat_dim: 4`).
-* **Storage — sliding window, not a queue:** each new flow-stats vector is
-  pushed into `flow.flow_feat_circular_buffer`, a `CircularBuffer` of fixed
-  capacity `replay_buffer_max_capacity` (default **10000**) implemented with
-  `torch.roll` (oldest row evicted, newest appended at the tail — O(buffer
-  size) per insert, not O(1), since the whole tensor is rolled). At
-  consumption time, only the **last `flows_per_sample` rows** (default
-  **10**) are read via `get_flow_features()` — this 10-row window is what
-  feeds the IM's recurrent (GRU) encoder, i.e. a short, fixed-length history
-  of the flow's stat evolution at flow-stats-polling resolution
-  (10 polls × 5s ≈ last 50 seconds of that flow's stats by default).
+* **Storage — a fixed-length rolling window:** each new flow-stats vector is
+  appended to `flow.flow_feat_window`, a `collections.deque(maxlen=flows_per_sample)`
+  (default **10**), pre-filled with zero vectors so `get_flow_features()`
+  always returns a full `[flows_per_sample, flow_feat_dim]` tensor even before
+  any flow-stats have arrived for that flow. Appending is O(1) — the deque
+  drops the oldest row itself — and this window is exactly what feeds the
+  IM's recurrent (GRU) encoder, i.e. a short, fixed-length history of the
+  flow's stat evolution at flow-stats-polling resolution (10 polls × 5s ≈
+  last 50 seconds of that flow's stats by default).
 * **One row per flow per refresh, no fan-out:** unlike packet data, flow
   feature production is exactly 1:1 with the polling cadence — a flow whose
   stats haven't refreshed since the last poll just contributes the same
@@ -106,13 +106,13 @@ than, flow stats — this is the most consequential asymmetry in the system.
 ### 3.1 How packets get to the controller at all
 
 `SmartSwitch.send_sampling_rules` (timer-driven, period
-`switching_args.sampling_rate_seconds`, default **15s**) periodically
+`switching_args.sampling_rate_seconds`, default **10s**) periodically
 (re-)installs, per known flow, an OpenFlow rule whose actions include
 `self.sampling_action = ofp_action_output(port=OFPP_CONTROLLER, max_len=packet_feat_dim)`
 in addition to the normal forwarding actions. This rule is installed once
 per flow (`flow_id not in self.sampling_rule_messages`) and hard-timed-out
-after `switching_args.sampling_flow_hard_timeout` (default **1s**) — so for
-roughly 1 second after each 15-second tick, the switch mirrors a copy of
+after `switching_args.sampling_flow_hard_timeout` (default **7s**) — so for
+roughly 7 seconds after each 10-second tick, the switch mirrors a copy of
 every matching packet to the controller via `PacketIn` with
 `reason == OFPR_ACTION`, on top of normal forwarding. Whether resampling is
 even active is gated by the top-level `resample_packets` flag (default
@@ -122,7 +122,7 @@ packets originally triggered flow-rule installation are seen.
 This means packet capture happens in **short, dense bursts**, not a steady
 stream, and is **decoupled from `flowstats_freq_secs`** — many packets can
 arrive within a fraction of one flow-stats interval, or none at all if the
-1-second sampling window happens to miss traffic.
+sampling window happens to miss traffic.
 
 ### 3.2 Feature extraction and anonymization
 
@@ -135,16 +135,22 @@ buffers"). `build_packet_tensor` then:
 2. Zeroes IP header bytes 12–19 (source/dest address) — always anonymized.
 3. If `anonymize_transport_ports: true` (default), zeroes the 4 bytes at the
    IHL-derived transport-port offset.
-4. Converts to a `uint8`→`float32` tensor, right-padded with zeros if the
-   packet is shorter than `packet_feat_dim`.
+4. Converts to a `uint8` tensor (`torch.frombuffer(...).clone()`, so it owns
+   its storage rather than aliasing the source bytearray), right-padded with
+   zeros if the packet is shorter than `packet_feat_dim`. The tensor stays
+   `uint8` through both destinations below — raw packet bytes are integral
+   values in [0, 255], so this is lossless and 4x smaller than `float32` — and
+   is cast to `float32` exactly once per assembled batch, in
+   `stack_flow_tensors` (§3.4), preserving whatever device the batch is
+   assembled on (CPU or GPU).
 
 ### 3.3 Two destinations for the same packet tensor
 
-For every matching flow, the same extracted packet tensor is written to
-**two different structures** with different semantics:
-* `flow.packet_feat_circular_buffer.add(...)` — a sticky "last-known-packet"
-  slot (same `CircularBuffer` mechanism as flow stats, but here used to hold
-  a fallback value, read via `get_packet_features()`).
+For every matching flow, the same extracted (`uint8`) packet tensor is
+written to **two different structures** with different semantics:
+* `flow.add_packet_feature(...)` — appends to `flow.packet_feat_window`, a
+  `deque(maxlen=packets_per_sample)` holding the sticky "last-known-packets"
+  fallback, read via `get_packet_features()`.
 * `flow.queue_packet_feature(...)` — appends to `flow.pending_packet_feats`,
   a plain Python list acting as a FIFO burst-absorbing queue, bounded by
   `max_pending_packet_feats` (default **4096**); once full, additional
@@ -167,10 +173,20 @@ from flow data. For each flow, if `use_packet_feats`:
   contribute anywhere from 0 to 32 rows in a single tick depending purely on
   how many fresh packets it had queued, while still only contributing one
   set of flow-level stats.
-* If nothing was freshly captured this tick (`packet_chunks` empty), the flow
-  falls back to the sticky last-known packet (`get_packet_features()`) so it
-  still contributes exactly **one** row — it is never starved of packet
-  features even between sampling bursts.
+* If nothing was freshly captured this tick (`packet_chunks` empty), the
+  behavior is controlled by `cache_flows_with_no_packets` (default **true**):
+  when true, the flow falls back to the sticky last-known packets
+  (`get_packet_features()`) so it still contributes exactly **one** row and
+  is never starved of packet features even between sampling bursts; when
+  false, the flow is skipped for this tick entirely — it contributes no row
+  at all rather than re-emitting stale packet data. This knob only matters
+  when `use_packet_feats` is on; with packet features off every flow always
+  contributes exactly one row regardless of its value.
+* If every flow is skipped this tick (only reachable with
+  `cache_flows_with_no_packets: false`, when no flow had any fresh packet
+  queued), `stack_flow_tensors` returns `(None, [])` and the caller
+  (`process_input`) treats the tick as a no-op — no push to the replay
+  buffers, no inference, no training step for that tick.
 * `row_flow_indices` records, for every output batch row, which input flow
   produced it — necessary downstream because, with packet fan-out, batch
   rows are **no longer 1:1 with `flows`**; labels, `flow_id`s, etc. must be
@@ -212,17 +228,18 @@ row).
 
 ## 5. The consumption tick: `TigerBrain.process_input`
 
-* **Cadence:** `tiger_server.smart_check()` runs in a dedicated daemon thread
-  as a **tight `while` loop with no sleep** — `process_input` is invoked as
-  fast as the interpreter/lock allow, not on a fixed period. The only
-  natural throttling is (a) `tiger_lock`, shared with the flow-stats-polling
-  callback path, and (b) the fact that `process_input` is a no-op
-  (`if len(flows) > 0`) whenever `flow_logger.flows_dict` is non-empty but
-  nothing new has changed — it still re-stacks and re-pushes the *same*
-  sliding-window data every iteration when no new packets/flow-stats have
-  arrived in between, since `flows_dict` always reflects current state. This
-  means inference/training step frequency is effectively bounded by CPU and
-  lock contention, not by any configured "tick" knob.
+* **Cadence:** `tiger_server.smart_check()` runs in a dedicated daemon
+  thread as a `while` loop that sleeps, per iteration, only enough to floor
+  the loop period at `INFERENCE_LOOP_MIN_PERIOD` (**0.05s**) —
+  `time.sleep(max(0.0, INFERENCE_LOOP_MIN_PERIOD - elapsed))`. In practice
+  `process_input` itself (the IM forward/backward pass, dominated by
+  `online_inference` + `train_inf_module_single_batch`) takes far longer than
+  0.05s whenever there are flows to process, so the loop's real period is set
+  by that cost, not by the floor; the floor only matters on iterations where
+  `process_input` returns quickly (e.g. no flows yet), where it prevents the
+  loop from busy-spinning the CPU between ticks. `tiger_lock`, shared with the
+  flow-stats-polling callback path, serializes each iteration against
+  concurrent flow-stats updates.
 * **Two construction paths**, chosen by `data_collection_mode`:
   - Normal path: `assembly_input_tensor` = `stack_flow_tensors` (tensors
     only) + `get_labels` (mutates `DynamicLabelEncoder`/knowledge base; **must
@@ -231,21 +248,31 @@ row).
   - Data-collection path: same tensor assembly, but handed to
     `FlowDataRecorder.record(...)` instead of (or in addition to) training —
     see §6.
+  - Either path returns early (no push, no inference, no training, no data
+    recording) when `stack_flow_tensors` produced no rows this tick — see the
+    `cache_flows_with_no_packets` case in §3.4.
 * **`_process_batch`** (shared by the live path and offline replay,
   `process_input_from_record`) does, under `self._lock`:
   1. `push_to_replay_buffers` — every row, split by encoded class label, is
-     pushed into that class's `RawReplayBuffer` (plain Python list used as a
-     fixed-capacity ring buffer, capacity = `replay_buffer_max_capacity`,
-     default **10000**, FIFO overwrite, *not* prioritized — PER only applies
-     to the DM's own transition memory, a separate structure in
-     `replay_buffer.py`/`tiger_agents.py`).
+     pushed into that class's `RawReplayBuffer` — a struct-of-arrays ring
+     buffer (one preallocated tensor per feature stream plus one for labels),
+     capacity = `replay_buffer_max_capacity` (default **10000**), FIFO
+     overwrite, *not* prioritized — PER only applies to the DM's own
+     transition memory, a separate structure in
+     `replay_buffer.py`/`tiger_agents.py`.
   2. Gate: `batch_processing_allowed` only flips `True` once at least two
      classes' buffers each exceed `batch_size` (default **16**) samples AND
      at least one of those classes is in `current_knowledge['Knowns']`.
      Until then, samples are buffered but never used for inference/training.
   3. If allowed: `online_inference(batch)` (IM forward pass + DM
-     accept/block/buy-CTI decisions, see `drl_description.md`), then
-     `train_inf_module_single_batch()` (one gradient step).
+     accept/block/buy-CTI decisions, see `drl_description.md`) runs every
+     eligible tick. The training step is throttled independently: a
+     per-instance counter accumulates eligible ticks, and once it reaches
+     `train_every_n_ticks` (default **1**) it resets and runs
+     `train_inf_module_single_batch()` `train_steps_per_tick` (default **1**)
+     times in a row — i.e. inference always tracks live traffic every tick,
+     while the number and frequency of gradient steps against the balanced
+     buffers is an independent knob.
   4. Step counter increments either per-tick (`agency=false`) or per DM
      decision (`agency=true`, incremented once per known-class group / per
      anomaly cluster inside `act_on_known_traffic` / `act_on_unknown_clusters`).
@@ -311,7 +338,7 @@ bounded by `switching_args.max_buffered_packets` (default **5**, oldest
 dropped first) and expired after `switching_args.max_buffering_secs`
 (default **5s**) via a recurring `Timer(5, ...)`. It exists purely to avoid
 dropping forwarding traffic while ARP resolves, and has no interaction with
-`Flow`'s circular buffers, the replay buffers, or the IM/DM.
+`Flow`'s feature windows, the replay buffers, or the IM/DM.
 
 ---
 
@@ -320,20 +347,23 @@ dropping forwarding traffic while ARP resolves, and has no interaction with
 | Knob | Default | Governs |
 |---|---|---|
 | `intrusion_detection.flowstats_freq_secs` | 5 | Controller→switch flow-stats poll period (flow-feature production rate) |
-| `intrusion_detection.flows_per_sample` | 10 | Sliding-window length read from each flow's stat history per tick |
-| `switching_args.sampling_rate_seconds` | 15 | How often packet-mirroring OpenFlow rules are (re)installed per flow |
-| `switching_args.sampling_flow_hard_timeout` | 1 | How long each packet-mirroring rule stays active before expiring (burst window length) |
+| `intrusion_detection.flows_per_sample` | 10 | Rolling-window length read from (and capacity of) each flow's stat history (`flow.flow_feat_window`) |
+| `switching_args.sampling_rate_seconds` | 10 | How often packet-mirroring OpenFlow rules are (re)installed per flow |
+| `switching_args.sampling_flow_hard_timeout` | 7 | How long each packet-mirroring rule stays active before expiring (burst window length) |
 | `resample_packets` (top-level) | true | Whether packet mirroring happens at all |
-| `intrusion_detection.packets_per_sample` | 1 | Packets consumed per drained packet-feature chunk |
+| `intrusion_detection.packets_per_sample` | 1 | Packets consumed per drained packet-feature chunk; also the capacity of the sticky fallback window (`flow.packet_feat_window`) |
 | `intrusion_detection.max_packet_samples_per_flow_per_tick` | 32 | Caps batch-row fan-out per flow per tick from packet backlog |
 | `intrusion_detection.max_pending_packet_feats` | 4096 | Caps the per-flow burst-absorbing packet queue (`Flow.pending_packet_feats`); excess captured packets dropped, not queued |
+| `intrusion_detection.cache_flows_with_no_packets` | true | Whether a flow with no fresh packet this tick still contributes a row from its sticky fallback window (true) or is skipped for the tick (false); only matters when `use_packet_feats` is on |
 | `intrusion_detection.packet_feat_dim` | 64 | Bytes of raw packet kept per sample |
 | `intrusion_detection.flow_feat_dim` | 4 | Flow-stat feature vector width |
-| `intrusion_detection.replay_buffer_max_capacity` | 10000 | Capacity of both `Flow.*_circular_buffer`s and each per-class `RawReplayBuffer` |
+| `intrusion_detection.replay_buffer_max_capacity` | 10000 | Capacity of each per-class `RawReplayBuffer` (the IM/DM training store) — does not size the per-flow windows, which use `flows_per_sample` / `packets_per_sample` |
 | `intrusion_detection.batch_size` | 16 | Samples-per-class drawn for both online-aux and training batches; also the buffering gate threshold |
 | `intrusion_detection.k_shot` | 4 | Support-set rows per class inside each sampled batch (query mask) |
+| `intrusion_detection.train_steps_per_tick` | 1 | Gradient steps run per training-eligible tick (independent of the always-every-tick `online_inference` call) |
+| `intrusion_detection.train_every_n_ticks` | 1 | Runs the training block only every n-th training-eligible tick |
 | `switching_args.max_buffered_packets` / `max_buffering_secs` | 5 / 5 | Switch-side routing buffer (unrelated to ML pipeline, §7) |
 | `health.probe_frequency_seconds` | 3 | Node telemetry publish rate (attacker/victim → Kafka) |
 | `health.node_features_time_window` | 10 | Rolling window length kept per node metric on the controller |
 | `intrusion_detection.data_collection_shard_size` / `data_collection_flush_interval_secs` | 2000 / 30 | Offline-capture shard flush thresholds |
-| (no knob — busy loop) | n/a | `smart_check()`'s inference-tick rate has no period; it is an unthrottled `while` loop gated only by `tiger_lock` contention |
+| `INFERENCE_LOOP_MIN_PERIOD` (hardcoded in `tiger_server.smart_check`) | 0.05s | Floor on the inference-loop period; in practice `process_input`'s own cost sets the real period whenever there are flows to process (see §5) |
