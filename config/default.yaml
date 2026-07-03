@@ -223,6 +223,7 @@ intrusion_detection:
   packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
   max_packet_samples_per_flow_per_tick: 32 # Caps how many packet-feature samples a single flow can contribute to one inference/training tick; excess backlog drains over subsequent ticks instead of blowing up the batch size.
   max_pending_packet_feats: 4096 # Caps how many freshly-captured packets a single flow can queue up awaiting consumption (pending_packet_feats); once full, newly captured packets for that flow are dropped instead of growing the queue unbounded.
+  cache_flows_with_no_packets: true # If a flow captured no fresh packet this tick, still emit a sample from its sticky last-known packets (true, legacy behaviour) instead of skipping the flow for the tick (false). NOTE: this knob is gonna do something only if packet feats are activated (use_packet_feats=true); with packet feats off, every flow always contributes exactly one row regardless.
   packet_feat_dim: 64
   anonymize_transport_ports: true
   flow_feat_dim: 4
@@ -253,8 +254,14 @@ intrusion_detection:
   cti_price_factor: 2
   price_decay: false
   replay_batch_size: 32
-  replay_buffer_max_capacity: 10000
+  replay_buffer_max_capacity: 10000 # Capacity of each per-class inference-module training buffer (RawReplayBuffer) that online inference/training sample balanced batches from. NOTE: this no longer sizes the per-flow rolling windows -- those are sized by flows_per_sample / packets_per_sample (the only rows ever read), so this knob is purely the per-class training store.
   agent_memory_size: 2000
+  # K1: inference-module training cadence, decoupled from the (inference) tick.
+  # online_inference runs every tick (live metrics); training runs
+  # train_steps_per_tick gradient steps once every train_every_n_ticks
+  # training-eligible ticks. Defaults (1, 1) == the original one-step-per-tick.
+  train_steps_per_tick: 1 # How many IM gradient steps to run per training tick (>1 = more steps/tick, faster convergence but costlier tick; 0 = inference only, no IM training).
+  train_every_n_ticks: 1 # Run the IM training block only every n-th training-eligible tick (>1 = fewer gradient steps overall, cheaper ticks).
   repulsive_weight: 1
   attractive_weight: 1
   clustering_loss_backprop: True
