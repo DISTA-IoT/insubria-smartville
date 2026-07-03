@@ -343,7 +343,7 @@ attackers:
   - attacker-5: #192.168.1.11
       pattern: 'torii'
       destination: 'victim-1'
-      speed_multiplier: 200
+      speed_multiplier: 700
 
   - attacker-6: #192.168.1.12
       pattern: 'mirai'
@@ -368,7 +368,7 @@ attackers:
   - attacker-10: #192.168.1.16
       pattern: 'muhstik'
       destination: 'victim-0'
-      speed_multiplier: 100
+      speed_multiplier: 250
 
 
 rewards:
