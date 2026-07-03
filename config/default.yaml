@@ -311,7 +311,7 @@ honeypots:
   - victim-1: #192.168.1.5
       pattern: 'echo'
       destination: 'victim-2'
-      speed_multiplier: 500
+      speed_multiplier: 800
 
   - victim-2: #192.168.1.6
       pattern: 'hue' 
@@ -348,7 +348,7 @@ attackers:
   - attacker-6: #192.168.1.12
       pattern: 'mirai'
       destination: 'victim-2'
-      speed_multiplier: 2500
+      speed_multiplier: 3000
 
   - attacker-7: #192.168.1.13
       pattern: 'gafgyt'
@@ -363,7 +363,7 @@ attackers:
   - attacker-9: #192.168.1.15
       pattern: 'okiru'
       destination: 'victim-2'
-      speed_multiplier: 1.0
+      speed_multiplier: 5.0
 
   - attacker-10: #192.168.1.16
       pattern: 'muhstik'
