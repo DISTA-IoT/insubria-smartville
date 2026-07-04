@@ -1,6 +1,7 @@
 host_ip: 192.168.183.146
 disable_proxy: true
 node_features: false
+health_monitoring: false
 
 wandb:
   wb_tracking: true
@@ -10,6 +11,7 @@ wandb:
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
+  use_neural_AD: false
 
 
 topology_creator:
