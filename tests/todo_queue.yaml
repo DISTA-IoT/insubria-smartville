@@ -18,7 +18,7 @@
 
 profile: dista_tiger
 wandb_group_name: agents-seeded
-run_duration_seconds: 2700
+run_duration_seconds: 2000
 health_poll_interval_seconds: 60
 cti_period: 10
 

@@ -7,7 +7,7 @@ disable_proxy: false  # Whether to disable the proxy for the nodes of the topolo
 dashboard_port: 7777 # Port of the Flask dashboard in the host machine
 pending_packet_feats_poll_secs: 2 # How often (seconds) the dashboard's PACKET QUEUES tab polls the controller for pending_packet_feats queue utilisation
 browser_path: firefox
-inference_model_variant: default # Picks im_models/<name>.py inside smartville-controller (default, mahalanobis, optim, dotprod_kr, dotprod_kr_simple_krloss, simple_krloss)
+inference_model_variant: mahalanobis # Picks im_models/<name>.py inside smartville-controller (default, mahalanobis, optim, dotprod_kr, dotprod_kr_simple_krloss, simple_krloss)
 
 smart_controller_log_level: info
 smart_switch_log_level: info
@@ -240,6 +240,7 @@ intrusion_detection:
   use_neural_KR: True
   use_neural_CS: True
   exclude_g1_from_ad_known_set: false # if True, the online anomaly detector scores each sample only against the true Known-class prototypes, dropping G1 columns from its known-set. By default (false) G1 is folded into the inference known-set (G1 carries zda_label 0 at inference), so a real zero-day (G2) sitting near a G1 prototype is scored as non-anomalous and missed; enabling this removes that specific "G2-near-G1" blind spot. Skipped automatically if excluding G1 would empty the known-set.
+  ad_loss_backprop_to_encoder: true, # if True, the online anomaly detector loss is backpropagated to the encoder.
   online_evaluation: false
   online_evaluation_rounds: 10
   pretrained_inference: True
