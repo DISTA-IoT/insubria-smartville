@@ -13,7 +13,8 @@ intrusion_detection:
   agent: DDQN
   use_neural_KR: false
   ad_loss_backprop_to_encoder: false
-
+  two_level_epistemic_actions: true
+  
 topology_creator:
   # contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
   use_gns3_config_file: false
