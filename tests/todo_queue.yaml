@@ -24,12 +24,12 @@ cti_period: 10
 
 queue:
   - {agent: DQN, mode: baseline, seed: 1}
-  - {agent: DDQN, mode: baseline, seed: 1}
-  - {agent: DuelingDQN, mode: baseline, seed: 1}
-  - {agent: DuelingDDQN, mode: baseline, seed: 1}
   - {agent: DQN, mode: no_epistemic, seed: 1}
   - {agent: DQN, mode: periodic_cti, seed: 1}
   - {agent: DQN, mode: greedy_cti, seed: 1}
+  - {agent: DDQN, mode: baseline, seed: 1}
+  - {agent: DuelingDQN, mode: baseline, seed: 1}
+  - {agent: DuelingDDQN, mode: baseline, seed: 1}
 
   - {agent: DQN, mode: baseline, seed: 2}
   - {agent: DDQN, mode: baseline, seed: 2}
