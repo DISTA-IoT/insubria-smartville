@@ -250,6 +250,7 @@ intrusion_detection:
   max_budget: 600
   min_budget: -650
   max_episode_steps: 10000
+  disable_budget_bankrupt_termination: false # if True, episodes no longer end on bankruptcy (budget < min_budget); they end only on the step horizon (and, unless disabled, the win threshold). Default false keeps legacy bankrupt termination.
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   tiger_init_budget: 1
   cti_price_factor: 2
@@ -277,6 +278,7 @@ intrusion_detection:
   unknown_malicious_accept_penalty_scale: 1.25 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
   epistemic_is_blocking: false
   no_epistemic_actions: false
+  two_level_epistemic_actions: false # if True, a second epistemic action on an already-acquired G2 (bought at level 1, now Known) buys an "AD oracle" for that class: from then on its samples are flagged Known for free for the rest of the episode, bypassing the IM's neural anomaly-detection verdict, so they always route to the known-traffic (act_on_known) path. Default false keeps the single-level behaviour (a repeat buy is wasted).
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
   use_per: true # Use Prioritized Experience Replay
