@@ -240,6 +240,7 @@ intrusion_detection:
   use_neural_KR: True
   use_neural_CS: True
   exclude_g1_from_ad_known_set: false # if True, the online anomaly detector scores each sample only against the true Known-class prototypes, dropping G1 columns from its known-set. By default (false) G1 is folded into the inference known-set (G1 carries zda_label 0 at inference), so a real zero-day (G2) sitting near a G1 prototype is scored as non-anomalous and missed; enabling this removes that specific "G2-near-G1" blind spot. Skipped automatically if excluding G1 would empty the known-set.
+  ad_threshold: 0.75 # Decision threshold applied to the confidence decoder's anomaly probability to obtain the binary Known/anomaly verdict (both for the online decision path and for the AD confusion-matrix/accuracy metrics). Higher values require more confidence before flagging a sample as anomalous.
   ad_loss_backprop_to_encoder: true # if True, the online anomaly detector loss is backpropagated to the encoder.
   online_evaluation: false
   online_evaluation_rounds: 10
@@ -280,6 +281,18 @@ intrusion_detection:
   epistemic_is_blocking: false
   no_epistemic_actions: false
   two_level_epistemic_actions: false # if True, a second epistemic action on an already-acquired G2 (bought at level 1, now Known) buys an "AD oracle" for that class: from then on its samples are flagged Known for free for the rest of the episode, bypassing the IM's neural anomaly-detection verdict, so they always route to the known-traffic (act_on_known) path. Default false keeps the single-level behaviour (a repeat buy is wasted).
+  # --- CTI delivery fidelity (RC 3.4). Models imperfect CTI feeds: purchased
+  # intelligence may arrive with degraded label quality, only partial coverage,
+  # and/or after a delay, instead of the idealised clean/instant/complete
+  # delivery the base game assumes. All knobs default to the clean regime, so an
+  # unconfigured run is a strict no-op and reproduces existing results exactly.
+  # See smartController/cti_delivery.py (CTIDeliveryModel).
+  cti_label_noise: 0.0 # [0,1] fraction of an acquired class's training-label draws relabelled to a wrong class, poisoning its prototype. 0.0 = clean labels (legacy).
+  cti_label_noise_mode: 'symmetric' # 'symmetric' (flip to a uniformly-random other Known class) or 'nearest' (flip to the acquired class's nearest-prototype neighbour, a plausible confusion). Only used when cti_label_noise > 0.
+  cti_capture_fraction: 1.0 # (0,1] fraction of an acquired class's samples actually admitted into its replay buffer (partial capture). 1.0 = full live tap (legacy); lower = sparser, biased prototype.
+  cti_delivery_delay: 0 # decision steps between paying for CTI and the class becoming trainable (G2 -> Known). During the lag it stays an unlearnable, still-costly zero-day. 0 = instant delivery (legacy).
+  cti_delivery_jitter: 0 # +/- uniform random jitter (steps) on cti_delivery_delay, for stochastic feed latency. 0 = deterministic delay.
+  cti_quality_coupling: 'none' # 'none' | 'purity' | 'confidence'. When set, the label-noise and capture severities scale with (1 - cluster quality) at buy time (true majority-purity, or observed anomaly-confidence): buying CTI for a messy cluster yields worse data than for a clean one. This is the lever that makes selective (RL) buying necessary vs. blind heuristics. Delivery delay is not coupled (it models feed latency).
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
   use_per: true # Use Prioritized Experience Replay
