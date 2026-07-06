@@ -278,6 +278,14 @@ intrusion_detection:
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   unknown_accept_reward_scale: 0.75 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
   unknown_malicious_accept_penalty_scale: 1.25 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
+  # --- Supervision-value reward components (HIDDEN BY DEFAULT). Two optional,
+  # additive reward terms that credit a label-buying (supervised) policy for the
+  # perception-quality gains its CTI purchases produce, rather than penalising an
+  # unsupervised baseline with hand-tuned costs. Both default to 0.0, which fully
+  # hides them: no reward contribution and no wandb series emitted, so an
+  # unconfigured run is a strict no-op and reproduces existing results.
+  cluster_impurity_penalty_weight: 0.0 # >0 enables it. Per unknown-traffic cluster, subtracts weight * (1 - purity) from that cluster's reward, where purity is the fraction of the cluster's members sharing its majority true label. A policy that has bought more CTI leaves fewer distinct unknown classes bleeding together, so its collective-anomaly clusters are purer and it is penalised less. Tracked in wandb as AGENT/cluster_impurity_penalty and AGENT/mean_cluster_impurity when active.
+  classification_accuracy_reward_weight: 0.0 # >0 enables it. Per known-traffic group, adds weight * (that group's closed-set classification accuracy = fraction of its members the IM classified correctly) to its reward. A policy with more Known classes classifies its known traffic more accurately and so earns more. Tracked in wandb as AGENT/classification_accuracy_reward and AGENT/classification_accuracy when active.
   epistemic_is_blocking: false
   no_epistemic_actions: false
   two_level_epistemic_actions: false # if True, a second epistemic action on an already-acquired G2 (bought at level 1, now Known) buys an "AD oracle" for that class: from then on its samples are flagged Known for free for the rest of the episode, bypassing the IM's neural anomaly-detection verdict, so they always route to the known-traffic (act_on_known) path. Default false keeps the single-level behaviour (a repeat buy is wasted).
