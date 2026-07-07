@@ -247,6 +247,8 @@ intrusion_detection:
   pretrained_inference: True
   greedy_cti: False
   cti_period: -1
+  fixed_threshold_cti: False # RC 3.6(b): buy CTI whenever cluster confidence < cti_confidence_threshold
+  cti_confidence_threshold: 0.5 # threshold on the confidence_strategy signal (scale is strategy-dependent)
   confidence_strategy: 'energy' # confidence measure fed to the DM state: 'energy' | 'entropy' | 'margin' | 'baseline' (logit log-ratio)
   max_budget: 600
   min_budget: -850
