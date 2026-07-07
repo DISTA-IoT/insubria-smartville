@@ -18,6 +18,10 @@ modes described in drl_description.md / tiger_brain_new.py's
 - "greedy_cti":   intrusion_detection.greedy_cti=True -- action is forced to 2
                    whenever an unbought G2 class is available, otherwise the
                    agent is queried but its own 2's are remapped to 1.
+- "fixed_threshold": intrusion_detection.fixed_threshold_cti=True -- action is
+                   forced to 2 whenever the cluster confidence is below
+                   cti_confidence_threshold, otherwise the agent is queried but
+                   its own 2's are remapped to 1.
 
 For each (agent, mode) config, runs --seeds independent repetitions, varying
 only intrusion_detection.seed, so paper results can report mean +/- std
@@ -70,13 +74,14 @@ DEFAULT_AGENTS = ["DQN", "DDQN", "DuelingDQN", "DuelingDDQN"]
 DEFAULT_SEEDS = [1, 2, 3]
 DEFAULT_HEALTH_POLL_INTERVAL_SECONDS = 60
 DEFAULT_CTI_PERIOD = 10
+DEFAULT_CTI_CONFIDENCE_THRESHOLD = 0.5
 
 # The three ablation knobs in tiger_brain_new.py's
 # `_select_unknown_cluster_action` are mutually exclusive, so "baseline"
 # leaves all of them at the profile's defaults (greedy_cti=False,
 # cti_period=-1, no_epistemic_actions=False) and each ablation mode below
 # sets exactly one of them.
-ABLATION_MODES = ["baseline", "no_epistemic", "periodic_cti", "greedy_cti"]
+ABLATION_MODES = ["baseline", "no_epistemic", "periodic_cti", "greedy_cti", "fixed_threshold"]
 
 # wandb.wb_run_name uses these short labels instead of the agent name whenever
 # mode != "baseline", so that W&B's "group by name" groups all agents sharing
@@ -87,6 +92,7 @@ ABLATION_RUN_NAME = {
     "no_epistemic": "no_epis",
     "periodic_cti": "periodic",
     "greedy_cti": "greedy",
+    "fixed_threshold": "fixed_thr",
 }
 
 
@@ -96,7 +102,7 @@ def wb_run_name(agent: str, mode: str) -> str:
     return ABLATION_RUN_NAME[mode]
 
 
-def ablation_overrides(mode: str, cti_period: int) -> dict[str, Any]:
+def ablation_overrides(mode: str, cti_period: int, cti_confidence_threshold: float) -> dict[str, Any]:
     if mode == "baseline":
         return {}
     if mode == "no_epistemic":
@@ -105,6 +111,9 @@ def ablation_overrides(mode: str, cti_period: int) -> dict[str, Any]:
         return {"intrusion_detection.cti_period": str(cti_period)}
     if mode == "greedy_cti":
         return {"intrusion_detection.greedy_cti": "true"}
+    if mode == "fixed_threshold":
+        return {"intrusion_detection.fixed_threshold_cti": "true",
+                "intrusion_detection.cti_confidence_threshold": str(cti_confidence_threshold)}
     raise ValueError(f"Unknown ablation mode: {mode!r}")
 
 
@@ -303,6 +312,15 @@ def main() -> int:
         ),
     )
     parser.add_argument(
+        "--cti-confidence-threshold",
+        type=float,
+        default=DEFAULT_CTI_CONFIDENCE_THRESHOLD,
+        help=(
+            f"Value of intrusion_detection.cti_confidence_threshold used by the "
+            f"'fixed_threshold' ablation mode (default: {DEFAULT_CTI_CONFIDENCE_THRESHOLD})."
+        ),
+    )
+    parser.add_argument(
         "--profile",
         default="dista_tiger",
         help="config/overrides/<profile>.yaml to (re)load before each run (default: dista_tiger).",
@@ -361,7 +379,7 @@ def main() -> int:
         for agent in args.agents:
             for mode in args.ablation_modes:
                 run_idx += 1
-                overrides = ablation_overrides(mode, args.cti_period)
+                overrides = ablation_overrides(mode, args.cti_period, args.cti_confidence_threshold)
                 print(
                     f"\n===== Run {run_idx}/{total_runs}: "
                     f"seed={seed} agent={agent} mode={mode} =====",
