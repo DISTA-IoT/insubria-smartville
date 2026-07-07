@@ -289,6 +289,7 @@ intrusion_detection:
   epistemic_is_blocking: false
   no_epistemic_actions: false
   two_level_epistemic_actions: false # if True, a second epistemic action on an already-acquired G2 (bought at level 1, now Known) buys an "AD oracle" for that class: from then on its samples are flagged Known for free for the rest of the episode, bypassing the IM's neural anomaly-detection verdict, so they always route to the known-traffic (act_on_known) path. Default false keeps the single-level behaviour (a repeat buy is wasted).
+  dynamic_knowledge: false # if True, every episode reset draws a fresh random Knowns/G1s/G2s partition of the knowledge.Knowns+G1s+G2s class pool, instead of replaying the fixed partition below every episode. Group sizes are preserved (e.g. 3 Knowns / 3 G1s / 7 G2s), only which class falls in which group changes. Default false keeps the fixed curriculum defined under `knowledge:`.
   # --- CTI delivery fidelity (RC 3.4). Models imperfect CTI feeds: purchased
   # intelligence may arrive with degraded label quality, only partial coverage,
   # and/or after a delay, instead of the idealised clean/instant/complete
