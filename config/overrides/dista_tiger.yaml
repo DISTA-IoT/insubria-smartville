@@ -11,7 +11,6 @@ wandb:
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
-  use_neural_KR: false
   ad_loss_backprop_to_encoder: false
   hard_epistemic_action: true
   

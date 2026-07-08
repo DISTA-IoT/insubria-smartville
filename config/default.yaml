@@ -262,7 +262,7 @@ intrusion_detection:
   price_decay: false
   replay_batch_size: 32
   replay_buffer_max_capacity: 10000 # Capacity of each per-class inference-module training buffer (RawReplayBuffer) that online inference/training sample balanced batches from. NOTE: this no longer sizes the per-flow rolling windows -- those are sized by flows_per_sample / packets_per_sample (the only rows ever read), so this knob is purely the per-class training store.
-  agent_memory_size: 2000
+  agent_memory_size: 50000
   # K1: inference-module training cadence, decoupled from the (inference) tick.
   # online_inference runs every tick (live metrics); training runs
   # train_steps_per_tick gradient steps once every train_every_n_ticks
@@ -278,7 +278,7 @@ intrusion_detection:
   agent_discount_rate: 0.99
   agency: true # activates the management agent, false to only pretrain the inference modules.
   relational_state: false # if True, the DM's exteroceptive state is a fixed-size relational summary of the group's/cluster's similarity to the known-class prototypes (nearest/farthest/mean closeness, nearest reward, top2 reward, spread, top-2 margin, entropy, energy), instead of the absolute hidden-space centroid. Keeps the decision layer consistent with the prototypical/relational-bottleneck inductive bias of the perception layers, is invariant to the number of known classes, and is more stable than absolute coordinates under representation drift. Default false (legacy raw-centroid state). Changes the RL state dimension, so pretrained DM weights are not compatible across this flag.
-  proprio_feature_scaling: true # if True, the proprioceptive state is normalised per-feature here rather than by the net's pooled LayerNorm(PROPRIOCEPTIVE_STATE_SIZE).
+  proprio_feature_scaling: false # if True, the proprioceptive state is normalised per-feature here rather than by the net's pooled LayerNorm(PROPRIOCEPTIVE_STATE_SIZE).
   reward_temperature: 2.0 # temperature for the reward scalar in the relational state
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
   unknown_accept_reward_scale: 0.75 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
@@ -291,7 +291,7 @@ intrusion_detection:
   # unconfigured run is a strict no-op and reproduces existing results.
   cluster_impurity_penalty_weight: 0.0 # >0 enables it. Per unknown-traffic cluster, subtracts weight * (1 - purity) from that cluster's reward, where purity is the fraction of the cluster's members sharing its majority true label. A policy that has bought more CTI leaves fewer distinct unknown classes bleeding together, so its collective-anomaly clusters are purer and it is penalised less. Tracked in wandb as AGENT/cluster_impurity_penalty and AGENT/mean_cluster_impurity when active.
   classification_accuracy_reward_weight: 0.0 # >0 enables it. Per known-traffic group, adds weight * (that group's closed-set classification accuracy = fraction of its members the IM classified correctly) to its reward. A policy with more Known classes classifies its known traffic more accurately and so earns more. Tracked in wandb as AGENT/classification_accuracy_reward and AGENT/classification_accuracy when active.
-  epistemic_is_blocking: false
+  epistemic_is_blocking: true
   no_epistemic_actions: false
   hard_epistemic_action: true # if True, a single epistemic action buys both a G2's label and its "AD oracle" in one shot (same single price): the moment the label is delivered, its samples are flagged Known for free for the rest of the episode, bypassing the IM's neural anomaly-detection verdict, so they always route to the known-traffic (act_on_known) path. Default false keeps the plain behaviour (a label buy grants no oracle).
   dynamic_knowledge: false # if True, every episode reset draws a fresh random Knowns/G1s/G2s partition of the knowledge.Knowns+G1s+G2s class pool, instead of replaying the fixed partition below every episode. Group sizes are preserved (e.g. 3 Knowns / 3 G1s / 7 G2s), only which class falls in which group changes. Default false keeps the fixed curriculum defined under `knowledge:`.
@@ -403,19 +403,19 @@ attackers:
 
 
 rewards:
-    - echo: 8
-    - hakai: -0.20
-    - mirai: -0.040
-    - hajime: -0.026
-    - doorlock: 10
-    - gafgyt: -0.05
-    - muhstik: -0.1
-    - h_scan: -0.07
-    - okiru: -0.8
-    - generic_ddos: -0.9
-    - torii: -0.5
-    - cc_heartbeat: -0.6
-    - hue: 2
+    - echo: 1
+    - hakai: -1
+    - mirai: -1
+    - hajime: -1
+    - doorlock: 1
+    - gafgyt: -1
+    - muhstik: -1
+    - h_scan: -1
+    - okiru: -1
+    - generic_ddos: -1
+    - torii: -1
+    - cc_heartbeat: -1
+    - hue: 1
 
 
 knowledge:
