@@ -249,6 +249,7 @@ intrusion_detection:
   cti_period: -1
   fixed_threshold_cti: False # RC 3.6(b): buy CTI whenever cluster confidence < cti_confidence_threshold
   cti_confidence_threshold: 0.5 # threshold on the confidence_strategy signal (scale is strategy-dependent)
+  guard_learned_cti_affordability: False # if True, hold the LEARNED policy to the same affordability guard the scripted CTI baselines use: a self-chosen CTI buy (action 2) the agent cannot cover (paying its worst-case price would drop budget < min_budget) is remapped to a block, so the agent can never bankrupt itself on an epistemic action. Default False lets the agent's own action 2 through so it learns the budget constraint from the bankruptcy consequence itself (the more honest "does the agent discover the constraint" baseline). NOTE: a no-op whenever disable_budget_bankrupt_termination is True (no bankruptcy => every buy is affordable). Trade-off: On = faster/lower-variance convergence via invalid-action masking, but the learned budgeting competence is no longer measurable; Off = the agent must learn to budget, at the cost of self-inflicted early-training bankruptcies.
   confidence_strategy: 'energy' # confidence measure fed to the DM state: 'energy' | 'entropy' | 'margin' | 'baseline' (logit log-ratio)
   max_budget: 600
   min_budget: -850
