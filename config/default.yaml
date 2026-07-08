@@ -248,17 +248,18 @@ intrusion_detection:
   greedy_cti: False
   cti_period: -1
   fixed_threshold_cti: False # RC 3.6(b): buy CTI whenever cluster confidence < cti_confidence_threshold
-  cti_confidence_threshold: 0.5 # threshold on the confidence_strategy signal (scale is strategy-dependent)
-  guard_learned_cti_affordability: False # if True, hold the LEARNED policy to the same affordability guard the scripted CTI baselines use: a self-chosen CTI buy (action 2) the agent cannot cover (paying its worst-case price would drop budget < min_budget) is remapped to a block, so the agent can never bankrupt itself on an epistemic action. Default False lets the agent's own action 2 through so it learns the budget constraint from the bankruptcy consequence itself (the more honest "does the agent discover the constraint" baseline). NOTE: a no-op whenever disable_budget_bankrupt_termination is True (no bankruptcy => every buy is affordable). Trade-off: On = faster/lower-variance convergence via invalid-action masking, but the learned budgeting competence is no longer measurable; Off = the agent must learn to budget, at the cost of self-inflicted early-training bankruptcies.
+  cti_confidence_threshold: 4.0 # threshold on the confidence_strategy signal (scale is strategy-dependent)
+  guard_learned_cti_affordability: True # if True, hold the LEARNED policy to the same affordability guard the scripted CTI baselines use: a self-chosen CTI buy (action 2) the agent cannot cover (paying its worst-case price would drop budget < min_budget) is remapped to a block, so the agent can never bankrupt itself on an epistemic action. Default False lets the agent's own action 2 through so it learns the budget constraint from the bankruptcy consequence itself (the more honest "does the agent discover the constraint" baseline). NOTE: a no-op whenever disable_budget_bankrupt_termination is True (no bankruptcy => every buy is affordable). Trade-off: On = faster/lower-variance convergence via invalid-action masking, but the learned budgeting competence is no longer measurable; Off = the agent must learn to budget, at the cost of self-inflicted early-training bankruptcies.
   confidence_strategy: 'energy' # confidence measure fed to the DM state: 'energy' | 'entropy' | 'margin' | 'baseline' (logit log-ratio)
-  max_budget: 600
-  min_budget: -850
-  max_episode_steps: 10000
-  disable_budget_bankrupt_termination: true # if True, episodes no longer end on bankruptcy (budget < min_budget); they end only on the step horizon (and, unless disabled, the win threshold). Default false keeps legacy bankrupt termination.
+  max_budget: 2500
+  min_budget: -1000
+  max_episode_steps: 1000
+  disable_budget_bankrupt_termination: false # if True, episodes no longer end on bankruptcy (budget < min_budget); they end only on the step horizon (and, unless disabled, the win threshold). Default false keeps legacy bankrupt termination.
   disable_budget_win_termination: true # if True, episodes no longer end on hitting max_budget; they end only on the step horizon (>= max_episode_steps) or bankruptcy (< min_budget). Default true.
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   tiger_init_budget: 1
-  cti_price_factor: 2
+  useless_epistemic_penalty: 0
+  cti_price_factor: 10
   price_decay: false
   replay_batch_size: 32
   replay_buffer_max_capacity: 10000 # Capacity of each per-class inference-module training buffer (RawReplayBuffer) that online inference/training sample balanced batches from. NOTE: this no longer sizes the per-flow rolling windows -- those are sized by flows_per_sample / packets_per_sample (the only rows ever read), so this knob is purely the per-class training store.
@@ -281,8 +282,8 @@ intrusion_detection:
   proprio_feature_scaling: false # if True, the proprioceptive state is normalised per-feature here rather than by the net's pooled LayerNorm(PROPRIOCEPTIVE_STATE_SIZE).
   reward_temperature: 2.0 # temperature for the reward scalar in the relational state
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
-  unknown_accept_reward_scale: 0.75 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
-  unknown_malicious_accept_penalty_scale: 1.25 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
+  unknown_accept_reward_scale: 0.5 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
+  unknown_malicious_accept_penalty_scale: 1.5 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
   # --- Supervision-value reward components (HIDDEN BY DEFAULT). Two optional,
   # additive reward terms that credit a label-buying (supervised) policy for the
   # perception-quality gains its CTI purchases produce, rather than penalising an
@@ -302,11 +303,11 @@ intrusion_detection:
   # unconfigured run is a strict no-op and reproduces existing results exactly.
   # See smartController/cti_delivery.py (CTIDeliveryModel).
   cti_label_noise: 0.0 # [0,1] fraction of an acquired class's training-label draws relabelled to a wrong class, poisoning its prototype. 0.0 = clean labels (legacy).
-  cti_label_noise_mode: 'symmetric' # 'symmetric' (flip to a uniformly-random other Known class) or 'nearest' (flip to the acquired class's nearest-prototype neighbour, a plausible confusion). Only used when cti_label_noise > 0.
+  cti_label_noise_mode: 'nearest' # 'symmetric' (flip to a uniformly-random other Known class) or 'nearest' (flip to the acquired class's nearest-prototype neighbour, a plausible confusion). Only used when cti_label_noise > 0.
   cti_capture_fraction: 1.0 # (0,1] fraction of an acquired class's samples actually admitted into its replay buffer (partial capture). 1.0 = full live tap (legacy); lower = sparser, biased prototype.
   cti_delivery_delay: 0 # decision steps between paying for CTI and the class becoming trainable (G2 -> Known). During the lag it stays an unlearnable, still-costly zero-day. 0 = instant delivery (legacy).
   cti_delivery_jitter: 0 # +/- uniform random jitter (steps) on cti_delivery_delay, for stochastic feed latency. 0 = deterministic delay.
-  cti_quality_coupling: 'none' # 'none' | 'purity' | 'confidence'. When set, the label-noise and capture severities scale with (1 - cluster quality) at buy time (true majority-purity, or observed anomaly-confidence): buying CTI for a messy cluster yields worse data than for a clean one. This is the lever that makes selective (RL) buying necessary vs. blind heuristics. Delivery delay is not coupled (it models feed latency).
+  cti_quality_coupling: 'purity' # 'none' | 'purity' | 'confidence'. When set, the label-noise and capture severities scale with (1 - cluster quality) at buy time (true majority-purity, or observed anomaly-confidence): buying CTI for a messy cluster yields worse data than for a clean one. This is the lever that makes selective (RL) buying necessary vs. blind heuristics. Delivery delay is not coupled (it models feed latency).
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
   use_per: true # Use Prioritized Experience Replay
@@ -324,7 +325,7 @@ intrusion_detection:
   transitionnet_kl_divergence_regularisation_factor: 1.0
   variational_variational_transition_loss: false
   # for the transition model of the DAI agent:
-  leakyrelu_alpha: 0.2
+  leaky_relu_alpha: 0.2
   actor_train_interval_steps: 100 # how many STEPS to wait to train the policy net
   entropy_reg_coefficient: 1
   temperature_for_action_sampling: 1.0

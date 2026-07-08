@@ -11,8 +11,7 @@ wandb:
 intrusion_detection:
   boltzmann_sampling: false
   agent: DDQN
-  ad_loss_backprop_to_encoder: false
-  hard_epistemic_action: true
+  use_neural_kr: false
   
 topology_creator:
   # contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
