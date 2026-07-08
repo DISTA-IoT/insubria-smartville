@@ -74,7 +74,7 @@ DEFAULT_AGENTS = ["DQN", "DDQN", "DuelingDQN", "DuelingDDQN"]
 DEFAULT_SEEDS = [1, 2, 3]
 DEFAULT_HEALTH_POLL_INTERVAL_SECONDS = 60
 DEFAULT_CTI_PERIOD = 10
-DEFAULT_CTI_CONFIDENCE_THRESHOLD = 0.5
+DEFAULT_CTI_CONFIDENCE_THRESHOLD = 4
 
 # The three ablation knobs in tiger_brain_new.py's
 # `_select_unknown_cluster_action` are mutually exclusive, so "baseline"
