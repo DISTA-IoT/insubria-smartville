@@ -37,6 +37,7 @@ from typing import Any
 import yaml
 
 from seeded_agents import (
+    DEFAULT_CTI_CONFIDENCE_THRESHOLD,
     ablation_overrides,
     fail_loudly,
     run_one,
@@ -97,6 +98,9 @@ def main() -> int:
     run_duration_seconds = int(todo.get("run_duration_seconds", 60 * 100))
     health_poll_interval_seconds = int(todo.get("health_poll_interval_seconds", 60))
     default_cti_period = int(todo.get("cti_period", 10))
+    default_cti_confidence_threshold = float(
+        todo.get("cti_confidence_threshold", DEFAULT_CTI_CONFIDENCE_THRESHOLD)
+    )
 
     if not queue:
         print(f"[done] {args.todo_file} has an empty queue -- nothing to run.", flush=True)
@@ -120,7 +124,10 @@ def main() -> int:
             raise AssertionError("unreachable")
 
         cti_period = int(row.get("cti_period", default_cti_period))
-        overrides = ablation_overrides(mode, cti_period)
+        cti_confidence_threshold = float(
+            row.get("cti_confidence_threshold", default_cti_confidence_threshold)
+        )
+        overrides = ablation_overrides(mode, cti_period, cti_confidence_threshold)
 
         print(
             f"\n===== Queue item {idx}/{total}: agent={agent} mode={mode} seed={seed} "
