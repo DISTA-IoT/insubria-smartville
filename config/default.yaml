@@ -419,6 +419,33 @@ rewards:
     - hue: 1
 
 
+# Epistemic-action (CTI / label purchase) prices, one flat price per class.
+# DECOUPLED from `rewards` above: `rewards` is the per-flow budget delta an
+# accepted/blocked flow earns or costs, whereas `prices` is the flat price paid
+# to BUY a class's label via an epistemic action (DM action 2). The CTI price
+# used to be derived as |reward| * intrusion_detection.cti_price_factor, tying
+# the two together; it is now read directly from here so the label-buying cost
+# can be set independently of the flow economics. One entry per class in
+# knowledge.Knowns + G1s + G2s (a wasted buy, or a dynamic_knowledge reshuffle,
+# can make the epistemic action target any class). The price actually charged is
+# this value times the per-episode decay multiplier -- 1.0 unless
+# intrusion_detection.price_decay is enabled. Currently a flat 100 for everyone.
+prices:
+    echo: 100
+    hakai: 100
+    mirai: 100
+    hajime: 100
+    doorlock: 100
+    gafgyt: 100
+    muhstik: 100
+    h_scan: 100
+    okiru: 100
+    generic_ddos: 100
+    torii: 100
+    cc_heartbeat: 100
+    hue: 100
+
+
 knowledge:
 
     bening_patterns: 
