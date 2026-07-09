@@ -11,21 +11,26 @@
 # queue has run so far gives complete coverage of as many whole seeds
 # as possible.
 #
-# mode is one of: baseline, no_epistemic, periodic_cti, greedy_cti
+# mode is one of: baseline, no_epistemic, periodic_cti, greedy_cti, fixed_threshold
 #   (see tests/seeded_agents.py module docstring for what each one sets).
 # cti_period only matters for mode: periodic_cti; omit it elsewhere or to
-# use --cti-period's default.
+# use the top-level cti_period default below.
+# cti_confidence_threshold only matters for mode: fixed_threshold; omit it
+# elsewhere or to use the top-level cti_confidence_threshold default below.
 
 profile: dista_tiger
 wandb_group_name: step8dare
 run_duration_seconds: 4500
 health_poll_interval_seconds: 120
 cti_period: 10
+cti_confidence_threshold: 4
 
 queue:
   - {agent: DQN, mode: baseline, seed: 1}
   - {agent: DQN, mode: no_epistemic, seed: 1}
   - {agent: DQN, mode: greedy_cti, seed: 1}
+  # - {agent: DQN, mode: fixed_threshold, seed: 1}
+  # - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 4}
   # - {agent: DDQN, mode: baseline, seed: 1}
   # - {agent: DuelingDQN, mode: baseline, seed: 1}
   # - {agent: DuelingDDQN, mode: baseline, seed: 1}
