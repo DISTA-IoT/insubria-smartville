@@ -36,19 +36,21 @@
 # single run.
 
 profile: dista_tiger
-wandb_group_name: step8dare
-run_duration_seconds: 4500
+wandb_group_name: ORACLE
+run_duration_seconds: 2400
 health_poll_interval_seconds: 120
 cti_period: 10
 cti_confidence_threshold: 4
 
 queue:
 
-  - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 2}
-  - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 2}
-  - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 2}
-  - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 2}
-  - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 2}
+  # DONE-DISCARDED. (wandb_group_name: step8dare run_duration_seconds: 4500)
+
+  # - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 2}
 
   # - {agent: DQN, mode: baseline, seed: 1}
   # - {agent: DQN, mode: no_epistemic, seed: 1}
@@ -59,16 +61,14 @@ queue:
   # - {agent: DuelingDDQN, mode: baseline, seed: 1}
 
   # - {agent: DQN, mode: baseline, seed: 2}
-  - {agent: DDQN, mode: baseline, seed: 2}
   # - {agent: DuelingDQN, mode: baseline, seed: 2}
-  - {agent: DuelingDDQN, mode: baseline, seed: 2}
   # - {agent: DQN, mode: no_epistemic, seed: 2}
   # - {agent: DQN, mode: greedy_cti, seed: 2} 
   # - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 4}
 
   # - {agent: DQN, mode: baseline, seed: 3}
   # - {agent: DDQN, mode: baseline, seed: 3}
-  #- {agent: DuelingDQN, mode: baseline, seed: 3}
+  # - {agent: DuelingDQN, mode: baseline, seed: 3}
   # - {agent: DuelingDDQN, mode: baseline, seed: 3}
   # - {agent: DQN, mode: no_epistemic, seed: 3}
   # - {agent: DQN, mode: greedy_cti, seed: 3}
@@ -82,13 +82,12 @@ queue:
   # - {agent: DQN, mode: greedy_cti, seed: 4}
   # - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 4}
 
-  # - {agent: DQN, mode: baseline, seed: 5}
+  
   # - {agent: DDQN, mode: baseline, seed: 5}
   # - {agent: DuelingDQN, mode: baseline, seed: 5}
-  - {agent: DuelingDDQN, mode: baseline, seed: 5}
-  - {agent: DQN, mode: no_epistemic, seed: 5}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 5}
   # - {agent: DQN, mode: greedy_cti, seed: 5}
-  - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 4}
+  
 
   # --- Inference-model "oracle" ablation (queue-able ablating_inference_models.py) ---
   # Uncomment to run. One whole seed's worth of the seven inference configs is
@@ -100,26 +99,49 @@ queue:
   #
   # - {inference: perfect, seed: 1}
   # - {inference: only_AD, seed: 1}
-  # - {inference: only_CS, seed: 1}
-  # - {inference: only_KR, seed: 1}
+  - {inference: only_CS, seed: 1}
+  - {inference: only_KR, seed: 1}
   # - {inference: not_AD,  seed: 1}
-  # - {inference: not_CS,  seed: 1}
-  # - {inference: not_KR,  seed: 1}
-  #
+  - {inference: not_CS,  seed: 1}
+  - {inference: not_KR,  seed: 1}
+  
   # - {inference: perfect, seed: 12}
   # - {inference: only_AD, seed: 12}
-  # - {inference: only_CS, seed: 12}
-  # - {inference: only_KR, seed: 12}
+  - {inference: only_CS, seed: 12}
+  - {inference: only_KR, seed: 12}
   # - {inference: not_AD,  seed: 12}
-  # - {inference: not_CS,  seed: 12}
-  # - {inference: not_KR,  seed: 12}
+  - {inference: not_CS,  seed: 12}
+  - {inference: not_KR,  seed: 12}
   #
   # - {inference: perfect, seed: 123}
   # - {inference: only_AD, seed: 123}
-  # - {inference: only_CS, seed: 123}
-  # - {inference: only_KR, seed: 123}
+  - {inference: only_CS, seed: 123}
+  - {inference: only_KR, seed: 123}
   # - {inference: not_AD,  seed: 123}
-  # - {inference: not_CS,  seed: 123}
-  # - {inference: not_KR,  seed: 123}
+  - {inference: not_CS,  seed: 123}
+  - {inference: not_KR,  seed: 123}
+
+  # - {inference: perfect, seed: 1234}
+  # - {inference: only_AD, seed: 1234}
+  - {inference: only_CS, seed: 1234}
+  - {inference: only_KR, seed: 1234}
+  # - {inference: not_AD,  seed: 1234}
+  - {inference: not_CS,  seed: 1234}
+  - {inference: not_KR,  seed: 1234}
+
+  # - {inference: perfect, seed: 23}
+  # - {inference: only_AD, seed: 23}
+  - {inference: only_CS, seed: 23}
+  - {inference: only_KR, seed: 23}
+  # - {inference: not_AD,  seed: 23}
+  - {inference: not_CS,  seed: 23}
+  - {inference: not_KR,  seed: 23}
 
 
+  # TODO!!! (wandb_group_name: step8dare run_duration_seconds: 4500)
+
+  - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 4}
+  - {agent: DDQN, mode: baseline, seed: 2}
+  - {agent: DuelingDDQN, mode: baseline, seed: 2}
+  - {agent: DQN, mode: no_epistemic, seed: 5}
+  - {agent: DQN, mode: baseline, seed: 5}
