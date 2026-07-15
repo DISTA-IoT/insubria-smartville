@@ -26,42 +26,51 @@ cti_period: 10
 cti_confidence_threshold: 4
 
 queue:
-  - {agent: DQN, mode: baseline, seed: 1}
-  - {agent: DQN, mode: no_epistemic, seed: 1}
-  - {agent: DQN, mode: greedy_cti, seed: 1}
-  - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 4}
+
+  - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 2}
+  - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 2}
+  - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 2}
+  - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 2}
+  - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 2}
+
+  # - {agent: DQN, mode: baseline, seed: 1}
+  # - {agent: DQN, mode: no_epistemic, seed: 1}
+  # - {agent: DQN, mode: greedy_cti, seed: 1}
+  # - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 4}
   # - {agent: DDQN, mode: baseline, seed: 1}
   # - {agent: DuelingDQN, mode: baseline, seed: 1}
   # - {agent: DuelingDDQN, mode: baseline, seed: 1}
 
-  - {agent: DQN, mode: baseline, seed: 2}
-  # - {agent: DDQN, mode: baseline, seed: 2}
+  # - {agent: DQN, mode: baseline, seed: 2}
+  - {agent: DDQN, mode: baseline, seed: 2}
   # - {agent: DuelingDQN, mode: baseline, seed: 2}
-  # - {agent: DuelingDDQN, mode: baseline, seed: 2}
-  - {agent: DQN, mode: no_epistemic, seed: 2}
-  - {agent: DQN, mode: greedy_cti, seed: 2} 
-  - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 4}
+  - {agent: DuelingDDQN, mode: baseline, seed: 2}
+  # - {agent: DQN, mode: no_epistemic, seed: 2}
+  # - {agent: DQN, mode: greedy_cti, seed: 2} 
+  # - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 4}
 
-  - {agent: DQN, mode: baseline, seed: 3}
+  # - {agent: DQN, mode: baseline, seed: 3}
   # - {agent: DDQN, mode: baseline, seed: 3}
-  # - {agent: DuelingDQN, mode: baseline, seed: 3}
+  #- {agent: DuelingDQN, mode: baseline, seed: 3}
   # - {agent: DuelingDDQN, mode: baseline, seed: 3}
-  - {agent: DQN, mode: no_epistemic, seed: 3}
-  - {agent: DQN, mode: greedy_cti, seed: 3}
-  - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 4}
+  # - {agent: DQN, mode: no_epistemic, seed: 3}
+  # - {agent: DQN, mode: greedy_cti, seed: 3}
+  # - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 4}
 
-  - {agent: DQN, mode: baseline, seed: 4}
+  # - {agent: DQN, mode: baseline, seed: 4}
   # - {agent: DDQN, mode: baseline, seed: 4}
   # - {agent: DuelingDQN, mode: baseline, seed: 4}
   # - {agent: DuelingDDQN, mode: baseline, seed: 4}
-  - {agent: DQN, mode: no_epistemic, seed: 4}
-  - {agent: DQN, mode: greedy_cti, seed: 4}
-  - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 4}
+  # - {agent: DQN, mode: no_epistemic, seed: 4}
+  # - {agent: DQN, mode: greedy_cti, seed: 4}
+  # - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 4}
 
-  - {agent: DQN, mode: baseline, seed: 5}
+  # - {agent: DQN, mode: baseline, seed: 5}
   # - {agent: DDQN, mode: baseline, seed: 5}
   # - {agent: DuelingDQN, mode: baseline, seed: 5}
-  # - {agent: DuelingDDQN, mode: baseline, seed: 5}
+  - {agent: DuelingDDQN, mode: baseline, seed: 5}
   - {agent: DQN, mode: no_epistemic, seed: 5}
-  - {agent: DQN, mode: greedy_cti, seed: 5}
+  # - {agent: DQN, mode: greedy_cti, seed: 5}
   - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 4}
+
+
