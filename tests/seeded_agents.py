@@ -209,6 +209,81 @@ def wait_with_health_checks(
             fail_loudly(f"{run_name}: unexpected controller health status: {body}")
 
 
+def run_experiment(
+    dash_cli_path: Path,
+    profile: str,
+    seed: int,
+    overrides: dict[str, Any],
+    wb_run_name_value: str,
+    group_name: str,
+    run_duration_seconds: int,
+    health_poll_interval_seconds: int,
+    agent: str | None = None,
+    log_label: str | None = None,
+) -> None:
+    """
+    Run one experiment end-to-end: reload the base profile (which also resets
+    every ablation/inference knob back to the profile's defaults), apply the
+    seed and the given overrides, start and verify the run, wait it out while
+    polling controller health, then stop.
+
+    This is the crash-resilient primitive shared by both queue-able sweeps:
+    the DQN-family epistemic-action ablation (run_one, below, and
+    run_todo_queue.py) and the inference-model "oracle" ablation
+    (tests/inference_ablations.py). Both therefore get the same applied-config
+    verification and mid-run crash detection.
+
+    agent is optional. When given, intrusion_detection.agent is set and the
+    controller's echoed applied_agent is verified against it. When None, the
+    profile's default agent is left in place and only the seed is verified --
+    the inference-model ablation varies the inference stack rather than the DM
+    agent, so it intentionally does not touch (or assert on) the agent.
+
+    log_label is used only for console/error messages; wb_run_name_value is the
+    actual wandb.wb_run_name sent to W&B.
+    """
+    label = log_label or wb_run_name_value
+    print(f"[step] Setting up {label}...", flush=True)
+
+    run_step(dash_cli_path, ["--profile", profile, "init-config"])
+    if agent is not None:
+        run_step(dash_cli_path, ["set", "intrusion_detection.agent", agent])
+    run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+    for key, value in overrides.items():
+        run_step(dash_cli_path, ["set", key, value])
+    run_step(dash_cli_path, ["set", "wandb.wb_run_name", wb_run_name_value])
+    run_step(dash_cli_path, ["set", "wandb.wb_group_name", group_name])
+
+    print(f"[step] Starting {label} and verifying applied config...", flush=True)
+    body = run_step_json(dash_cli_path, ["start-experiment"])
+
+    if body.get("status_code") != 200:
+        fail_loudly(f"{label}: controller rejected /initialize: {body.get('msg')}")
+    if str(body.get("applied_seed")) != str(seed):
+        fail_loudly(
+            f"{label}: requested seed {seed!r} but controller reports applied_seed="
+            f"{body.get('applied_seed')!r} -- the seed was NOT transmitted/applied correctly."
+        )
+    if agent is not None and body.get("applied_agent") != agent:
+        fail_loudly(
+            f"{label}: requested agent {agent!r} but controller reports applied_agent="
+            f"{body.get('applied_agent')!r}."
+        )
+    print(
+        f"[ok] Confirmed controller applied seed={body['applied_seed']} "
+        f"agent={body.get('applied_agent')}",
+        flush=True,
+    )
+
+    run_step(dash_cli_path, ["start-traffic"])
+
+    wait_with_health_checks(dash_cli_path, run_duration_seconds, label, health_poll_interval_seconds)
+
+    print(f"[step] Stopping {label}...", flush=True)
+    run_step(dash_cli_path, ["stop-experiment"])
+    run_step(dash_cli_path, ["stop-traffic"])
+
+
 def run_one(
     dash_cli_path: Path,
     profile: str,
@@ -226,40 +301,18 @@ def run_one(
     # or just the ablation label (otherwise) for grouping; agent and seed are
     # both still recorded in the run's wandb config dict regardless.
     run_name = f"{agent}-{mode}-seed{seed}"
-    print(f"[step] Setting up {run_name}...", flush=True)
-
-    run_step(dash_cli_path, ["--profile", profile, "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.agent", agent])
-    run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
-    for key, value in overrides.items():
-        run_step(dash_cli_path, ["set", key, value])
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", wb_run_name(agent, mode)])
-    run_step(dash_cli_path, ["set", "wandb.wb_group_name", group_name])
-
-    print(f"[step] Starting {run_name} and verifying applied config...", flush=True)
-    body = run_step_json(dash_cli_path, ["start-experiment"])
-
-    if body.get("status_code") != 200:
-        fail_loudly(f"{run_name}: controller rejected /initialize: {body.get('msg')}")
-    if str(body.get("applied_seed")) != str(seed):
-        fail_loudly(
-            f"{run_name}: requested seed {seed!r} but controller reports applied_seed="
-            f"{body.get('applied_seed')!r} -- the seed was NOT transmitted/applied correctly."
-        )
-    if body.get("applied_agent") != agent:
-        fail_loudly(
-            f"{run_name}: requested agent {agent!r} but controller reports applied_agent="
-            f"{body.get('applied_agent')!r}."
-        )
-    print(f"[ok] Confirmed controller applied seed={body['applied_seed']} agent={body['applied_agent']}", flush=True)
-
-    run_step(dash_cli_path, ["start-traffic"])
-
-    wait_with_health_checks(dash_cli_path, run_duration_seconds, run_name, health_poll_interval_seconds)
-
-    print(f"[step] Stopping {run_name}...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
+    run_experiment(
+        dash_cli_path=dash_cli_path,
+        profile=profile,
+        seed=seed,
+        overrides=overrides,
+        wb_run_name_value=wb_run_name(agent, mode),
+        group_name=group_name,
+        run_duration_seconds=run_duration_seconds,
+        health_poll_interval_seconds=health_poll_interval_seconds,
+        agent=agent,
+        log_label=run_name,
+    )
 
 
 def main() -> int:
