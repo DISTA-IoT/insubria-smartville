@@ -11,12 +11,29 @@
 # queue has run so far gives complete coverage of as many whole seeds
 # as possible.
 #
-# mode is one of: baseline, no_epistemic, periodic_cti, greedy_cti, fixed_threshold
-#   (see tests/seeded_agents.py module docstring for what each one sets).
-# cti_period only matters for mode: periodic_cti; omit it elsewhere or to
-# use the top-level cti_period default below.
-# cti_confidence_threshold only matters for mode: fixed_threshold; omit it
-# elsewhere or to use the top-level cti_confidence_threshold default below.
+# Two kinds of row are supported and may be freely interleaved:
+#
+# 1) DQN-family epistemic-action ablation rows (the ones below):
+#      {agent, mode, seed [, cti_period, cti_confidence_threshold]}
+#    mode is one of: baseline, no_epistemic, periodic_cti, greedy_cti, fixed_threshold
+#      (see tests/seeded_agents.py module docstring for what each one sets).
+#    cti_period only matters for mode: periodic_cti; omit it elsewhere or to
+#    use the top-level cti_period default below.
+#    cti_confidence_threshold only matters for mode: fixed_threshold; omit it
+#    elsewhere or to use the top-level cti_confidence_threshold default below.
+#
+# 2) Inference-model "oracle" ablation rows (the queue-able form of
+#    tests/ablating_inference_models.py):
+#      {inference, seed [, agent]}
+#    inference is one of: perfect, only_AD, only_CS, only_KR, not_AD, not_CS,
+#      not_KR (see tests/inference_ablations.py for the use_neural_{AD,CS,KR}
+#      flags and W&B run name each one maps to). These ablate the neural
+#      inference stack, not the decision agent, so `agent` is optional and
+#      defaults to the profile's agent; when given it is set and verified.
+#    These default to W&B group "oracle" (not the top-level wandb_group_name).
+#
+# Any row may add `wandb_group_name: <name>` to override the group for that
+# single run.
 
 profile: dista_tiger
 wandb_group_name: step8dare
@@ -72,5 +89,37 @@ queue:
   - {agent: DQN, mode: no_epistemic, seed: 5}
   # - {agent: DQN, mode: greedy_cti, seed: 5}
   - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 4}
+
+  # --- Inference-model "oracle" ablation (queue-able ablating_inference_models.py) ---
+  # Uncomment to run. One whole seed's worth of the seven inference configs is
+  # grouped together below; the block is repeated per seed and ordered seed-major
+  # (all configs for seed 1, then seed 2, ...) for the same reason as above -- an
+  # interrupted queue then has complete per-seed coverage. These land in W&B group
+  # "oracle" by default. `agent` is optional (defaults to the profile's agent);
+  # add it if you want the oracle sweep pinned to a specific decision agent.
+  #
+  # - {inference: perfect, seed: 1}
+  # - {inference: only_AD, seed: 1}
+  # - {inference: only_CS, seed: 1}
+  # - {inference: only_KR, seed: 1}
+  # - {inference: not_AD,  seed: 1}
+  # - {inference: not_CS,  seed: 1}
+  # - {inference: not_KR,  seed: 1}
+  #
+  # - {inference: perfect, seed: 12}
+  # - {inference: only_AD, seed: 12}
+  # - {inference: only_CS, seed: 12}
+  # - {inference: only_KR, seed: 12}
+  # - {inference: not_AD,  seed: 12}
+  # - {inference: not_CS,  seed: 12}
+  # - {inference: not_KR,  seed: 12}
+  #
+  # - {inference: perfect, seed: 123}
+  # - {inference: only_AD, seed: 123}
+  # - {inference: only_CS, seed: 123}
+  # - {inference: only_KR, seed: 123}
+  # - {inference: not_AD,  seed: 123}
+  # - {inference: not_CS,  seed: 123}
+  # - {inference: not_KR,  seed: 123}
 
 

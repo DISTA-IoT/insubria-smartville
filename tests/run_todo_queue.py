@@ -7,6 +7,19 @@ the exact same per-run logic as seeded_agents.py (config reload, agent/seed/
 ablation overrides, applied-config verification, traffic start, health-polled
 wait, experiment/traffic stop).
 
+Two kinds of queue row are supported, told apart by their keys:
+
+  * DQN-family epistemic-action ablation rows (agent + mode + seed [+ cti_period
+    / cti_confidence_threshold]) -- the original rows, run via seeded_agents.py's
+    run_one / ablation_overrides.
+  * Inference-model "oracle" ablation rows (inference + seed [+ agent]) -- the
+    queue-able form of tests/ablating_inference_models.py, run via
+    tests/inference_ablations.py's mode table and seeded_agents.py's shared
+    run_experiment primitive. These default to W&B group "oracle".
+
+Both kinds may be freely interleaved in one queue file, and either kind may
+carry a per-row `wandb_group_name` to override the default group for that run.
+
 This exists because the platform this runs on sometimes crashes silently
 between runs (e.g. the whole machine/container becomes unreachable, not just
 the controller's inference loop -- that case is already caught by
@@ -36,10 +49,16 @@ from typing import Any
 
 import yaml
 
+from inference_ablations import (
+    ORACLE_GROUP_NAME,
+    inference_overrides,
+    inference_run_name,
+)
 from seeded_agents import (
     DEFAULT_CTI_CONFIDENCE_THRESHOLD,
     ablation_overrides,
     fail_loudly,
+    run_experiment,
     run_one,
     run_step,
     sleep_with_spinner,
@@ -115,10 +134,50 @@ def main() -> int:
 
     total = len(queue)
     for idx, row in enumerate(queue, start=1):
+        if not isinstance(row, dict):
+            fail_loudly(f"Queue row #{idx} ({row!r}) is not a mapping.")
+
+        try:
+            seed = int(row["seed"])
+        except KeyError as exc:
+            fail_loudly(f"Queue row #{idx} ({row!r}) is missing required key: {exc}")
+            raise AssertionError("unreachable")
+
+        # Inference-model "oracle" ablation row: identified by the `inference`
+        # key. Uses the profile's default agent unless one is given, and
+        # defaults to the "oracle" W&B group. See tests/inference_ablations.py.
+        if "inference" in row:
+            inference_mode = row["inference"]
+            overrides = inference_overrides(inference_mode)  # validates the mode
+            wb_run_name_value = inference_run_name(inference_mode)
+            agent = row.get("agent")  # optional; None -> profile default agent
+            row_group = row.get("wandb_group_name", ORACLE_GROUP_NAME)
+
+            print(
+                f"\n===== Queue item {idx}/{total}: inference={inference_mode} "
+                f"seed={seed}"
+                f"{f' agent={agent}' if agent is not None else ''} "
+                f"({total - idx} remaining after this) =====",
+                flush=True,
+            )
+            run_experiment(
+                dash_cli_path=dash_cli_path,
+                profile=profile,
+                seed=seed,
+                overrides=overrides,
+                wb_run_name_value=wb_run_name_value,
+                group_name=row_group,
+                run_duration_seconds=run_duration_seconds,
+                health_poll_interval_seconds=health_poll_interval_seconds,
+                agent=agent,
+                log_label=f"{inference_mode}-seed{seed}",
+            )
+            continue
+
+        # DQN-family epistemic-action ablation row (the original schema).
         try:
             agent = row["agent"]
             mode = row["mode"]
-            seed = int(row["seed"])
         except KeyError as exc:
             fail_loudly(f"Queue row #{idx} ({row!r}) is missing required key: {exc}")
             raise AssertionError("unreachable")
@@ -128,6 +187,7 @@ def main() -> int:
             row.get("cti_confidence_threshold", default_cti_confidence_threshold)
         )
         overrides = ablation_overrides(mode, cti_period, cti_confidence_threshold)
+        row_group = row.get("wandb_group_name", group_name)
 
         print(
             f"\n===== Queue item {idx}/{total}: agent={agent} mode={mode} seed={seed} "
@@ -142,7 +202,7 @@ def main() -> int:
             overrides=overrides,
             seed=seed,
             run_duration_seconds=run_duration_seconds,
-            group_name=group_name,
+            group_name=row_group,
             health_poll_interval_seconds=health_poll_interval_seconds,
         )
 
