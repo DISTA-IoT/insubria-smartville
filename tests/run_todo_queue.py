@@ -7,7 +7,7 @@ the exact same per-run logic as seeded_agents.py (config reload, agent/seed/
 ablation overrides, applied-config verification, traffic start, health-polled
 wait, experiment/traffic stop).
 
-Two kinds of queue row are supported, told apart by their keys:
+Four kinds of queue row are supported, told apart by their keys:
 
   * DQN-family epistemic-action ablation rows (agent + mode + seed [+ cti_period
     / cti_confidence_threshold]) -- the original rows, run via seeded_agents.py's
@@ -16,9 +16,21 @@ Two kinds of queue row are supported, told apart by their keys:
     queue-able form of tests/ablating_inference_models.py, run via
     tests/inference_ablations.py's mode table and seeded_agents.py's shared
     run_experiment primitive. These default to W&B group "oracle".
+  * Budget-constraint rows (budget + seed [+ agent]) -- the queue-able / live
+    form of tests/budget_constraints.py and the offline smartville-controller
+    sweep offline_budget_constraints.py, run via tests/budget_experiments.py's
+    config table. These default to W&B group "budget_constraints".
+  * CTI-delivery-fidelity rows (cti + seed [+ agent]) -- the live counterpart of
+    the offline smartville-controller sweep offline_cti_fidelity.py, run via
+    tests/cti_fidelity_experiments.py's config table. These default to W&B group
+    "cti-fidelity".
 
-Both kinds may be freely interleaved in one queue file, and either kind may
+All four kinds may be freely interleaved in one queue file, and any kind may
 carry a per-row `wandb_group_name` to override the default group for that run.
+The budget and CTI rows take an optional `agent` (defaults to the profile's
+agent, exactly as the inference rows do); their overrides only bite when the
+Decision Module is actually buying CTI, so run them against an agency-enabled
+profile.
 
 This exists because the platform this runs on sometimes crashes silently
 between runs (e.g. the whole machine/container becomes unreachable, not just
@@ -49,6 +61,16 @@ from typing import Any
 
 import yaml
 
+from budget_experiments import (
+    BUDGET_GROUP_NAME,
+    budget_overrides,
+    budget_run_name,
+)
+from cti_fidelity_experiments import (
+    CTI_GROUP_NAME,
+    cti_overrides,
+    cti_run_name,
+)
 from inference_ablations import (
     ORACLE_GROUP_NAME,
     inference_overrides,
@@ -171,6 +193,68 @@ def main() -> int:
                 health_poll_interval_seconds=health_poll_interval_seconds,
                 agent=agent,
                 log_label=f"{inference_mode}-seed{seed}",
+            )
+            continue
+
+        # Budget-constraint row: identified by the `budget` key. Uses the
+        # profile's default agent unless one is given, and defaults to the
+        # "budget_constraints" W&B group. See tests/budget_experiments.py.
+        if "budget" in row:
+            budget_config = row["budget"]
+            overrides = budget_overrides(budget_config)  # validates the config name
+            wb_run_name_value = budget_run_name(budget_config)
+            agent = row.get("agent")  # optional; None -> profile default agent
+            row_group = row.get("wandb_group_name", BUDGET_GROUP_NAME)
+
+            print(
+                f"\n===== Queue item {idx}/{total}: budget={budget_config} "
+                f"seed={seed}"
+                f"{f' agent={agent}' if agent is not None else ''} "
+                f"({total - idx} remaining after this) =====",
+                flush=True,
+            )
+            run_experiment(
+                dash_cli_path=dash_cli_path,
+                profile=profile,
+                seed=seed,
+                overrides=overrides,
+                wb_run_name_value=wb_run_name_value,
+                group_name=row_group,
+                run_duration_seconds=run_duration_seconds,
+                health_poll_interval_seconds=health_poll_interval_seconds,
+                agent=agent,
+                log_label=f"{budget_config}-seed{seed}",
+            )
+            continue
+
+        # CTI-delivery-fidelity row: identified by the `cti` key. Uses the
+        # profile's default agent unless one is given, and defaults to the
+        # "cti-fidelity" W&B group. See tests/cti_fidelity_experiments.py.
+        if "cti" in row:
+            cti_config = row["cti"]
+            overrides = cti_overrides(cti_config)  # validates the config name
+            wb_run_name_value = cti_run_name(cti_config)
+            agent = row.get("agent")  # optional; None -> profile default agent
+            row_group = row.get("wandb_group_name", CTI_GROUP_NAME)
+
+            print(
+                f"\n===== Queue item {idx}/{total}: cti={cti_config} "
+                f"seed={seed}"
+                f"{f' agent={agent}' if agent is not None else ''} "
+                f"({total - idx} remaining after this) =====",
+                flush=True,
+            )
+            run_experiment(
+                dash_cli_path=dash_cli_path,
+                profile=profile,
+                seed=seed,
+                overrides=overrides,
+                wb_run_name_value=wb_run_name_value,
+                group_name=row_group,
+                run_duration_seconds=run_duration_seconds,
+                health_poll_interval_seconds=health_poll_interval_seconds,
+                agent=agent,
+                log_label=f"{cti_config}-seed{seed}",
             )
             continue
 
