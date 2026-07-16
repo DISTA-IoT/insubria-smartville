@@ -343,7 +343,7 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.epistemic_regularisation_factor": "Epistemic regularisation factor for DAI agent.",
   "intrusion_detection.transitionnet_kl_divergence_regularisation_factor": "KL divergence regularisation factor for DAI agent.",
   "intrusion_detection.variational_variational_transition_loss": "Use variational variational transition loss for DAI agent.",
-  "intrusion_detection.leakyrelu_alpha": "LeakyReLU alpha parameter for DAI agent.",
+  "intrusion_detection.leaky_relu_alpha": "LeakyReLU alpha parameter for DAI agent.",
   "intrusion_detection.entropy_reg_coefficient": "Entropy regularisation coefficient for DAI agent.",
   "intrusion_detection.temperature_for_action_sampling": "Temperature for action sampling for DAI agent.",
   "intrusion_detection.surrogate_policy_consistency": "Use surrogate policy consistency for DAI agent.",
