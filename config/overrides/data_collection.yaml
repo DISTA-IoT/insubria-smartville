@@ -1,0 +1,25 @@
+
+# Override profile for  data-collection runs (see smartville-controller/data_recorder.py).
+# Turns on TigerBrain's data_collection_mode so the controller
+# records fully-labelled batches to disk for later offline replay.
+host_ip: 192.168.183.146
+disable_proxy: true
+node_features: false
+
+
+wandb:
+  wb_tracking: true
+  wb_project_name:  'TIGER3.0'
+  wb_run_name: 'data_collection'
+  wb_group_name: 'data_collection'
+
+intrusion_detection:
+  data_collection_mode: true
+  data_collection_dir: '/pox/pox/smartController/tiger_data_collection/'
+  # data_collection_shard_size: 200
+  data_collection_flush_interval_secs: 30
+  data_collection_use_packet_feats: true
+  data_collection_use_node_feats: false
+  # data_collection_skip_training: true
+  agency: false
+  pretrained_inference: false

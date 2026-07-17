@@ -1,24 +1,20 @@
-[submodule "BotMasterNode"]
-	path = BotMasterNode
-	url = https://github.com/DISTA-IoT/smartville-botmaster
-	branch = new_smartville
 [submodule "poxController"]
 	path = poxController
 	url = https://github.com/DISTA-IoT/smartville-controller
-	branch = new_smartville
+	branch = TIGER_PAPER_DO_NOT_DELETE
 [submodule "AttackerNode"]
 	path = AttackerNode
 	url = https://github.com/DISTA-IoT/smartville_attacker
-	branch = new_smartville
+	branch = TIGER_PAPER_DO_NOT_DELETE
 [submodule "VictimNode"]
 	path = VictimNode
 	url = https://github.com/DISTA-IoT/smartville_victim
-	branch = new_smartville
+	branch = TIGER_PAPER_DO_NOT_DELETE
 [submodule "smartville-monitor"]
 	path = smartville-monitor
 	url = https://github.com/DISTA-IoT/smartville-monitor
-	branch = master
+	branch = TIGER_PAPER_DO_NOT_DELETE
 [submodule "mockserver"]
 	path = mockserver
-	url = ./mockserver/
-	branch=main
+	url = https://github.com/DISTA-IoT/smartville-mockserver
+	branch=TIGER_PAPER_DO_NOT_DELETE

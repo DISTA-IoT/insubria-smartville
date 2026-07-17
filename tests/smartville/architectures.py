@@ -93,17 +93,17 @@ def main() -> int:
 
     def arch_sweep():
 
-        run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr.py"])
+        run_step(dash_cli_path, ["set", "inference_model_variant", "dotprod_kr"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "dotprod_kr"])
         start_experiment()
         stop_experiment()
 
-        run_step(dash_cli_path, ["set", "inference_models_path", "./models/simple_krloss.py"])
+        run_step(dash_cli_path, ["set", "inference_model_variant", "simple_krloss"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "simple_krloss"])
         start_experiment()
         stop_experiment()
 
-        run_step(dash_cli_path, ["set", "inference_models_path", "./models/dotprod_kr_simple_krloss.py"])
+        run_step(dash_cli_path, ["set", "inference_model_variant", "dotprod_kr_simple_krloss"])
         run_step(dash_cli_path, ["set", "wandb.wb_run_name", "dotprod and simple krloss"])
         start_experiment()
         stop_experiment()

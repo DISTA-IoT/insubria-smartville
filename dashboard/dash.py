@@ -25,12 +25,29 @@ import hydra
 import json
 import requests
 from flask import Flask, render_template, request, Response
+from werkzeug.serving import WSGIRequestHandler
 import os
 import ipaddress
 import atexit
 import signal
-from threading import Lock, Thread 
+from threading import Lock, Thread
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+# Endpoints polled every few seconds by the frontend (e.g. the PACKET QUEUES
+# gauges) that would otherwise drown the dashboard's own request log, same
+# rationale as SUPPRESSED_ENDPOINTS on the controller side (tiger_server.py).
+SUPPRESSED_DASH_ENDPOINTS = [
+    '/pending_packet_feats_stats',
+]
+
+
+class QuietWSGIRequestHandler(WSGIRequestHandler):
+    def log_request(self, code="-", size="-"):
+        path = self.path.split('?', 1)[0]
+        if path in SUPPRESSED_DASH_ENDPOINTS:
+            return
+        super().log_request(code, size)
 
 
 containers_dict = {}
@@ -60,6 +77,27 @@ def merge_dicts(d1: dict, d2: dict) -> dict:
             else:
                 result[k] = v
         return result
+
+
+def _apply_speed_multiplier(host_info, raw_value):
+    """
+    Overlay a frontend-supplied speed multiplier onto a node's host_info,
+    mutating it in place before it is POSTed to the node's /replay endpoint.
+    Ignores None/blank/invalid values (leaving the node's configured
+    multiplier untouched). The value is passed straight through to
+    `tcpreplay -x <multiplier>` (see attacker_server.py/honeypot_server.py),
+    which accepts fractional multipliers (e.g. 0.001 to replay at 1/1000th
+    speed) as well as integers/large values -- so this stays a float, only
+    floored just above 0 to rule out a 0x/negative multiplier that would
+    stall or break the replay.
+    """
+    if raw_value is None or raw_value == "":
+        return
+    try:
+        speed = float(raw_value)
+    except (TypeError, ValueError):
+        return
+    host_info['speed_multiplier'] = max(1e-6, speed)
 
 
 def init_traffic_stuff(cfg):
@@ -119,32 +157,6 @@ def append_ips_to_no_proxy():
     # Print the current value of no_proxy
     print(f"Current no_proxy value: {current_no_proxy}")
 
-
-def get_models_source(models_path: str, logger) -> str:
-    """
-    Read the neural model class definitions from a Python file.
-    
-    Args:
-        models_path: Path to the models file, relative to the project's main directory.
-        logger: Logger instance for error reporting.
-    
-    Returns:
-        Source code string of the models file.
-    """
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    main_dir = os.path.dirname(current_dir)
-    abs_models_path = os.path.join(main_dir, models_path)
-    
-    try:
-        with open(abs_models_path, 'r') as f:
-            logger.info(f"\033[95m 🧠 Using inference neural architectues from file: {abs_models_path}\033[0m")
-            return f.read()
-    except FileNotFoundError:
-        logger.error(f"Models file not found at resolved path: {abs_models_path}")
-        raise
-    except Exception as e:
-        logger.error(f"Error reading models file at {abs_models_path}: {e}")
-        raise
 
 def kill_socat_grafana():
     global grafana_socat_proc
@@ -219,8 +231,20 @@ def main(cfg: DictConfig) -> None:
         # print current working directory
         print(f"Current working directory: {os.getcwd()}")
         rendering_params['traffic_buttons'] = []
+        # Per-node default speed multiplier for the traffic-speed knobs. Some
+        # config entries carry a typo'd 'speed_multiplierd' key and thus no
+        # real multiplier; fall back to 1 so the knob always shows a value.
+        # Kept as a float (not int) since tcpreplay -x accepts fractional
+        # multipliers (e.g. 0.001) as well as integers.
+        rendering_params['traffic_speeds'] = {}
+        # Per-node traffic pattern (e.g. 'doorlock', 'mirai'), so the button
+        # label can read "replay <pattern> from <node>" instead of just the
+        # node name.
+        rendering_params['traffic_patterns'] = {}
         for hostname, host_info in traffic_dict.items():
             rendering_params["traffic_buttons"].append(hostname)
+            rendering_params["traffic_speeds"][hostname] = float(host_info.get('speed_multiplier') or 1)
+            rendering_params["traffic_patterns"][hostname] = host_info.get('pattern') or '?'
         return render_template('index.html', rendering_params=rendering_params)
 
 
@@ -299,14 +323,18 @@ def main(cfg: DictConfig) -> None:
     def launch_traffic():
 
         data = request.get_json(force=True)
+        # Per-node speed multipliers set on the frontend knobs (may be absent
+        # or partial); applied over each node's configured default below.
+        speeds = data.get('speeds', {}) or {}
 
         def call_node(hostname, host_info):
             node_external_ip = containers_external_ips[hostname]
-            
+
             host_info['health_monitoring'] = data['config_from_frontend']['health_monitoring']
             host_info['node_features'] = data['config_from_frontend']['node_features']
             host_info['health_params']['probe_metrics'] = [
                 key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val]
+            _apply_speed_multiplier(host_info, speeds.get(hostname))
             port = (cfg.topology_creator.victim.SERVER_PORT
                         if hostname.startswith('victim')
                         else cfg.topology_creator.attacker.SERVER_PORT)
@@ -347,8 +375,9 @@ def main(cfg: DictConfig) -> None:
         # update params from frontend configuration:
         host_info['health_monitoring'] = data['config_from_frontend']['health_monitoring']
         host_info['node_features'] = data['config_from_frontend']['node_features']
-        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val] 
-        
+        host_info['health_params']['probe_metrics']  = [key for key, val in data['config_from_frontend']['health']['probe_metrics'].items() if val]
+        _apply_speed_multiplier(host_info, data.get('speed_multiplier'))
+
         port = cfg.topology_creator.victim.SERVER_PORT if hostname.startswith('victim') else cfg.topology_creator.attacker.SERVER_PORT
         response = requests.post(f"http://{node_external_ip}:{port}/replay", json=host_info)
         return f"{hostname}:{response.status_code} - {response.json()['message']}"
@@ -674,7 +703,11 @@ def main(cfg: DictConfig) -> None:
         controller_external_ip = containers_external_ips['pox-controller']
         response = requests.post(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/initialize", json=controller_init_args)
         app.logger.info(f"Replay from controller answered with status code: {response.status_code}")
-        return response.json()
+        # Forward the controller's real HTTP status, not a blanket 200: the
+        # controller now returns proper error statuses on init failure, and
+        # collapsing everything to 200 here would silently hide that from
+        # any caller (CLI sweep scripts included) that checks HTTP status.
+        return response.json(), response.status_code
 
 
     @app.route('/stop_controller', methods=['POST'])
@@ -684,6 +717,41 @@ def main(cfg: DictConfig) -> None:
         response = response.json()
         app.logger.info(f"Replay from controller answered with status code: {response['status_code']}")
         return response
+
+
+    @app.route('/controller_health', methods=['GET'])
+    def controller_health():
+        controller_external_ip = containers_external_ips['pox-controller']
+        response = requests.get(f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/health")
+        return response.json(), response.status_code
+
+
+    @app.route('/pending_packet_feats_stats', methods=['GET'])
+    def pending_packet_feats_stats():
+        """
+        Proxy the controller's live pending_packet_feats utilisation to the
+        dashboard's packet-queue gauges (polled every few seconds by dash.js).
+        The controller may be unreachable (not started yet / between
+        experiments); surface that as a normal payload with reachable=False so
+        the gauges can show an idle state instead of the poll throwing.
+        """
+        try:
+            controller_external_ip = containers_external_ips['pox-controller']
+        except KeyError:
+            return {"reachable": False, "initialized": False,
+                    "msg": "pox-controller IP not known yet (refresh containers?)",
+                    "classes": {}, "flows": []}
+        try:
+            response = requests.get(
+                f"http://{controller_external_ip}:{cfg.topology_creator.controller.SERVER_PORT}/pending_packet_feats_stats",
+                timeout=3)
+            payload = response.json()
+            payload["reachable"] = True
+            return payload, response.status_code
+        except Exception as e:
+            return {"reachable": False, "initialized": False,
+                    "msg": f"controller unreachable: {e}",
+                    "classes": {}, "flows": []}
 
 
     @app.route('/attach_controller',  methods=['POST'])
@@ -793,7 +861,6 @@ def main(cfg: DictConfig) -> None:
         controller_init_args['ips_containers'] = internal_ips_containers
         controller_init_args['traffic_dict'] = traffic_dict
         controller_init_args['monitor_ip'] = containers_external_ips['monitor']
-        controller_init_args['models'] = get_models_source(cfg.inference_models_path, app.logger)
 
 
     refresh_containers() 
@@ -802,7 +869,7 @@ def main(cfg: DictConfig) -> None:
     init_controller_args() 
 
     # Run the Flask app
-    app.run(host='0.0.0.0',port=cfg['dashboard_port'])
+    app.run(host='0.0.0.0', port=cfg['dashboard_port'], request_handler=QuietWSGIRequestHandler)
 
 
 

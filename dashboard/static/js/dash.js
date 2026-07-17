@@ -50,7 +50,197 @@ function openTab(evt, tabId) {
 
       // Mark the clicked button as active
       evt.currentTarget.classList.add("active");
+
+      // Only poll the controller for packet-queue stats while that tab is
+      // actually open, so we don't hammer the controller in the background.
+      if (tabId === "packetqueues") startPpfPolling();
+      else stopPpfPolling();
     }
+
+
+// ---------- Pending-packet-features utilisation gauges ----------
+
+let ppfPollTimer = null;
+// Poll interval comes from the config knob cfg.pending_packet_feats_poll_secs
+// (rendered into the page as `ppfPollSecs`, default 3s -- see index.html).
+// Read lazily (not at module top level): dash.js's <script> tag runs before
+// the inline <script> that defines ppfPollSecs, same as initialKnowledge.
+function ppfPollMs() {
+  const secs = (typeof ppfPollSecs !== 'undefined' && ppfPollSecs > 0) ? ppfPollSecs : 3;
+  return secs * 1000;
+}
+// Per-class {packet_count, t} from the previous poll, used to derive the
+// consumption rate (packets/sec actually drained) client-side. This is the
+// number that stays clearly non-zero under replay even while the pending
+// queue reads ~0 -- i.e. the direct answer to "high packet counts but the
+// queue looks empty".
+const ppfPrev = {};
+
+function ppfUtilColor(u) {
+  // 0 -> red, 0.5 -> yellow, >=1 -> green. Matches the "red when empty,
+  // green when full" convention requested for the gauges.
+  const c = Math.max(0, Math.min(1, u));
+  return `hsl(${(120 * c).toFixed(0)}, 75%, 42%)`;
+}
+
+function ppfFmtCount(n) {
+  if (n === null || n === undefined) return "–";
+  if (n >= 1e6) return (n / 1e6).toFixed(1) + "M";
+  if (n >= 1e3) return (n / 1e3).toFixed(1) + "k";
+  return String(n);
+}
+
+function renderPendingPacketStats(data) {
+  const statusEl = document.getElementById("ppf-status");
+  const gaugesEl = document.getElementById("ppf-gauges");
+  if (!statusEl || !gaugesEl) return;
+
+  if (data.reachable === false) {
+    statusEl.textContent = "controller unreachable";
+    statusEl.className = "ppf-status err";
+    gaugesEl.innerHTML = `<div class="ppf-empty">${data.msg || "Controller not reachable."}</div>`;
+    return;
+  }
+  if (data.initialized === false) {
+    statusEl.textContent = "controller not initialized";
+    statusEl.className = "ppf-status warn";
+    gaugesEl.innerHTML = `<div class="ppf-empty">Start an experiment to begin capturing packets.</div>`;
+    return;
+  }
+
+  const classes = data.classes || {};
+  const names = Object.keys(classes).sort();
+  const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  statusEl.textContent = `live · ${names.length} class${names.length === 1 ? "" : "es"} · ${now}`;
+  statusEl.className = "ppf-status ok";
+
+  if (names.length === 0) {
+    gaugesEl.innerHTML = `<div class="ppf-empty">No flows seen yet. Start traffic and wait for the first flow-stats poll.</div>`;
+    return;
+  }
+
+  const nowMs = Date.now();
+  const rows = names.map(name => {
+    const c = classes[name];
+    const bounded = c.utilization !== null && c.utilization !== undefined;
+    const util = bounded ? c.utilization : 0;
+    const peakUtil = bounded ? (c.peak_utilization || 0) : 0;
+    const fillPct = (Math.max(0, Math.min(1, util)) * 100).toFixed(2);
+    const peakPct = (Math.max(0, Math.min(1, peakUtil)) * 100).toFixed(2);
+    const fillColor = ppfUtilColor(util);
+
+    // Consumption rate (packets/sec drained) from the packet_count delta.
+    const prev = ppfPrev[name];
+    let rate = null;
+    if (prev && nowMs > prev.t && c.packet_count >= prev.count) {
+      rate = (c.packet_count - prev.count) / ((nowMs - prev.t) / 1000);
+    }
+    ppfPrev[name] = { count: c.packet_count, t: nowMs };
+    // Dot = live activity: green while packets are actually being consumed,
+    // grey when idle -- independent of the (usually low) instantaneous fill.
+    const active = rate !== null && rate > 0;
+    const dotColor = active ? "hsl(120,70%,40%)" : "#bbb";
+    const rateTxt = rate === null ? "…"
+                  : rate >= 1 ? `${ppfFmtCount(Math.round(rate))}/s`
+                  : rate > 0 ? `${rate.toFixed(1)}/s` : "0/s";
+
+    const capTxt = bounded ? ppfFmtCount(c.capacity) : "∞";
+    const utilTxt = bounded ? (util * 100).toFixed(1) + "%" : "unbounded";
+    const peakTxt = bounded ? (peakUtil * 100).toFixed(0) + "%" : "";
+    const flowsTxt = c.num_flows > 1 ? ` · ${c.num_flows} flows` : "";
+
+    const peakMarker = bounded
+      ? `<div class="ppf-peak" style="left:${peakPct}%;" title="peak since last refresh: ${c.peak_pending}"></div>`
+      : "";
+
+    return `
+      <div class="ppf-row">
+        <div class="ppf-label">
+          <span class="ppf-dot" style="background:${dotColor};" title="${active ? "consuming packets" : "idle"}"></span>
+          <span class="ppf-class">${name}</span>
+          <span class="ppf-nums">${ppfFmtCount(c.pending)} / ${capTxt}
+            · peak ${ppfFmtCount(c.peak_pending)}${bounded ? " (" + peakTxt + ")" : ""}
+            · ${rateTxt} consumed
+            · Σ${ppfFmtCount(c.packet_count)}${flowsTxt}</span>
+        </div>
+        <div class="ppf-track" title="${utilTxt} full">
+          <div class="ppf-fill" style="width:${fillPct}%; background:${fillColor};"></div>
+          ${peakMarker}
+        </div>
+      </div>`;
+  });
+
+  gaugesEl.innerHTML = rows.join("");
+}
+
+function fetchPendingPacketStats() {
+  fetch("/pending_packet_feats_stats")
+    .then(r => r.json())
+    .then(renderPendingPacketStats)
+    .catch(err => renderPendingPacketStats({ reachable: false, msg: String(err) }));
+}
+
+function startPpfPolling() {
+  if (ppfPollTimer) return;
+  fetchPendingPacketStats();
+  ppfPollTimer = setInterval(fetchPendingPacketStats, ppfPollMs());
+}
+
+function stopPpfPolling() {
+  if (ppfPollTimer) {
+    clearInterval(ppfPollTimer);
+    ppfPollTimer = null;
+  }
+}
+
+// ---------- end pending-packet gauges ----------
+
+
+// ---------- Per-node traffic speed knobs ----------
+// The speed knob for a node is locked (disabled) while that node's traffic is
+// running, so the user must stop the node to change its multiplier and then
+// restart it -- the multiplier is only read at /replay time.
+
+function nodeFromTrafficButtonId(id) {
+  // e.g. "attacker-3_start_traffic" / "victim-0_stop_traffic" -> node name
+  return id.replace(/_(start|stop)_traffic$/, "");
+}
+
+function speedKnobFor(node) {
+  return document.getElementById(`${node}_speed`);
+}
+
+function nodeSpeedValue(node) {
+  const knob = speedKnobFor(node);
+  return knob ? knob.value : undefined;
+}
+
+// { hostname: value } for every knob, for the "start all" path.
+function collectNodeSpeeds() {
+  const out = {};
+  document.querySelectorAll(".speed-knob").forEach(knob => {
+    out[knob.dataset.node] = knob.value;
+  });
+  return out;
+}
+
+function lockSpeedKnob(node, locked) {
+  const knob = speedKnobFor(node);
+  if (!knob) return;
+  knob.disabled = locked;
+  const label = knob.closest(".speed-knob-label");
+  if (label) label.classList.toggle("locked", locked);
+}
+
+function lockAllSpeedKnobs(locked) {
+  document.querySelectorAll(".speed-knob").forEach(knob => {
+    knob.disabled = locked;
+    const label = knob.closest(".speed-knob-label");
+    if (label) label.classList.toggle("locked", locked);
+  });
+}
+
+// ---------- end traffic speed knobs ----------
 
 
 function syncRewardInputs(rewardId, newValue) {
@@ -138,12 +328,7 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.pretrained_inference": "Use pretrained inference modules for run-time decisions.",
   "intrusion_detection.agent": "Learning agent type (DQN/DDQN/DAI variants).",
   "intrusion_detection.multi_class": "Enable multiclass (instead of binary) classification behavior.",
-  "intrusion_detection.wrong_inference_penalisation": "Penalty regime for wrong inference: easy or hard.",
-  "intrusion_detection.bad_clustering_cost_factor": "Penalty factor for bad clustering. (hard penalty regime).",
-  "intrusion_detection.bad_classif_cost_factor": "Penalty factor for bad classification. (hard penalty regime).",
-  "intrusion_detection.no_confidence_penalty": "Penalty applied when management discards closed-set decision outputs.",
   "intrusion_detection.automatic_cs_acceptance": "Automatically accept closed-set inference from decision module.",
-  "intrusion_detection.useless_epistemic_penalty": "Penalty cost for taking an unhelpful epistemic action.",
   "intrusion_detection.boltzmann_sampling": "Use Boltzmann action sampling (DDQN uses epsilon-greedy unless enabled).",
   "intrusion_detection.update_target_freq": "Step interval to update the target model.",
   "intrusion_detection.actor_train_interval_steps": "Step interval to train actor/policy network.",
@@ -158,7 +343,7 @@ const CONFIG_PARAM_HELP = {
   "intrusion_detection.epistemic_regularisation_factor": "Epistemic regularisation factor for DAI agent.",
   "intrusion_detection.transitionnet_kl_divergence_regularisation_factor": "KL divergence regularisation factor for DAI agent.",
   "intrusion_detection.variational_variational_transition_loss": "Use variational variational transition loss for DAI agent.",
-  "intrusion_detection.leakyrelu_alpha": "LeakyReLU alpha parameter for DAI agent.",
+  "intrusion_detection.leaky_relu_alpha": "LeakyReLU alpha parameter for DAI agent.",
   "intrusion_detection.entropy_reg_coefficient": "Entropy regularisation coefficient for DAI agent.",
   "intrusion_detection.temperature_for_action_sampling": "Temperature for action sampling for DAI agent.",
   "intrusion_detection.surrogate_policy_consistency": "Use surrogate policy consistency for DAI agent.",
@@ -432,21 +617,25 @@ window.addEventListener('DOMContentLoaded', (event) => {
     });
   
     startTrafficButton.addEventListener("click", function() {
+        // starting all nodes -> lock every knob and send the current values
+        lockAllSpeedKnobs(true);
         fetch("/launch_traffic", {
           method: "POST",
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            config_from_frontend: config
+            config_from_frontend: config,
+            speeds: collectNodeSpeeds()
           })
         })
           .then(response => response.text())
           .then(data => logToConsole(data));
     });
-    
+
 
     stopTrafficButton.addEventListener("click", function() {
+        lockAllSpeedKnobs(false);   // all stopped -> knobs editable again
         fetch("/stop_traffic", {method: "POST"})
           .then(response => response.text())
           .then(data => logToConsole(data));
@@ -454,14 +643,17 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     startTrafficButtons.forEach(button => {
         button.addEventListener("click", function() {
+            const node = nodeFromTrafficButtonId(button.id);
+            lockSpeedKnob(node, true);   // running -> lock this node's knob
             fetch("/launch_traffic_single", {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                   hostname: button.id,
-                  config_from_frontend: config 
+                  config_from_frontend: config,
+                  speed_multiplier: nodeSpeedValue(node)
                 })
             })
             .then(response => response.text())
@@ -471,6 +663,8 @@ window.addEventListener('DOMContentLoaded', (event) => {
 
     stopTrafficButtons.forEach(button => {
         button.addEventListener("click", function() {
+            const node = nodeFromTrafficButtonId(button.id);
+            lockSpeedKnob(node, false);   // stopped -> knob editable again
             fetch("/stop_traffic_single", {
                 method: "POST",
                 headers: {

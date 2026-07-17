@@ -54,8 +54,8 @@ def main() -> int:
     parser.add_argument(
         "--run-duration-seconds",
         type=int,
-        default=90 * 60,
-        help="Duration between starting and stopping experiment (default: 90 mins).",
+        default=60 * 60,
+        help="Duration between starting and stopping experiment (default: 60 mins).",
     )
     parser.add_argument(
         "--dash-cli-path",
@@ -78,151 +78,192 @@ def main() -> int:
     print("[step] Starting workflow...", flush=True)
 
 
-    print("[step] Stopping previous run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    print("[done] Previous run stopped.", flush=True)
+    for seed in [1,12,123]:
+
+        print("[step] Stopping previous run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        print("[done] Previous run stopped.", flush=True)
 
 
-    
-    print("[step] Grabing dista_tiger config...", flush=True)
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+        
+        print("[step] Grabing dista_tiger config...", flush=True)
+        
 
-    ################################# Perfect Inference ################################################
+        
 
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
+        ################################# Perfect Inference ################################################
+        
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
 
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "perfect_inference"])
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
 
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
+        
 
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "perfect_inference"])
 
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
 
-    ################################# Only neural AD ################################################
-    
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "only_neural_AD"])
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
 
+        ################################# Only neural AD ################################################
+        
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
 
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
 
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
 
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-
-    ################################# Only neural CS ################################################
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "only_neural_CS"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-    ################################# Only neural KR ################################################
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "only_neural_KR"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
-
-    ################################# Ablating neural CS ################################################
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
-
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "not_neural_CS"])
-
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "only_neural_AD"])
 
 
-    ################################# Ablating neural KR ################################################
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
 
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "not_neural_KR"])
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
 
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
-
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
-
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
 
 
-    ################################# Ablating neural AD ################################################
-    run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
-    run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
+        ################################# Only neural CS ################################################
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
 
-    print("[step] Setting run name...", flush=True)
-    run_step(dash_cli_path, ["set", "wandb.wb_run_name", "not_neural_AD"])
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
 
-    print("[step] Starting run...", flush=True)
-    run_step(dash_cli_path, ["start-experiment"])
-    run_step(dash_cli_path, ["start-traffic"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
 
-    sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "only_neural_CS"])
 
-    print("[step] Stopping run...", flush=True)
-    run_step(dash_cli_path, ["stop-experiment"])
-    run_step(dash_cli_path, ["stop-traffic"])
-    ####################################################################################
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
+
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
+
+        ################################# Only neural KR ################################################
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
+
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
+
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "only_neural_KR"])
+
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
+
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
+
+        ################################# Ablating neural CS ################################################
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
+
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_CS", "false"])
+
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "not_neural_CS"])
+
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
+
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
+
+
+        ################################# Ablating neural KR ################################################
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
+
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_KR", "false"])
+
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "not_neural_KR"])
+
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
+
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
+
+
+        ################################# Ablating neural AD ################################################
+        run_step(dash_cli_path, ["--profile", "dista_tiger", "init-config"])
+
+        print("[step] Setting seed {seed}...", flush=True)
+        run_step(dash_cli_path, ["set", "intrusion_detection.seed", str(seed)])
+        run_step(dash_cli_path, ["set", "wandb.wb_group_name", "oracle"])
+
+        run_step(dash_cli_path, ["set", "intrusion_detection.use_neural_AD", "false"])
+
+        print("[step] Setting run name...", flush=True)
+        run_step(dash_cli_path, ["set", "wandb.wb_run_name", "not_neural_AD"])
+
+        print("[step] Starting run...", flush=True)
+        run_step(dash_cli_path, ["start-experiment"])
+        run_step(dash_cli_path, ["start-traffic"])
+
+        sleep_with_spinner(args.run_duration_seconds, f"[wait] Experiment running for {args.run_duration_seconds} seconds...")
+
+        print("[step] Stopping run...", flush=True)
+        run_step(dash_cli_path, ["stop-experiment"])
+        run_step(dash_cli_path, ["stop-traffic"])
+        ####################################################################################
 
     print("[done] Workflows completed.", flush=True)
     return 0

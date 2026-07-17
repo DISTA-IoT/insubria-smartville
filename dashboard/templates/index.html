@@ -8,6 +8,9 @@
     <script>
     // data from server: cfg.knowledge
     const initialKnowledge = JSON.parse('{{ rendering_params.knowledge | tojson | safe }}');
+    // config knob: cfg.pending_packet_feats_poll_secs (default 3) -- how
+    // often the PACKET QUEUES tab polls the controller for gauge data.
+    const ppfPollSecs = {{ rendering_params.pending_packet_feats_poll_secs | tojson }};
     </script>
     <title>SmartVille</title>
 </head>
@@ -66,9 +69,14 @@
                 <details>
                     <summary class="h4">Expand Traffic Manager</summary>
                     {% for button in rendering_params.traffic_buttons %}
-                    <nav>
-                        <button id="{{ button }}_start_traffic" class="small">replay from {{ button }}</button>
-                        <button id="{{ button }}_stop_traffic" class="stop small">stop replay from {{ button }}</button>
+                    <nav class="traffic-node-row">
+                        <button id="{{ button }}_start_traffic" class="small">replay {{ rendering_params.traffic_patterns[button] }} from {{ button }}</button>
+                        <button id="{{ button }}_stop_traffic" class="stop small">stop replay {{ rendering_params.traffic_patterns[button] }} from {{ button }}</button>
+                        <label class="speed-knob-label" title="Speed multiplier for {{ button }} — fractional values (e.g. 0.001) replay slower than real-time; stop this node's traffic to change it, then restart">
+                            ×<input type="number" min="0.0001" step="any" class="speed-knob"
+                                    id="{{ button }}_speed" data-node="{{ button }}"
+                                    value="{{ rendering_params.traffic_speeds[button] }}">
+                        </label>
                     </nav>
                 {% endfor %}
                 </details>
@@ -91,6 +99,7 @@
             <div class="tabs">
                 <button class="tablink active" onclick="openTab(event, 'gns3')">GNS3</button>
                 <button class="tablink" onclick="openTab(event, 'config')">CONFIGURATION</button>
+                <button class="tablink" onclick="openTab(event, 'packetqueues')">PACKET QUEUES</button>
             </div>
 
             <!-- ═══════════════ GNS3 TAB ═══════════════ -->
@@ -99,6 +108,40 @@
                     iframe { border-radius: 10px; }
                 </style>
                 <iframe src="http://{{ rendering_params.host_ip }}:{{ rendering_params.gns3_web_gui_port }}"></iframe>
+            </div>
+
+            <!-- ═══════════════ PACKET QUEUES TAB ═══════════════ -->
+            <div id="packetqueues" class="tabcontent">
+                <div class="ppf-panel">
+                    <div class="ppf-header">
+                        <h2 style="margin:0;">Pending Packet Features — queue utilisation</h2>
+                        <span id="ppf-status" class="ppf-status">idle</span>
+                    </div>
+                    <p class="ppf-explainer">
+                        One gauge per traffic class, showing how full that class's
+                        <code>pending_packet_feats</code> queue is (packets captured but not yet
+                        turned into samples), as a fraction of <code>max_pending_packet_feats</code>.
+                        The solid bar is the instantaneous fill; the ◆ marker is the
+                        <strong>peak since the last refresh</strong>. Because the inference loop drains
+                        these queues continuously, the instantaneous bar sits near 0 (red) almost
+                        always even under heavy replay — that is why you see
+                        <em>“no packets captured this tick”</em> so often. The peak marker reveals the
+                        capture bursts, and <strong>“consumed /s”</strong> is the real throughput of
+                        packets turned into samples: as long as it is non-zero, packets <em>are</em>
+                        flowing even when the queue looks empty. Updates every
+                        {{ rendering_params.pending_packet_feats_poll_secs }}&nbsp;s from the controller.
+                    </p>
+                    <div class="ppf-legend">
+                        <span><i class="ppf-swatch" style="background:hsl(0,75%,45%)"></i>empty (0%)</span>
+                        <span><i class="ppf-swatch" style="background:hsl(60,75%,45%)"></i>half</span>
+                        <span><i class="ppf-swatch" style="background:hsl(120,70%,40%)"></i>full (100%+)</span>
+                        <span><i class="ppf-peak-key">◆</i> peak since last refresh</span>
+                        <span><i class="ppf-swatch" style="background:hsl(120,70%,40%);border-radius:50%"></i> consuming · <i class="ppf-swatch" style="background:#bbb;border-radius:50%"></i> idle</span>
+                    </div>
+                    <div id="ppf-gauges" class="ppf-gauges">
+                        <div class="ppf-empty">Waiting for controller data…</div>
+                    </div>
+                </div>
             </div>
 
             <!-- ═══════════════ CONFIG TAB ═══════════════ -->
@@ -457,19 +500,7 @@
                                 <label>Agent Discount Rate:
                                     <input type="number" step="0.01"  name="intrusion_detection.agent_discount_rate"  value="{{ rendering_params.intrusion_detection.agent_discount_rate }}"  onchange="syncParams()">
                                 </label>
-                               
-                                <label>Wrong Inference Penalisation:
-                                    <select name="intrusion_detection.wrong_inference_penalisation" onchange="syncParams()">
-                                        <option value="easy" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'easy' else "" }}>Easy</option>
-                                        <option value="hard" {{ "selected" if rendering_params.intrusion_detection.wrong_inference_penalisation == 'hard' else "" }}>Hard</option>
-                                    </select>
-                                </label>
-                                <label>Bad Classif Cost Factor:
-                                    <input type="number" name="intrusion_detection.bad_classif_cost_factor"       value="{{ rendering_params.intrusion_detection.bad_classif_cost_factor }}"       onchange="syncParams()">
-                                </label>
-                                <label>Bad Clustering Cost Factor:
-                                    <input type="number" name="intrusion_detection.bad_clustering_cost_factor"  value="{{ rendering_params.intrusion_detection.bad_clustering_cost_factor }}"  onchange="syncParams()">
-                                </label>
+
                                 <label>Use PER:
                                     <input type="checkbox" name="intrusion_detection.use_per" onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.use_per else "" }}>  
                                 </label>
@@ -485,13 +516,7 @@
                                 <label>Tau for soft-update:
                                     <input type="number" name="intrusion_detection.tau" value="{{ rendering_params.intrusion_detection.tau }}" onchange="syncParams()">
                                 </label>
-                                <label>No Confidence Penalty:
-                                    <input type="number" name="intrusion_detection.no_confidence_penalty" value="{{ rendering_params.intrusion_detection.no_confidence_penalty }}" onchange="syncParams()">
-                                </label>
                                 <label><input type="checkbox" name="intrusion_detection.automatic_cs_acceptance"  onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.automatic_cs_acceptance  else "" }}> Automatic CS Acceptance</label>
-                                <label>Useless Epistemic Penalty:
-                                    <input type="number" name="intrusion_detection.useless_epistemic_penalty" value="{{ rendering_params.intrusion_detection.useless_epistemic_penalty }}" onchange="syncParams()">
-                                </label>
                                 <label><input type="checkbox" name="intrusion_detection.epistemic_is_blocking"    onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.epistemic_is_blocking    else "" }}> Epistemic is Blocking</label>
                                 <label><input type="checkbox" name="intrusion_detection.boltzmann_sampling"       onchange="syncParams()" {{ "checked" if rendering_params.intrusion_detection.boltzmann_sampling       else "" }}> Boltzmann Sampling</label>
                                 

@@ -1,19 +1,23 @@
 host_ip: 192.168.183.146
 disable_proxy: true
-node_features: false
+node_features: false  
 health_monitoring: false
 
+
 wandb:
-  wb_tracking: true
-  wb_run_name: 'DDQN'
-  wb_project_name:  'TIGER3.0'
-  
+ wb_tracking: true
+ wb_run_name: 'PT'
+ wb_project_name:  'TIGER3.0'
+ plots: true
+
+
 intrusion_detection:
-  boltzmann_sampling: false
-  agent: DDQN
+  pretrained_inference: false
+  agency: false
+  online_evaluation: true
+  save_models: true
   
 topology_creator:
-  # contr_start: sh # COMMENT THIS IF YOU WANT THE TIGER SERVER TO START AUTOMATICALLY
   use_gns3_config_file: false
   ADDITIONAL_ENV_VARS: |
     https_proxy=http://proxy.uninsubria.it:3128
@@ -22,4 +26,3 @@ topology_creator:
     http_proxy=http://proxy.uninsubria.it:3128
     no_proxy=localhost,127.0.0.1,${topology_creator.controller_ip}
     
-

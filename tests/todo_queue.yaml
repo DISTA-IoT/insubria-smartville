@@ -1,0 +1,248 @@
+# Queue of DQN-family x epistemic-action-ablation experiments to run.
+#
+# tests/run_todo_queue.py runs these top-to-bottom, one at a time, and
+# stops (loudly) on the first failure. After a crash or a finished batch,
+# check W&B for which runs actually completed, delete those rows from
+# this file, then re-run run_todo_queue.py -- it will pick up exactly
+# where the trimmed list says to resume, nothing is tracked elsewhere.
+#
+# Rows are pre-ordered seed-major (every agent x mode config for seed 1,
+# then all of seed 2, then all of seed 3) so that whatever prefix of the
+# queue has run so far gives complete coverage of as many whole seeds
+# as possible.
+#
+# Two kinds of row are supported and may be freely interleaved:
+#
+# 1) DQN-family epistemic-action ablation rows (the ones below):
+#      {agent, mode, seed [, cti_period, cti_confidence_threshold]}
+#    mode is one of: baseline, no_epistemic, periodic_cti, greedy_cti, fixed_threshold
+#      (see tests/seeded_agents.py module docstring for what each one sets).
+#    cti_period only matters for mode: periodic_cti; omit it elsewhere or to
+#    use the top-level cti_period default below.
+#    cti_confidence_threshold only matters for mode: fixed_threshold; omit it
+#    elsewhere or to use the top-level cti_confidence_threshold default below.
+#
+# 2) Inference-model "oracle" ablation rows (the queue-able form of
+#    tests/ablating_inference_models.py):
+#      {inference, seed [, agent]}
+#    inference is one of: perfect, only_AD, only_CS, only_KR, not_AD, not_CS,
+#      not_KR (see tests/inference_ablations.py for the use_neural_{AD,CS,KR}
+#      flags and W&B run name each one maps to). These ablate the neural
+#      inference stack, not the decision agent, so `agent` is optional and
+#      defaults to the profile's agent; when given it is set and verified.
+#    These default to W&B group "oracle" (not the top-level wandb_group_name).
+#
+# 3) Budget-constraint rows (live form of tests/budget_constraints.py and the
+#    offline offline_budget_constraints.py):
+#      {budget, seed [, agent]}
+#    budget is one of: default, l-minus20, l-minus5, h-35, l-minus5_h-35,
+#      l-minus5_h-40, l-minus1 (see tests/budget_experiments.py for the
+#      min_budget/max_budget each one sets and the W&B run name). `agent` is
+#      optional (defaults to the profile's agent). Default W&B group:
+#      "budget_constraints".
+#
+# 4) CTI-delivery-fidelity rows (live counterpart of offline_cti_fidelity.py):
+#      {cti, seed [, agent]}
+#    cti is one of: clean, noise0.5-none, noise1-purity, delay50-jit15,
+#      delay70-jit30, noise1-purity-delay70-jit30 (see
+#      tests/cti_fidelity_experiments.py for the cti_label_noise / coupling /
+#      delivery_delay / jitter each one sets). `agent` is optional (defaults to
+#      the profile's agent). Default W&B group: "cti-fidelity".
+#
+# Budget and CTI overrides only bite when the Decision Module is actually
+# buying CTI, so run those rows against an agency-enabled profile.
+#
+# Any row may add `wandb_group_name: <name>` to override the group for that
+# single run.
+
+profile: dista_tiger
+wandb_group_name: fidelity
+run_duration_seconds: 4000
+health_poll_interval_seconds: 120
+cti_period: 10
+cti_confidence_threshold: 4
+
+queue:
+
+  # DONE-DISCARDED. (wandb_group_name: step8dare run_duration_seconds: 4500)
+
+  # - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 2}
+  # - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 2}
+
+  # - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 4}
+  # - {agent: DDQN, mode: baseline, seed: 2}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 2}
+  # - {agent: DQN, mode: no_epistemic, seed: 5}
+  # - {agent: DQN, mode: baseline, seed: 5}
+
+  # - {agent: DQN, mode: baseline, seed: 1}
+  # - {agent: DQN, mode: no_epistemic, seed: 1}
+  # - {agent: DQN, mode: greedy_cti, seed: 1}
+  # - {agent: DQN, mode: fixed_threshold, seed: 1, cti_confidence_threshold: 4}
+  # - {agent: DDQN, mode: baseline, seed: 1}
+  # - {agent: DuelingDQN, mode: baseline, seed: 1}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 1}
+
+  # - {agent: DQN, mode: baseline, seed: 2}
+  # - {agent: DuelingDQN, mode: baseline, seed: 2}
+  # - {agent: DQN, mode: no_epistemic, seed: 2}
+  # - {agent: DQN, mode: greedy_cti, seed: 2} 
+  # - {agent: DQN, mode: fixed_threshold, seed: 2, cti_confidence_threshold: 4}
+
+  # - {agent: DQN, mode: baseline, seed: 3}
+  # - {agent: DDQN, mode: baseline, seed: 3}
+  # - {agent: DuelingDQN, mode: baseline, seed: 3}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 3}
+  # - {agent: DQN, mode: no_epistemic, seed: 3}
+  # - {agent: DQN, mode: greedy_cti, seed: 3}
+  # - {agent: DQN, mode: fixed_threshold, seed: 3, cti_confidence_threshold: 4}
+
+  # - {agent: DQN, mode: baseline, seed: 4}
+  # - {agent: DDQN, mode: baseline, seed: 4}
+  # - {agent: DuelingDQN, mode: baseline, seed: 4}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 4}
+  # - {agent: DQN, mode: no_epistemic, seed: 4}
+  # - {agent: DQN, mode: greedy_cti, seed: 4}
+  # - {agent: DQN, mode: fixed_threshold, seed: 4, cti_confidence_threshold: 4}
+
+  
+  # - {agent: DDQN, mode: baseline, seed: 5}
+  # - {agent: DuelingDQN, mode: baseline, seed: 5}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 5}
+  # - {agent: DQN, mode: greedy_cti, seed: 5}
+  
+
+  # --- Inference-model "oracle" ablation (queue-able ablating_inference_models.py) ---
+  # Uncomment to run. One whole seed's worth of the seven inference configs is
+  # grouped together below; the block is repeated per seed and ordered seed-major
+  # (all configs for seed 1, then seed 2, ...) for the same reason as above -- an
+  # interrupted queue then has complete per-seed coverage. These land in W&B group
+  # "oracle" by default. `agent` is optional (defaults to the profile's agent);
+  # add it if you want the oracle sweep pinned to a specific decision agent.
+  # group oracle, duration 2400 s
+
+  # # - {inference: perfect, seed: 1}
+  # # - {inference: only_AD, seed: 1}
+  # - {inference: only_CS, seed: 1}
+  # - {inference: only_KR, seed: 1}
+  # # - {inference: not_AD,  seed: 1}
+  # - {inference: not_CS,  seed: 1}
+  # - {inference: not_KR,  seed: 1}
+  
+  # # - {inference: perfect, seed: 12}
+  # # - {inference: only_AD, seed: 12}
+  # - {inference: only_CS, seed: 12}
+  # - {inference: only_KR, seed: 12}
+  # # - {inference: not_AD,  seed: 12}
+  # - {inference: not_CS,  seed: 12}
+  # - {inference: not_KR,  seed: 12}
+  # #
+  # # - {inference: perfect, seed: 123}
+  # # - {inference: only_AD, seed: 123}
+  # - {inference: only_CS, seed: 123}
+  # - {inference: only_KR, seed: 123}
+  # # - {inference: not_AD,  seed: 123}
+  # - {inference: not_CS,  seed: 123}
+  # - {inference: not_KR,  seed: 123}
+
+  # # - {inference: perfect, seed: 1234}
+  # # - {inference: only_AD, seed: 1234}
+  # - {inference: only_CS, seed: 1234}
+  # - {inference: only_KR, seed: 1234}
+  # # - {inference: not_AD,  seed: 1234}
+  # - {inference: not_CS,  seed: 1234}
+  # - {inference: not_KR,  seed: 1234}
+
+  # # - {inference: perfect, seed: 23}
+  # # - {inference: only_AD, seed: 23}
+  # - {inference: only_CS, seed: 23}
+  # - {inference: only_KR, seed: 23}
+  # # - {inference: not_AD,  seed: 23}
+  # - {inference: not_CS,  seed: 23}
+  # - {inference: not_KR,  seed: 23}
+
+
+  #  (wandb_group_name: step8dare run_duration_seconds: 4500)
+
+  # - {agent: DQN, mode: fixed_threshold, seed: 5, cti_confidence_threshold: 4}
+  # - {agent: DDQN, mode: baseline, seed: 2}
+  # - {agent: DuelingDDQN, mode: baseline, seed: 2}
+  # - {agent: DQN, mode: no_epistemic, seed: 5}
+  # - {agent: DQN, mode: baseline, seed: 5}
+
+
+  # --- Budget-constraint sweep (live budget_constraints.py / offline
+  # offline_budget_constraints.py). Five budget configs x five seeds, ordered
+  # seed-major so an interrupted queue has complete per-seed coverage. Land in
+  # W&B group "budget_constraints". Uncomment to run; add `agent: DQN` to a row
+  # to pin the decision agent instead of using the profile default.
+  #
+  # - {budget: l-minus20,     seed: 1}
+  # - {budget: l-minus5,      seed: 1}
+  # - {budget: h-35,          seed: 1}
+  # - {budget: l-minus5_h-35, seed: 1}
+  # - {budget: l-minus5_h-40, seed: 1}
+  #
+  # - {budget: l-minus20,     seed: 2}
+  # - {budget: l-minus5,      seed: 2}
+  # - {budget: h-35,          seed: 2}
+  # - {budget: l-minus5_h-35, seed: 2}
+  # - {budget: l-minus5_h-40, seed: 2}
+  #
+  # - {budget: l-minus20,     seed: 3}
+  # - {budget: l-minus5,      seed: 3}
+  # - {budget: h-35,          seed: 3}
+  # - {budget: l-minus5_h-35, seed: 3}
+  # - {budget: l-minus5_h-40, seed: 3}
+  #
+  # - {budget: l-minus20,     seed: 4}
+  # - {budget: l-minus5,      seed: 4}
+  # - {budget: h-35,          seed: 4}
+  # - {budget: l-minus5_h-35, seed: 4}
+  # - {budget: l-minus5_h-40, seed: 4}
+  #
+  # - {budget: l-minus20,     seed: 5}
+  # - {budget: l-minus5,      seed: 5}
+  # - {budget: h-35,          seed: 5}
+  # - {budget: l-minus5_h-35, seed: 5}
+  # - {budget: l-minus5_h-40, seed: 5}
+
+
+  # --- CTI-delivery-fidelity sweep (live counterpart of offline_cti_fidelity.py).
+  # Five fidelity configs x five seeds, seed-major. Land in W&B group
+  # "cti-fidelity". Uncomment to run; add `agent: DQN` to a row to pin the
+  # decision agent instead of using the profile default.
+  #
+  - {cti: delay15-jit0,               seed: 1}
+  - {cti: noise1-purity-delay30-jit3, seed: 1}
+  # - {cti: noise0.5-none,               seed: 1}
+  - {cti: noise1-purity,               seed: 1}
+  # - {cti: delay50-jit15,               seed: 1}
+  
+  #
+  - {cti: noise0.5-none,               seed: 2}
+  # - {cti: noise1-purity,               seed: 2}
+  # - {cti: delay50-jit15,               seed: 2}
+  - {cti: delay15-jit0,               seed: 2}
+  - {cti: noise1-purity-delay30-jit3, seed: 2}
+  #
+  # - {cti: noise0.5-none,               seed: 3}
+  - {cti: noise1-purity,               seed: 3}
+  # - {cti: delay50-jit15,               seed: 3}
+  - {cti: delay15-jit0,               seed: 3}
+  - {cti: noise1-purity-delay30-jit3, seed: 3}
+  #
+  # - {cti: noise0.5-none,               seed: 4}
+  # - {cti: noise1-purity,               seed: 4}
+  # # - {cti: delay50-jit15,               seed: 4}
+  # - {cti: delay70-jit30,               seed: 4}
+  # - {cti: noise1-purity-delay70-jit30, seed: 4}
+  #
+  # - {cti: noise0.5-none,               seed: 5}
+  # - {cti: noise1-purity,               seed: 5}
+  # - {cti: delay50-jit15,               seed: 5}
+  # - {cti: delay70-jit30,               seed: 5}
+  # - {cti: noise1-purity-delay70-jit30, seed: 5}

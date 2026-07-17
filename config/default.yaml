@@ -5,8 +5,9 @@ host_ip: localhost
 gns3_web_gui_port: 3080
 disable_proxy: false  # Whether to disable the proxy for the nodes of the topology
 dashboard_port: 7777 # Port of the Flask dashboard in the host machine
+pending_packet_feats_poll_secs: 2 # How often (seconds) the dashboard's PACKET QUEUES tab polls the controller for pending_packet_feats queue utilisation
 browser_path: firefox
-inference_models_path: "./models/default.py"
+inference_model_variant: mahalanobis # Picks im_models/<name>.py inside smartville-controller (default, mahalanobis, optim, dotprod_kr, dotprod_kr_simple_krloss, simple_krloss)
 
 smart_controller_log_level: info
 smart_switch_log_level: info
@@ -188,8 +189,8 @@ neural_modules:
   hidden_size: 200
   kernel_regressor_heads: 2
   dropout: 0.2 # Dropout rate for the neural network.
-  use_encoder: false
-  recurrent_layers: 1
+  use_encoder: true
+  recurrent_layers: 2
   frozen_decoder: false
   custom_inference_model_path: false
   custom_classifier_path: emptystring
@@ -201,8 +202,8 @@ switching_args:
   max_buffered_packets: 5  # Max num. of packets the switch buffers while waiting to solve the dest MAC address and forward. . 
   max_buffering_secs: 5  # Max time in seconds the switch buffers a packet while waiting to solve the dest MAC address and forward. 
   arp_req_exp_secs: 4 #  Max time in secs. that the switch waits for an ARP response before issuing another requets. (prevents ARP flooding). 
-  sampling_rate_seconds: 15 # (if resample_pakets = True) Time between two consecutive sampling rule installation.
-  sampling_flow_hard_timeout: 1 # (if resample_pakets = True) Sampling rules will be hard timed out after this period in seconds.
+  sampling_rate_seconds: 10 # (if resample_pakets = True) Time between two consecutive sampling rule installation.
+  sampling_flow_hard_timeout: 7 # (if resample_pakets = True) Sampling rules will be hard timed out after this period in seconds.
 
 intrusion_detection:
   eval: false  # Whether to use neural modules in evaluation mode (no training)  
@@ -210,9 +211,19 @@ intrusion_detection:
   use_huber_cs: true # Use Huber loss for the classification loss.
   pretrained_models_dir: '/pox/pox/smartController/tiger_models/'  # This path refers to a path inside the controller docker container
   save_models: false # overwritte models on disk.
+  data_collection_mode: false  # If true, TigerBrain records every fully-labelled batch it sees to disk (see FlowDataRecorder) for later offline replay.
+  data_collection_dir: '/pox/pox/smartController/tiger_data_collection/'  # Path inside the controller docker container where recorded shards are written.
+  data_collection_shard_size: 2000  # Number of samples buffered in memory before a shard is flushed to disk.
+  data_collection_flush_interval_secs: 30  # Max seconds a partial shard can sit in memory before being flushed, even if shard_size hasn't been reached.
+  data_collection_use_packet_feats: true  # Whether to additionally persist packet_features in each shard (raises disk usage).
+  data_collection_use_node_feats: false  # Whether to additionally persist node_features in each shard.
+  data_collection_skip_training: false  # If true, process_input returns right after recording -- no IM/DM compute, pure capture run.
   seed: 777  # A fixed initial seed for random sampling and storing in the experience buffer
   agent: DAI_P  # can be DQN, DDQN or DAI
-  packets_per_sample: 1 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
+  packets_per_sample: 5 # If 'use_packet_feats'=True, indicates how many packets are appended from each flow to build feature vectors
+  max_packet_samples_per_flow_per_tick: 32 # Caps how many packet-feature samples a single flow can contribute to one inference/training tick; excess backlog drains over subsequent ticks instead of blowing up the batch size.
+  max_pending_packet_feats: 4096 # Caps how many freshly-captured packets a single flow can queue up awaiting consumption (pending_packet_feats); once full, newly captured packets for that flow are dropped instead of growing the queue unbounded.
+  cache_flows_with_no_packets: true # If a flow captured no fresh packet this tick, still emit a sample from its sticky last-known packets (true, legacy behaviour) instead of skipping the flow for the tick (false). NOTE: this knob is gonna do something only if packet feats are activated (use_packet_feats=true); with packet feats off, every flow always contributes exactly one row regardless.
   packet_feat_dim: 64
   anonymize_transport_ports: true
   flow_feat_dim: 4
@@ -228,22 +239,36 @@ intrusion_detection:
   use_neural_AD: True
   use_neural_KR: True
   use_neural_CS: True
+  exclude_g1_from_ad_known_set: false # if True, the online anomaly detector scores each sample only against the true Known-class prototypes, dropping G1 columns from its known-set. By default (false) G1 is folded into the inference known-set (G1 carries zda_label 0 at inference), so a real zero-day (G2) sitting near a G1 prototype is scored as non-anomalous and missed; enabling this removes that specific "G2-near-G1" blind spot. Skipped automatically if excluding G1 would empty the known-set.
+  ad_threshold: 0.75 # Decision threshold applied to the confidence decoder's anomaly probability to obtain the binary Known/anomaly verdict (both for the online decision path and for the AD confusion-matrix/accuracy metrics). Higher values require more confidence before flagging a sample as anomalous.
+  ad_loss_backprop_to_encoder: true # if True, the online anomaly detector loss is backpropagated to the encoder.
   online_evaluation: false
   online_evaluation_rounds: 10
   pretrained_inference: True
   greedy_cti: False
   cti_period: -1
-  confidence_strategy: 'energy' # can be 'energy', 'entropy', 'margin' or 'baseline' which corresponds to MSP, used by the results in the tiger paper
-  max_budget: 300
-  min_budget: -60
-  max_episode_steps: 750
+  fixed_threshold_cti: False # RC 3.6(b): buy CTI whenever cluster confidence < cti_confidence_threshold
+  cti_confidence_threshold: 4.0 # threshold on the confidence_strategy signal (scale is strategy-dependent)
+  guard_learned_cti_affordability: True # if True, hold the LEARNED policy to the same affordability guard the scripted CTI baselines use: a self-chosen CTI buy (action 2) the agent cannot cover (paying its worst-case price would drop budget < min_budget) is remapped to a block, so the agent can never bankrupt itself on an epistemic action. Default False lets the agent's own action 2 through so it learns the budget constraint from the bankruptcy consequence itself (the more honest "does the agent discover the constraint" baseline). NOTE: a no-op whenever disable_budget_bankrupt_termination is True (no bankruptcy => every buy is affordable). Trade-off: On = faster/lower-variance convergence via invalid-action masking, but the learned budgeting competence is no longer measurable; Off = the agent must learn to budget, at the cost of self-inflicted early-training bankruptcies.
+  confidence_strategy: 'energy' # confidence measure fed to the DM state: 'energy' | 'entropy' | 'margin' | 'baseline' (logit log-ratio)
+  max_budget: 2500
+  min_budget: -1000
+  max_episode_steps: 1000
+  disable_budget_bankrupt_termination: false # if True, episodes no longer end on bankruptcy (budget < min_budget); they end only on the step horizon (and, unless disabled, the win threshold). Default false keeps legacy bankrupt termination.
+  disable_budget_win_termination: true # if True, episodes no longer end on hitting max_budget; they end only on the step horizon (>= max_episode_steps) or bankruptcy (< min_budget). Default true.
   multi_class: true  # A boolean flag indicating if the ML classifier should perform multi-class classification
   tiger_init_budget: 1
-  cti_price_factor: 4
+  useless_epistemic_penalty: 0
   price_decay: false
   replay_batch_size: 32
-  replay_buffer_max_capacity: 10000
-  agent_memory_size: 2000
+  replay_buffer_max_capacity: 10000 # Capacity of each per-class inference-module training buffer (RawReplayBuffer) that online inference/training sample balanced batches from. NOTE: this no longer sizes the per-flow rolling windows -- those are sized by flows_per_sample / packets_per_sample (the only rows ever read), so this knob is purely the per-class training store.
+  agent_memory_size: 50000
+  # K1: inference-module training cadence, decoupled from the (inference) tick.
+  # online_inference runs every tick (live metrics); training runs
+  # train_steps_per_tick gradient steps once every train_every_n_ticks
+  # training-eligible ticks. Defaults (1, 1) == the original one-step-per-tick.
+  train_steps_per_tick: 1 # How many IM gradient steps to run per training tick (>1 = more steps/tick, faster convergence but costlier tick; 0 = inference only, no IM training).
+  train_every_n_ticks: 1 # Run the IM training block only every n-th training-eligible tick (>1 = fewer gradient steps overall, cheaper ticks).
   repulsive_weight: 1
   attractive_weight: 1
   clustering_loss_backprop: True
@@ -252,14 +277,36 @@ intrusion_detection:
   greedy_decay: 0.999
   agent_discount_rate: 0.99
   agency: true # activates the management agent, false to only pretrain the inference modules.
-  wrong_inference_penalisation: hard # can be easy or hard
-  bad_classif_cost_factor: 40
-  bad_clustering_cost_factor: 8
-  no_confidence_penalty: 0 # this is a penalty (abs value) given each time the management module discards the closed-set inferences of the decision module.
+  relational_state: false # if True, the DM's exteroceptive state is a fixed-size relational summary of the group's/cluster's similarity to the known-class prototypes (nearest/farthest/mean closeness, nearest reward, top2 reward, spread, top-2 margin, entropy, energy), instead of the absolute hidden-space centroid. Keeps the decision layer consistent with the prototypical/relational-bottleneck inductive bias of the perception layers, is invariant to the number of known classes, and is more stable than absolute coordinates under representation drift. Default false (legacy raw-centroid state). Changes the RL state dimension, so pretrained DM weights are not compatible across this flag.
+  proprio_feature_scaling: false # if True, the proprioceptive state is normalised per-feature here rather than by the net's pooled LayerNorm(PROPRIOCEPTIVE_STATE_SIZE).
+  reward_temperature: 2.0 # temperature for the reward scalar in the relational state
   automatic_cs_acceptance: false # if True, the management module automatically accepts the closed-set inferences of the decision module.
-  useless_epistemic_penalty: 7 # Cost of taking a useless epistemic action
-  epistemic_is_blocking: false
+  unknown_accept_reward_scale: 1.0 # per-flow: downscales only the positive (benign) reward earned by accepting an unknown cluster (action 0, or a non-blocking CTI buy). Negative (malicious) per-flow rewards on an accept are always taken at full value -- a wrong accept is never discounted. Known-class accepts and all block rewards are always unscaled.
+  unknown_malicious_accept_penalty_scale: 1.0 # per-flow: upscales (>1.0) the negative (malicious) reward incurred by wrongly accepting an unknown cluster (action 0, or a non-blocking CTI buy). 1.0 is a no-op (full value, the previous behavior). Does not affect benign-accept reward, block rewards, or known-class accepts, which are always unscaled.
+  # --- Supervision-value reward components (HIDDEN BY DEFAULT). Two optional,
+  # additive reward terms that credit a label-buying (supervised) policy for the
+  # perception-quality gains its CTI purchases produce, rather than penalising an
+  # unsupervised baseline with hand-tuned costs. Both default to 0.0, which fully
+  # hides them: no reward contribution and no wandb series emitted, so an
+  # unconfigured run is a strict no-op and reproduces existing results.
+  cluster_impurity_penalty_weight: 100.0 # >0 enables it. Per unknown-traffic cluster, subtracts weight * (1 - purity) from that cluster's reward, where purity is the fraction of the cluster's members sharing its majority true label. A policy that has bought more CTI leaves fewer distinct unknown classes bleeding together, so its collective-anomaly clusters are purer and it is penalised less. Tracked in wandb as AGENT/cluster_impurity_penalty and AGENT/mean_cluster_impurity when active.
+  classification_accuracy_reward_weight: 0.0 # >0 enables it. Per known-traffic group, adds weight * (that group's closed-set classification accuracy = fraction of its members the IM classified correctly) to its reward. A policy with more Known classes classifies its known traffic more accurately and so earns more. Tracked in wandb as AGENT/classification_accuracy_reward and AGENT/classification_accuracy when active.
+  epistemic_is_blocking: true
   no_epistemic_actions: false
+  hard_epistemic_action: true # if True, a single epistemic action buys both a G2's label and its "AD oracle" in one shot (same single price): the moment the label is delivered, its samples are flagged Known for free for the rest of the episode, bypassing the IM's neural anomaly-detection verdict, so they always route to the known-traffic (act_on_known) path. Default false keeps the plain behaviour (a label buy grants no oracle).
+  dynamic_knowledge: false # if True, every episode reset draws a fresh random Knowns/G1s/G2s partition of the knowledge.Knowns+G1s+G2s class pool, instead of replaying the fixed partition below every episode. Group sizes are preserved (e.g. 3 Knowns / 3 G1s / 7 G2s), only which class falls in which group changes. Default false keeps the fixed curriculum defined under `knowledge:`.
+  # --- CTI delivery fidelity (RC 3.4). Models imperfect CTI feeds: purchased
+  # intelligence may arrive with degraded label quality, only partial coverage,
+  # and/or after a delay, instead of the idealised clean/instant/complete
+  # delivery the base game assumes. All knobs default to the clean regime, so an
+  # unconfigured run is a strict no-op and reproduces existing results exactly.
+  # See smartController/cti_delivery.py (CTIDeliveryModel).
+  cti_label_noise: 0.0 # [0,1] fraction of an acquired class's training-label draws relabelled to a wrong class, poisoning its prototype. 0.0 = clean labels (legacy).
+  cti_label_noise_mode: 'nearest' # 'symmetric' (flip to a uniformly-random other Known class) or 'nearest' (flip to the acquired class's nearest-prototype neighbour, a plausible confusion). Only used when cti_label_noise > 0.
+  cti_capture_fraction: 1.0 # (0,1] fraction of an acquired class's samples actually admitted into its replay buffer (partial capture). 1.0 = full live tap (legacy); lower = sparser, biased prototype.
+  cti_delivery_delay: 0 # decision steps between paying for CTI and the class becoming trainable (G2 -> Known). During the lag it stays an unlearnable, still-costly zero-day. 0 = instant delivery (legacy).
+  cti_delivery_jitter: 0 # +/- uniform random jitter (steps) on cti_delivery_delay, for stochastic feed latency. 0 = deterministic delay.
+  cti_quality_coupling: 'purity' # 'none' | 'purity' | 'confidence'. When set, the label-noise and capture severities scale with (1 - cluster quality) at buy time (true majority-purity, or observed anomaly-confidence): buying CTI for a messy cluster yields worse data than for a clean one. This is the lever that makes selective (RL) buying necessary vs. blind heuristics. Delivery delay is not coupled (it models feed latency).
   boltzmann_sampling: true #  All agents use boltzmann sampling. BUT if agent = DDQN, it has to be specified, otherwise it will use epsilon-greedy.
   update_target_freq: 50 # how many STEPS to wait to update the target model
   use_per: true # Use Prioritized Experience Replay
@@ -277,99 +324,125 @@ intrusion_detection:
   transitionnet_kl_divergence_regularisation_factor: 1.0
   variational_variational_transition_loss: false
   # for the transition model of the DAI agent:
-  leakyrelu_alpha: 0.2
+  leaky_relu_alpha: 0.2
   actor_train_interval_steps: 100 # how many STEPS to wait to train the policy net
   entropy_reg_coefficient: 1
   temperature_for_action_sampling: 1.0
   surrogate_policy_consistency: false
   use_critic_to_act: true
   greedy_update: true
-  uncertainty_blocking_penalty: 1.5
 
 
 honeypots:
-  - victim-0:
+  - victim-0: #192.168.1.4
       pattern: 'doorlock'
       destination: 'victim-1'
-      speed_multiplier: 1
+      speed_multiplier: 1500
 
-  - victim-1:
+  - victim-1: #192.168.1.5
       pattern: 'echo'
       destination: 'victim-2'
-      speed_multiplier: 1
+      speed_multiplier: 800
 
-  - victim-2:
-      pattern: 'hue'
+  - victim-2: #192.168.1.6
+      pattern: 'hue' 
       destination: 'victim-0'
-      speed_multiplier: 100
+      speed_multiplier: 5000
 
 
 attackers:
-  - attacker-1:
+  - attacker-1: #192.168.1.7
       pattern: 'cc_heartbeat'
       destination: 'victim-0'
-      speed_multiplier: 100
+      speed_multiplier: 2500
 
-  - attacker-2:
+  - attacker-2: #192.168.1.8
       pattern: 'generic_ddos'
       destination: 'victim-1'
-      speed_multiplierd: 1
+      speed_multiplier: 1
 
-  - attacker-3:
+  - attacker-3: #192.168.1.9
       pattern: 'h_scan'
       destination: 'victim-2'
-      speed_multiplier: 10
+      speed_multiplier: 500
 
-  - attacker-4:
+  - attacker-4: #192.168.1.10
       pattern: 'hakai'
       destination: 'victim-0'
-      speed_multiplier: 100
+      speed_multiplier: 5000
 
-  - attacker-5:
+  - attacker-5: #192.168.1.11
       pattern: 'torii'
       destination: 'victim-1'
-      speed_multiplier: 100
+      speed_multiplier: 7000
 
-  - attacker-6:
+  - attacker-6: #192.168.1.12
       pattern: 'mirai'
       destination: 'victim-2'
-      speed_multiplier: 100
+      speed_multiplier: 3000
 
-  - attacker-7:
+  - attacker-7: #192.168.1.13
       pattern: 'gafgyt'
       destination: 'victim-0'
-      speed_multiplier: 1
+      speed_multiplier: 0.5
 
-  - attacker-8:
+  - attacker-8: #192.168.1.14
       pattern: 'hajime'
       destination: 'victim-1'
-      speed_multiplier: 1
+      speed_multiplier: 10
 
-  - attacker-9:
+  - attacker-9: #192.168.1.15
       pattern: 'okiru'
       destination: 'victim-2'
-      speed_multiplier: 1
+      speed_multiplier: 5.0
 
-  - attacker-10:
+  - attacker-10: #192.168.1.16
       pattern: 'muhstik'
       destination: 'victim-0'
-      speed_multiplier: 100
+      speed_multiplier: 2500
 
 
 rewards:
-    - echo: 0.02
-    - hakai: -0.20
-    - mirai: -0.40
-    - hajime: -0.26
-    - doorlock: 0.01
-    - gafgyt: -0.5
-    - muhstik: -0.6
-    - h_scan: -0.7
-    - okiru: -0.8
-    - generic_ddos: -0.9
-    - torii: -0.51
-    - cc_heartbeat: -0.61
-    - hue: 0.05
+    - echo: 1
+    - hakai: -1
+    - mirai: -1
+    - hajime: -1
+    - doorlock: 1
+    - gafgyt: -1
+    - muhstik: -1
+    - h_scan: -1
+    - okiru: -1
+    - generic_ddos: -1
+    - torii: -1
+    - cc_heartbeat: -1
+    - hue: 1
+
+
+# Epistemic-action (CTI / label purchase) prices, one flat price per class.
+# DECOUPLED from `rewards` above: `rewards` is the per-flow budget delta an
+# accepted/blocked flow earns or costs, whereas `prices` is the flat price paid
+# to BUY a class's label via an epistemic action (DM action 2). The CTI price
+# used to be derived as |reward| * intrusion_detection.cti_price_factor, tying
+# the two together; it is now read directly from here so the label-buying cost
+# can be set independently of the flow economics. One entry per class in
+# knowledge.Knowns + G1s + G2s (a wasted buy, or a dynamic_knowledge reshuffle,
+# can make the epistemic action target any class). The price actually charged is
+# this value times the per-episode decay multiplier -- 1.0 unless
+# intrusion_detection.price_decay is enabled. Currently a flat 100 for everyone.
+prices:
+    echo: 10
+    hakai: 10
+    mirai: 150
+    hajime: 10
+    doorlock: 10
+    gafgyt: 10
+    muhstik: 10
+    h_scan: 10
+    okiru: 10
+    generic_ddos: 10
+    torii: 10
+    cc_heartbeat: 10
+    hue: 10
 
 
 knowledge:

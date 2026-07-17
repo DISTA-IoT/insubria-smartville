@@ -362,6 +362,15 @@ def main() -> int:
         help="Additional Hydra override (repeatable), e.g. --hydra-override intrusion_detection.agent=DQN",
     )
     parser.add_argument("--timeout", type=int, default=120, help="HTTP timeout in seconds")
+    parser.add_argument(
+        "--raw-json",
+        action="store_true",
+        help=(
+            "Print a single-line JSON object {http_status, body} instead of the pretty "
+            "human-readable form. Intended for scripted callers (e.g. seeded_agents.py) "
+            "that need to parse the response, not for interactive use."
+        ),
+    )
 
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -400,6 +409,7 @@ def main() -> int:
     sub.add_parser("start-grafana")
     sub.add_parser("stop-grafana")
     sub.add_parser("open-grafana")
+    sub.add_parser("check-controller-health", help="Call /controller_health (crash + applied seed/agent check)")
     p_wandb = sub.add_parser("wandb-monitor", help="Poll W&B for current experiment metrics and print summary")
     p_wandb.add_argument("--top-n-runs", type=int, default=50, help="How many recent runs to scan in project")
     p_wandb.add_argument("--max-metrics", type=int, default=25, help="Maximum number of metrics in summary output")
@@ -562,6 +572,7 @@ def main() -> int:
         "start-grafana": ("POST", "/start_grafana", False),
         "stop-grafana": ("POST", "/stop_grafana", False),
         "open-grafana": ("GET", "/open_grafana", False),
+        "check-controller-health": ("GET", "/controller_health", False),
     }
 
     if args.command in route_table:
@@ -572,8 +583,25 @@ def main() -> int:
         except requests.RequestException as exc:
             print(f"Request failed: {exc}")
             return 2
-        pretty_print_result(result)
-        return 0 if 200 <= result.status < 300 else 2
+
+        ok = 200 <= result.status < 300
+        # Defensive: some proxied responses are a plain dict with their own
+        # "status_code" field that can disagree with the HTTP-level status
+        # (a Flask/FastAPI route returning a dict defaults to HTTP 200 no
+        # matter what's inside it). Treat a failing body status_code as a
+        # failure too, so callers checking only the process exit code can't
+        # be fooled into thinking a failed run succeeded.
+        if isinstance(result.body, dict) and "status_code" in result.body:
+            try:
+                ok = ok and 200 <= int(result.body["status_code"]) < 300
+            except (TypeError, ValueError):
+                ok = False
+
+        if args.raw_json:
+            print(json.dumps({"http_status": result.status, "body": result.body}))
+        else:
+            pretty_print_result(result)
+        return 0 if ok else 2
 
     if args.command == "start-traffic-single":
         payload = {
