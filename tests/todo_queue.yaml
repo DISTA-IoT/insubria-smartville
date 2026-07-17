@@ -57,7 +57,7 @@
 
 profile: dista_tiger
 wandb_group_name: fidelity
-run_duration_seconds: 1800
+run_duration_seconds: 4000
 health_poll_interval_seconds: 120
 cti_period: 10
 cti_confidence_threshold: 4
@@ -216,23 +216,24 @@ queue:
   # "cti-fidelity". Uncomment to run; add `agent: DQN` to a row to pin the
   # decision agent instead of using the profile default.
   #
+  - {cti: delay15-jit0,               seed: 1}
+  - {cti: noise1-purity-delay30-jit3, seed: 1}
   # - {cti: noise0.5-none,               seed: 1}
   - {cti: noise1-purity,               seed: 1}
   # - {cti: delay50-jit15,               seed: 1}
-  - {cti: delay70-jit30,               seed: 1}
-  - {cti: noise1-purity-delay70-jit30, seed: 1}
+  
   #
   - {cti: noise0.5-none,               seed: 2}
   # - {cti: noise1-purity,               seed: 2}
   # - {cti: delay50-jit15,               seed: 2}
-  - {cti: delay70-jit30,               seed: 2}
-  - {cti: noise1-purity-delay70-jit30, seed: 2}
+  - {cti: delay15-jit0,               seed: 2}
+  - {cti: noise1-purity-delay30-jit3, seed: 2}
   #
   # - {cti: noise0.5-none,               seed: 3}
   - {cti: noise1-purity,               seed: 3}
   # - {cti: delay50-jit15,               seed: 3}
-  - {cti: delay70-jit30,               seed: 3}
-  - {cti: noise1-purity-delay70-jit30, seed: 3}
+  - {cti: delay15-jit0,               seed: 3}
+  - {cti: noise1-purity-delay30-jit3, seed: 3}
   #
   # - {cti: noise0.5-none,               seed: 4}
   # - {cti: noise1-purity,               seed: 4}

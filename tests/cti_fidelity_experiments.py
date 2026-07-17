@@ -66,13 +66,13 @@ CTI_CONFIGS: dict[str, tuple[str, dict[str, str]]] = {
     "noise1-purity": ("noise1-purity", {
         _LABEL_NOISE: "1.0", _COUPLING: "purity", _NOISE_MODE: "symmetric"}),
     # c) delivery delay 50 steps, +/-15 jitter (clean labels).
-    "delay50-jit15": ("delay50-jit15", {_DELAY: "50", _JITTER: "15"}),
+    "delay15-jit0": ("delay15-jit0", {_DELAY: "15", _JITTER: "0"}),
     # d) delivery delay 70 steps, +/-30 jitter (clean labels).
-    "delay70-jit30": ("delay70-jit30", {_DELAY: "70", _JITTER: "30"}),
+    "delay30-jit3": ("delay30-jit3", {_DELAY: "30", _JITTER: "3"}),
     # e) combo of b) and d): noisy purity-coupled labels AND delayed delivery.
-    "noise1-purity-delay70-jit30": ("noise1-purity-delay70-jit30", {
+    "noise1-purity-delay30-jit3": ("noise1-purity-delay30-jit3", {
         _LABEL_NOISE: "1.0", _COUPLING: "purity", _NOISE_MODE: "symmetric",
-        _DELAY: "70", _JITTER: "30"}),
+        _DELAY: "30", _JITTER: "3"}),
 }
 
 
