@@ -681,8 +681,8 @@
         </p>
       </div>
       <figure class="figbox dark-ok">
-        <img src="./assets/kafka.png" alt="Diagram of the interactions between Kafka, Prometheus and Grafana: nodes act as Kafka producers streaming metrics, the controller consumes them, Prometheus persists the data, and Grafana visualizes it in dashboards." loading="lazy" style="background:#fff; padding:14px;" />
-        <figcaption><b>Fig. 4 — The node-monitoring middleware.</b> Data flows from node producers through Kafka to Prometheus (persistence) and Grafana (visualization).</figcaption>
+        <img src="./assets/trio.png" alt="Paper figure: representation of Kafka, Prometheus and Grafana interactions. Network devices send device-status data (1) to Kafka; Prometheus retrieves it (2) and stores it (3) in a NoSQL database; Grafana retrieves (4) and manipulates (5) the data and shows it (6) to the user." loading="lazy" style="background:#fff; padding:14px;" />
+        <figcaption><b>Fig. 4 — Kafka · Prometheus · Grafana interactions</b> (paper, Appendix C). Arrows show the flow of data; each label's <i>(n)</i> gives the order: device-status data → Kafka → Prometheus (persisted in NoSQL) → Grafana → user.</figcaption>
       </figure>
     </div>
 
@@ -839,12 +839,14 @@ WANDB_API_KEY=pastehereyourwandbapikey
 
     <div class="cite mt24">
       <button class="copy-btn" data-cite="smartville">Copy</button>
-      <pre id="cite-smartville">@misc{cevallos2024smartville,
-  title  = {Smartville: an open-source SDN online-intrusion detection testbed},
-  author = {Cevallos, Jesus and Iannello, Stefano and Grattacaso, Giuseppe
-            and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
-  year   = {2024},
-  url    = {https://github.com/DISTA-IoT/smartville}
+      <pre id="cite-smartville">@article{cevallos2026smartville,
+  title   = {SmartVille: An Open-Source Testbed for Online-Learning Intrusion
+             Detection over Software-Defined Networking},
+  author  = {Cevallos, Jesus and Rizzardi, Alessandra and Sicari, Sabrina
+             and Coen-Porisini, Alberto},
+  journal = {Journal of Network and Systems Management},
+  year    = {2026},
+  note    = {In press}
 }</pre>
     </div>
 
@@ -871,8 +873,8 @@ WANDB_API_KEY=pastehereyourwandbapikey
       <div>
         <div class="brand" style="font-size:1.2rem"><span class="mark">🔍</span> Smart<em style="color:var(--primary)">Ville</em></div>
         <p class="authors mt16">
-          Jesús Cevallos · Stefano Iannello · Giuseppe Grattacaso ·<br>
-          Alessandra Rizzardi · Sabrina Sicari<sup>*</sup> · Alberto Coen-Porisini
+          Jesús Cevallos · Alessandra Rizzardi ·<br>
+          Sabrina Sicari<sup>*</sup> · Alberto Coen-Porisini
         </p>
         <p class="aff">
           Dipartimento di Scienze Teoriche ed Applicate (DiSTA)<br>
@@ -900,8 +902,13 @@ WANDB_API_KEY=pastehereyourwandbapikey
       </div>
     </div>
 
+    <p class="aff" style="margin-top:30px">
+      <b>Acknowledgements.</b> We gratefully thank Stefano Iannello and Giuseppe Grattacaso for
+      their contributions to the SmartVille testbed implementation.
+    </p>
+
     <div class="foot-bottom">
-      <span>© 2024–2025 DiSTA-IoT, Insubria University · Released under the Apache License 2.0.</span>
+      <span>© 2024–2026 DiSTA-IoT, Insubria University · Released under the Apache License 2.0.</span>
       <span class="muted">Supported by SERENA-IIoT (PRIN 2022, 2022CN4EBH) &amp; SERICS (PE00000014, NRRP MUR — EU NGEU).</span>
     </div>
   </div>
