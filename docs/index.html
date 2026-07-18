@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SmartVille — Open-Source SDN Online-Learning Intrusion Detection Testbed</title>
+<meta name="description" content="SmartVille is the proof-of-concept implementation of an open-source testbed for online-learning network intrusion detection over Software-Defined Networking, orchestrating GNS3, Docker, PoX/OpenFlow and PyTorch." />
+<meta name="author" content="Jesús Cevallos et al. — Insubria University" />
+
+<!-- Open Graph / social preview -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="SmartVille — Online-Learning Intrusion Detection Testbed over SDN" />
+<meta property="og:description" content="Proof-of-concept implementation of an open-source online-learning NID testbed: GNS3 + Docker + PoX/OpenFlow + PyTorch." />
+<meta property="og:image" content="./assets/architecture.png" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E" />
+
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --bg-soft: #ffffff;
+    --bg-elev: #ffffff;
+    --text: #1a1d29;
+    --text-soft: #4c5566;
+    --text-mut: #737d90;
+    --border: #e4e7ee;
+    --primary: #6d3bef;
+    --primary-soft: #8b63f4;
+    --primary-ghost: #efe9fd;
+    --accent: #e8590c;
+    --accent-soft: #f97316;
+    --ok: #17864f;
+    --code-bg: #1c1e2b;
+    --code-text: #e7e3f5;
+    --shadow: 0 1px 2px rgba(16,20,40,.06), 0 8px 28px rgba(16,20,40,.06);
+    --shadow-lg: 0 12px 40px rgba(16,20,40,.14);
+    --radius: 16px;
+    --maxw: 1120px;
+    --mono: ui-monospace, "SF Mono", "SFMono-Regular", "Cascadia Code", Menlo, Consolas, monospace;
+    --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="dark"], html.dark {
+    --bg: #0c0e17;
+    --bg-soft: #12151f;
+    --bg-elev: #171a26;
+    --text: #ecedf3;
+    --text-soft: #b7bdcc;
+    --text-mut: #808799;
+    --border: #262a38;
+    --primary: #9d7bf7;
+    --primary-soft: #b499fb;
+    --primary-ghost: #1e1a34;
+    --accent: #ff8a4c;
+    --accent-soft: #ff9d66;
+    --ok: #3ddc97;
+    --code-bg: #0a0b12;
+    --code-text: #e7e3f5;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+    --shadow-lg: 0 16px 50px rgba(0,0,0,.5);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0e17;
+      --bg-soft: #12151f;
+      --bg-elev: #171a26;
+      --text: #ecedf3;
+      --text-soft: #b7bdcc;
+      --text-mut: #808799;
+      --border: #262a38;
+      --primary: #9d7bf7;
+      --primary-soft: #b499fb;
+      --primary-ghost: #1e1a34;
+      --accent: #ff8a4c;
+      --accent-soft: #ff9d66;
+      --ok: #3ddc97;
+      --code-bg: #0a0b12;
+      --code-text: #e7e3f5;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.35);
+      --shadow-lg: 0 16px 50px rgba(0,0,0,.5);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: var(--primary); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; height: auto; display: block; }
+  h1, h2, h3, h4 { line-height: 1.2; font-weight: 750; letter-spacing: -.02em; }
+  section { scroll-margin-top: 76px; }
+  code, pre { font-family: var(--mono); }
+
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ---------- Nav ---------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(160%) blur(12px);
+    -webkit-backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 18px; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: -.03em; font-size: 1.12rem; color: var(--text); }
+  .brand:hover { text-decoration: none; }
+  .brand .mark {
+    width: 30px; height: 30px; border-radius: 9px;
+    display: grid; place-items: center; font-size: 17px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    box-shadow: var(--shadow);
+  }
+  .brand em { color: var(--primary); font-style: normal; }
+  .nav-links { display: flex; gap: 6px; margin-left: auto; align-items: center; }
+  .nav-links a {
+    color: var(--text-soft); font-size: .9rem; font-weight: 550;
+    padding: 7px 11px; border-radius: 9px;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--primary-ghost); text-decoration: none; }
+  .nav-cta {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--text); color: var(--bg) !important;
+    padding: 8px 14px !important; border-radius: 10px; font-weight: 650;
+  }
+  .nav-cta:hover { text-decoration: none; opacity: .9; }
+  .theme-btn, .menu-btn {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    color: var(--text); width: 38px; height: 38px; border-radius: 10px;
+    cursor: pointer; display: grid; place-items: center; font-size: 16px;
+  }
+  .theme-btn:hover, .menu-btn:hover { border-color: var(--primary); }
+  .menu-btn { display: none; }
+
+  @media (max-width: 900px) {
+    .nav-links {
+      position: absolute; top: 60px; left: 0; right: 0;
+      flex-direction: column; align-items: stretch; gap: 2px;
+      background: var(--bg-soft); border-bottom: 1px solid var(--border);
+      padding: 10px 16px 16px; display: none;
+    }
+    .nav-links.open { display: flex; }
+    .nav-links a { padding: 11px 12px; }
+    .nav-cta { justify-content: center; }
+    .menu-btn { display: grid; margin-left: auto; }
+  }
+
+  /* ---------- Hero ---------- */
+  .hero { position: relative; overflow: hidden; padding: 74px 0 40px; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(760px 380px at 12% -8%, color-mix(in srgb, var(--primary) 22%, transparent), transparent 62%),
+      radial-gradient(680px 360px at 96% 6%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 60%);
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    color: var(--primary); background: var(--primary-ghost);
+    padding: 6px 13px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  }
+  .hero h1 { font-size: clamp(2.2rem, 5.2vw, 3.7rem); margin: 20px 0 8px; font-weight: 820; }
+  .hero h1 .grad {
+    background: linear-gradient(115deg, var(--primary), var(--accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero .tagline { font-size: clamp(1.05rem, 2.4vw, 1.4rem); color: var(--text-soft); max-width: 760px; font-weight: 500; }
+  .hero .lead { margin-top: 18px; max-width: 700px; color: var(--text-mut); font-size: 1.02rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 12px 20px; border-radius: 12px; font-weight: 650; font-size: .96rem;
+    border: 1px solid transparent; cursor: pointer;
+  }
+  .btn:hover { text-decoration: none; transform: translateY(-1px); }
+  .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-soft)); color: #fff; box-shadow: var(--shadow); }
+  .btn-ghost { background: var(--bg-elev); border-color: var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--primary); }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 26px; }
+  .badge {
+    font-size: .8rem; font-weight: 600; color: var(--text-soft);
+    background: var(--bg-elev); border: 1px solid var(--border);
+    padding: 5px 12px; border-radius: 999px;
+  }
+  .badge b { color: var(--primary); }
+
+  .hero-figure {
+    margin-top: 44px; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--border); background: #fff; box-shadow: var(--shadow-lg);
+  }
+  .hero-figure img { width: 100%; }
+  figure { margin: 0; }
+  figcaption { font-size: .86rem; color: var(--text-mut); padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-soft); }
+  figcaption b { color: var(--text-soft); }
+
+  /* ---------- Sections ---------- */
+  .section { padding: 62px 0; border-top: 1px solid var(--border); }
+  .section.alt { background: var(--bg-soft); }
+  .kicker { color: var(--primary); font-weight: 700; font-size: .82rem; letter-spacing: .08em; text-transform: uppercase; }
+  .section h2 { font-size: clamp(1.7rem, 3.4vw, 2.35rem); margin: 10px 0 14px; }
+  .section .intro { color: var(--text-soft); font-size: 1.06rem; max-width: 820px; }
+
+  .poc {
+    display: flex; gap: 18px; align-items: flex-start;
+    background: linear-gradient(120deg, var(--primary-ghost), transparent);
+    border: 1px solid color-mix(in srgb, var(--primary) 26%, transparent);
+    border-left: 4px solid var(--primary);
+    border-radius: 14px; padding: 22px 24px;
+  }
+  .poc .ic { font-size: 1.7rem; line-height: 1; }
+  .poc h3 { margin: 0 0 6px; font-size: 1.15rem; }
+  .poc p { margin: 0; color: var(--text-soft); }
+  .poc a { font-weight: 650; }
+
+  .grid { display: grid; gap: 18px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 900px) { .g3, .g4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px) { .g2, .g3, .g4 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: var(--bg-elev); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px; box-shadow: var(--shadow);
+    transition: transform .16s ease, border-color .16s ease;
+  }
+  .card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--primary) 45%, var(--border)); }
+  .card .ic {
+    width: 42px; height: 42px; border-radius: 11px; display: grid; place-items: center;
+    font-size: 21px; background: var(--primary-ghost); margin-bottom: 14px;
+  }
+  .card h3 { margin: 0 0 8px; font-size: 1.12rem; }
+  .card p { margin: 0; color: var(--text-soft); font-size: .95rem; }
+  .card .tag { display: inline-block; margin-top: 12px; font-size: .74rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; color: var(--accent); }
+
+  .feature-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  .feature-list li { display: flex; gap: 13px; align-items: flex-start; }
+  .feature-list .chk {
+    flex: none; width: 24px; height: 24px; border-radius: 7px; margin-top: 2px;
+    background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok);
+    display: grid; place-items: center; font-weight: 800; font-size: 13px;
+  }
+  .feature-list b { color: var(--text); }
+  .feature-list span { color: var(--text-soft); }
+
+  .split { display: grid; grid-template-columns: 1.05fr .95fr; gap: 34px; align-items: center; }
+  @media (max-width: 860px) { .split { grid-template-columns: 1fr; } }
+
+  .figbox { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: var(--shadow); }
+  .figbox.dark-ok { background: var(--bg-elev); }
+
+  /* code */
+  pre {
+    background: var(--code-bg); color: var(--code-text);
+    padding: 18px 20px; border-radius: 12px; overflow-x: auto;
+    font-size: .88rem; line-height: 1.6; border: 1px solid rgba(255,255,255,.06);
+    margin: 0;
+  }
+  pre .c { color: #7f88a3; }
+  pre .p { color: #b499fb; }
+  pre .s { color: #ff9d66; }
+  .code-steps { display: grid; gap: 16px; }
+  .step { display: grid; grid-template-columns: 34px 1fr; gap: 14px; align-items: start; }
+  .step .n {
+    width: 30px; height: 30px; border-radius: 9px; background: var(--primary); color: #fff;
+    font-weight: 750; display: grid; place-items: center; font-size: .9rem; margin-top: 2px;
+  }
+  .step .st-body { min-width: 0; }
+  .step h4 { margin: 4px 0 10px; font-size: 1.02rem; }
+
+  /* table */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: .92rem; background: var(--bg-elev); }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  thead th { background: var(--bg-soft); font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-mut); font-weight: 700; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--primary-ghost); }
+  td .pill { font-family: var(--mono); font-size: .82rem; color: var(--accent); }
+  .type-ddos { color: #e8590c; } .type-cc { color: #6d3bef; } .type-worm { color: #1c7ed6; } .type-scan { color: #2f9e44; } .type-trojan { color: #d6336c; }
+
+  .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 30px; }
+  @media (max-width: 700px) { .stat-row { grid-template-columns: repeat(2,1fr); } }
+  .stat { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 14px; padding: 20px; text-align: center; box-shadow: var(--shadow); }
+  .stat .num { font-size: 1.9rem; font-weight: 820; background: linear-gradient(120deg,var(--primary),var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -.03em; }
+  .stat .lbl { font-size: .82rem; color: var(--text-mut); margin-top: 4px; }
+
+  .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .tech {
+    display: flex; align-items: center; gap: 11px; padding: 13px 15px;
+    background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow);
+  }
+  .tech .d { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 16px; background: var(--primary-ghost); flex: none; }
+  .tech b { display: block; font-size: .9rem; }
+  .tech small { color: var(--text-mut); font-size: .76rem; }
+
+  .callout { background: var(--primary-ghost); border: 1px solid color-mix(in srgb, var(--primary) 22%, transparent); border-radius: 12px; padding: 16px 18px; font-size: .95rem; color: var(--text-soft); }
+  .callout b { color: var(--text); }
+
+  /* citation */
+  .cite { position: relative; }
+  .cite pre { padding-right: 54px; }
+  .copy-btn {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(255,255,255,.08); color: #e7e3f5; border: 1px solid rgba(255,255,255,.16);
+    border-radius: 8px; padding: 6px 10px; font-size: .78rem; cursor: pointer; font-weight: 600;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,.16); }
+
+  /* footer */
+  footer {
+    border-top: 1px solid var(--border); background: var(--bg-soft);
+    padding: 48px 0 40px; margin-top: 20px;
+  }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 28px; }
+  @media (max-width: 760px) { .foot-grid { grid-template-columns: 1fr; gap: 22px; } }
+  footer h4 { font-size: .82rem; text-transform: uppercase; letter-spacing: .06em; color: var(--text-mut); margin: 0 0 12px; }
+  footer a { color: var(--text-soft); }
+  footer .authors { color: var(--text-soft); font-size: .93rem; line-height: 1.9; }
+  footer .aff { color: var(--text-mut); font-size: .88rem; margin-top: 6px; }
+  .foot-links { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; font-size: .92rem; }
+  .foot-bottom { margin-top: 34px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; color: var(--text-mut); font-size: .84rem; }
+
+  .muted { color: var(--text-mut); }
+  .mt8 { margin-top: 8px; } .mt16 { margin-top: 16px; } .mt24 { margin-top: 24px; } .mt32 { margin-top: 32px; }
+  sup a { font-size: .7em; }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top"><span class="mark">🔍</span> Smart<em>Ville</em></a>
+    <nav class="nav-links" id="navlinks">
+      <a href="#overview">Overview</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#nodes">Nodes</a>
+      <a href="#detection">Detection</a>
+      <a href="#monitoring">Monitoring</a>
+      <a href="#attacks">Attacks</a>
+      <a href="#quickstart">Quickstart</a>
+      <a href="#cite">Cite</a>
+      <a class="nav-cta" href="https://github.com/DISTA-IoT/insubria-smartville" target="_blank" rel="noopener">★ GitHub</a>
+    </nav>
+    <button class="theme-btn" id="themeBtn" title="Toggle theme" aria-label="Toggle color theme">🌗</button>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu">☰</button>
+  </div>
+</header>
+
+<a id="top"></a>
+
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <span class="eyebrow">🔬 Proof-of-Concept Implementation · Insubria University</span>
+    <h1>SmartVille<br><span class="grad">Online-learning intrusion detection, over SDN.</span></h1>
+    <p class="tagline">An open-source testbed for training network intrusion-detection systems on <b>live</b> traffic — not pre-recorded traces.</p>
+    <p class="lead">
+      This repository is the working, out-of-the-box implementation behind the paper
+      <i>“SmartVille: An Open-Source Testbed for Online-Learning Intrusion Detection over Software-Defined Networking.”</i>
+      It orchestrates GNS3 network emulation, Docker containers, real traffic replays, a PoX/OpenFlow controller and
+      PyTorch neural modules into a single reproducible sandbox.
+    </p>
+
+    <div class="cta-row">
+      <a class="btn btn-primary" href="https://github.com/DISTA-IoT/insubria-smartville" target="_blank" rel="noopener">⌘ Explore the code</a>
+      <a class="btn btn-ghost" href="#quickstart">▶ Quickstart</a>
+      <a class="btn btn-ghost" href="#cite">❝ Cite the paper</a>
+    </div>
+
+    <div class="badges">
+      <span class="badge">🐳 <b>Docker</b> nodes</span>
+      <span class="badge">🌐 <b>GNS3</b> emulation</span>
+      <span class="badge">🧩 <b>PoX</b> / OpenFlow</span>
+      <span class="badge">🔥 <b>PyTorch</b> modules</span>
+      <span class="badge">📊 <b>Kafka</b> · Prometheus · Grafana</span>
+      <span class="badge">☁️ <b>Weights &amp; Biases</b></span>
+      <span class="badge">⚖️ Apache-2.0</span>
+    </div>
+
+    <figure class="hero-figure">
+      <img src="./assets/architecture.png" alt="SmartVille architecture: GNS3 + Docker containerized network on the left, an Open vSwitch SDN switch feeding flow statistics, raw traffic and node-status metrics through Kafka/Prometheus/Grafana and OpenFlow to a PoX SDN controller running PyTorch and Weights & Biases for online learning, intrusion detection, few-shot learning and zero-day attack detection." loading="lazy" />
+      <figcaption><b>Fig. 1 — Enabling technologies and working principles.</b> A containerized network (GNS3 + Docker) is monitored through OpenFlow and a Kafka/Prometheus/Grafana stack. A PoX SDN controller builds a multi-domain feature space and trains PyTorch neural modules for online learning, intrusion detection, few-shot learning and zero-day-attack (ZdA) detection.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ================= OVERVIEW ================= -->
+<section class="section" id="overview">
+  <div class="wrap">
+    <div class="poc">
+      <div class="ic">🧪</div>
+      <div>
+        <h3>This repo is the proof of concept for the paper</h3>
+        <p>
+          Everything the paper describes — the SDN monitoring-and-control loop, the multi-modal feature space, the
+          prototypical online-learning detector, the automatic topology generator and the attack/honeypot catalog — is
+          implemented here as runnable code, Dockerfiles and scripts. The page below maps each contribution of the paper to
+          where it lives in the codebase. <a href="https://github.com/QwertyJacob/Smartville-Paper" target="_blank" rel="noopener">See the paper repository →</a>
+        </p>
+      </div>
+    </div>
+
+    <div class="mt32">
+      <span class="kicker">The problem</span>
+      <h2>Most ML-based intrusion detection learns <em>offline</em>. Real networks don't wait.</h2>
+      <p class="intro">
+        The overwhelming majority of machine-learning research on network intrusion detection (NID) trains on pre-recorded,
+        hand-labelled traces before release — an inherently <b>offline</b> process that needs bulk pre-processing and careful
+        feature engineering. Yet cyber-threats are open-set and networks drift, so offline-trained detectors age quickly.
+        <b>Online-learning</b> — learning to detect attacks on a live network — is adaptive by design, but fewer than 20% of
+        recent ML-NID papers attempt it. The single biggest reason is the missing ingredient: an accessible, ML-ready network
+        emulation testbed. SmartVille exists to remove that entrance barrier.
+      </p>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><div class="num">&lt;20%</div><div class="lbl">of recent ML-NID papers do online-learning</div></div>
+      <div class="stat"><div class="num">3</div><div class="lbl">feature domains fused per inference</div></div>
+      <div class="stat"><div class="num">10+</div><div class="lbl">real IoT-23 attack patterns replayed</div></div>
+      <div class="stat"><div class="num">0</div><div class="lbl">manual pre-processing steps required</div></div>
+    </div>
+
+    <div class="grid g3 mt32">
+      <div class="card">
+        <div class="ic">🧠</div>
+        <h3>A lightweight DL pipeline inside SDN</h3>
+        <p>The PoX SDN controller embeds <i>few-shot</i> and <i>zero-shot</i> neural modules for data-efficient learning and zero-day-attack detection & categorization, extending a plain layer-3 forwarding switch with ML-based NID.</p>
+        <span class="tag">Contribution 1</span>
+      </div>
+      <div class="card">
+        <div class="ic">🧬</div>
+        <h3>A rich multi-modal feature space</h3>
+        <p>Raw traffic bytes, OpenFlow flow statistics and node-status probes (CPU / RAM / latency / throughput) are fused. Two visualization strategies ship out of the box: a local Grafana dashboard and cloud logging.</p>
+        <span class="tag">Contribution 2</span>
+      </div>
+      <div class="card">
+        <div class="ic">🧱</div>
+        <h3>An extensible containerized framework</h3>
+        <p>Docker images realistically reproduce recent cyber-attacks and IoT honeypots, running on GNS3. Adding new attacks, protocols or node types is a matter of adding a Dockerfile.</p>
+        <span class="tag">Contribution 3</span>
+      </div>
+      <div class="card">
+        <div class="ic">🗺️</div>
+        <h3>Zero-touch topology generation</h3>
+        <p>A <code>star_topology</code> script instantiates attackers, victims, switches, a controller and a NAT node as GNS3 appliances — auto-configuring interfaces, IPs, names and behaviours.</p>
+        <span class="tag">Contribution 4a</span>
+      </div>
+      <div class="card">
+        <div class="ic">🎛️</div>
+        <h3>One dashboard to drive experiments</h3>
+        <p>A <code>container_manager</code> / dashboard launches attacks, benign traffic, monitoring services and training cycles — from a web GUI or a terminal CLI client.</p>
+        <span class="tag">Contribution 4b</span>
+      </div>
+      <div class="card">
+        <div class="ic">📈</div>
+        <h3>ML-DevOps built in</h3>
+        <p>Weights&nbsp;&amp;&nbsp;Biases logging tracks training/testing metrics, gradients, hyper-parameters and latent-space decompositions for reproducible online-learning experiments.</p>
+        <span class="tag">Contribution 4c</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ARCHITECTURE ================= -->
+<section class="section alt" id="architecture">
+  <div class="wrap">
+    <span class="kicker">How it fits together</span>
+    <h2>Architecture &amp; working principles</h2>
+    <p class="intro">
+      SmartVille is built on GNS3, which virtualizes a realistic network scenario. Every node is a custom Docker container
+      bundling its Python dependencies, which makes the node set both extensible and resource-isolated. A single Open vSwitch
+      forwards traffic; a PoX controller observes it through OpenFlow and enriches it with node-status metrics streamed over
+      Kafka. The controller turns those observations into multi-domain feature vectors and trains the neural detector — live.
+    </p>
+
+    <div class="split mt32">
+      <div>
+        <h3 style="margin-top:0">The SDN control loop</h3>
+        <ul class="feature-list mt16">
+          <li><span class="chk">✓</span><span><b>Separation of planes.</b> SDN splits forwarding (data plane) from control. A centralized PoX controller decides how the Open vSwitch handles packets via OpenFlow — the de-facto Southbound standard.</span></li>
+          <li><span class="chk">✓</span><span><b>Flow &amp; port probing.</b> The controller periodically issues <code>flowstats</code> / <code>portstats</code> OpenFlow requests, collects the asynchronous responses, and keeps an anonymized copy of the first <i>n</i> packets of each flow.</span></li>
+          <li><span class="chk">✓</span><span><b>Node metrics via Kafka.</b> A consumer thread pulls CPU/RAM/latency/throughput probes from a Kafka broker to widen the detector's visibility.</span></li>
+          <li><span class="chk">✓</span><span><b>Flow-miss learning.</b> When no flow rule matches a packet, the switch defers to the controller, which installs a rule — so the next similar packet is a flow-hit handled in the data plane.</span></li>
+        </ul>
+      </div>
+      <figure class="figbox">
+        <img src="./assets/sdn.png" alt="Software-defined networking planes: a traditional network on the left, an SDN in the middle showing the application plane (Northbound APIs), the SDN controller in the control plane (with Westbound and Eastbound APIs), and the data plane of network devices connected through Southbound APIs such as OpenFlow, SNMP and NETCONF." loading="lazy" />
+        <figcaption><b>Fig. 2 — SDN plane separation.</b> The controller sits between the application plane (Northbound) and the forwarding elements (Southbound / OpenFlow), giving centralized, programmable visibility over the network.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= NODES ================= -->
+<section class="section" id="nodes">
+  <div class="wrap">
+    <span class="kicker">Containerized network</span>
+    <h2>Four node types, all Docker images</h2>
+    <p class="intro">
+      Each node in the first release is a Docker container built from a versioned Dockerfile. The design is deliberately
+      duple: the node set is easy to extend, and resource isolation is enhanced. Build them all with a single <code>make all</code>.
+    </p>
+
+    <div class="grid g2 mt32">
+      <div class="card">
+        <div class="ic">🍯</div>
+        <h3>Honeypots (victims)</h3>
+        <p>Emulate authentic IoT devices by replaying real Aposemat IoT-23 captures. IP addresses are rewritten with <b>Scapy</b> to match the testbed, then sent with <b>TcpReplay</b> to guarantee uniform send/receive pacing. A producer script streams CPU, RAM, ping and traffic metrics to Kafka.</p>
+        <span class="tag">Somfy lock · Philips HUE · Amazon Echo</span>
+      </div>
+      <div class="card">
+        <div class="ic">🦠</div>
+        <h3>Attackers</h3>
+        <p>Live-reproduce real attack patterns stored as <code>.pcap</code> files. A <code>rewrite</code> step can bulk-modify endpoint addresses for exact-fidelity replays, or the <code>replay</code> script can rewrite endpoints on the fly. Extend the range of attacks by editing the container.</p>
+        <span class="tag">Mirai · Hajime · Bashlite · Torii · …</span>
+      </div>
+      <div class="card">
+        <div class="ic">🔀</div>
+        <h3>OpenFlow switch</h3>
+        <p>A modified GNS3 Open vSwitch image. Its <code>boot.sh</code> is patched to listen for a controller on <code>br0</code> at <code>192.168.1.1:6633</code>. Behaviour — hub, L2 or L3 switch — is dictated entirely by the PoX controller through flow rules.</p>
+        <span class="tag">Open vSwitch · OpenFlow</span>
+      </div>
+      <div class="card">
+        <div class="ic">🎛️</div>
+        <h3>Controller</h3>
+        <p>The core. A PoX module (extending the sample L3 forwarding switch) that builds multi-domain feature vectors and trains the NID module. It hosts Prometheus + Grafana for the monitoring dashboard and holds the trainable neural modules.</p>
+        <span class="tag">PoX · PyTorch · Prometheus · Grafana</span>
+      </div>
+    </div>
+
+    <div class="callout mt24">
+      💡 <b>Extensibility by design.</b> Because every node is just a Docker image, enriching the emulated scenario — new attack
+      dynamics, new protocols, new device types — means adding a Dockerfile, not rebuilding the testbed.
+    </div>
+  </div>
+</section>
+
+<!-- ================= FEATURE SPACES ================= -->
+<section class="section alt">
+  <div class="wrap">
+    <span class="kicker">Multi-domain observations</span>
+    <h2>Three feature domains, fused per inference</h2>
+    <p class="intro">
+      SmartVille advocates for multi-domain feature spaces that widen the visibility of ML modules. All three domains below are
+      collected from a single SDN switch in the first release — but the modular source code lets you extend monitoring to
+      multiple forwarding elements, or to application-level data, using the existing Kafka messaging code.
+    </p>
+
+    <div class="grid g3 mt32">
+      <div class="card">
+        <div class="ic">📊</div>
+        <h3>Flow statistics</h3>
+        <p>Periodic <code>Flowstats</code> OpenFlow requests build a sliding-window sequence of per-flow statistics from the switch. Flows are grouped by source and destination IP address. The request period is user-configurable and issued asynchronously.</p>
+      </div>
+      <div class="card">
+        <div class="ic">📦</div>
+        <h3>Raw traffic captures</h3>
+        <p>The raw bytes of the first <i>n</i> packets of each flow feed the pipeline (<i>n</i> is a CLI parameter). IP addresses and transport ports are masked by default so the neural modules can't cheat by memorizing endpoints.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🖥️</div>
+        <h3>Node-status features</h3>
+        <p>A <b>Psutil</b>-based producer thread streams CPU, RAM and network metrics to Kafka; Prometheus persists them in the controller. A node under attack often shows anomalous resource-usage signatures.</p>
+      </div>
+    </div>
+
+    <div class="callout mt24">
+      🏷️ <b>Automatic labelling.</b> Assuming each attacker node performs a single attack type, its IP address is mapped to the
+      corresponding attack label. Because Kafka topics for honeypot features are named after node IPs, node-features link back to
+      attacks for free — giving the online learner a valid supervisory signal with zero manual annotation.
+    </div>
+  </div>
+</section>
+
+<!-- ================= DETECTION ================= -->
+<section class="section" id="detection">
+  <div class="wrap">
+    <span class="kicker">The intrusion-detection module</span>
+    <h2>An online-learning, zero-pre-processing, zero-day-aware detector</h2>
+    <p class="intro">
+      The NID module is designed to be modified, extended or replaced — but the reference implementation embodies four principles
+      drawn straight from the paper. It ships the open-source neural modules of <b>ASAP</b> for closed-set multi-class
+      classification, collective anomaly detection and clustering.
+    </p>
+
+    <div class="grid g2 mt32">
+      <div class="card">
+        <div class="ic">🔁</div>
+        <h3>Online-learning</h3>
+        <p>An asynchronous periodic cycle: every <i>i</i> seconds the controller classifies the current multi-modal sliding windows and back-propagates the error. Labelled tuples land in class-specific replay buffers so batch learning can shorten convergence.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🧾</div>
+        <h3>Zero pre-processing</h3>
+        <p>No feature selection or hand-engineering. Deep nets extract features directly from raw bytes, flow/port stats and node probes; a trainable batch-normalization layer manages the dimensional heterogeneity of the fused inputs.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🎯</div>
+        <h3>Adaptability &amp; data-efficiency</h3>
+        <p>A dynamic label encoder adds a new class encoding whenever an unseen label arrives with a sample. Prototypical learning enables <i>few-shot</i> acquisition of new attack definitions from a handful of labelled examples.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🕳️</div>
+        <h3>Zero-day-attack detection</h3>
+        <p>Under the open-world assumption, a gradient-based clustering strategy classifies among multiple concurrent <i>unknown</i> behaviours. Three curricula split attacks into known / unknown-train / unknown-test for out-of-distribution experiments.</p>
+      </div>
+    </div>
+
+    <div class="split mt32">
+      <div>
+        <h3 style="margin-top:0">Prototypical Networks: a dynamic knowledge base</h3>
+        <p class="muted mt8">
+          Instead of a fixed-size output layer, the classifier is a <b>Prototypical Network</b>. Support samples compute a
+          centroid (prototype) per class; a query's logits are inversely proportional to its Euclidean distance from each
+          prototype. Output dimension is therefore dynamic — new attack classes can appear at run-time without retraining
+          from scratch, and each learnt prototype maps to a latent attack signature.
+        </p>
+        <div class="callout mt16">
+          📐 The class-wise prototype <b>c<sub>i</sub></b> is the mean of the support latents in class <i>i</i>. Query samples are
+          scored by proximity to these prototypes — the mechanism that gives SmartVille its few-shot, open-world behaviour.
+        </div>
+      </div>
+      <figure class="figbox dark-ok">
+        <img src="./assets/formula.png" alt="Equation for computing a class prototype: c_i equals one over N_i times the sum over j of the support latent vectors z^s_j, for every prototype c_i in the class set C." loading="lazy" style="padding:22px; background:#fff;" />
+        <figcaption><b>Prototype computation.</b> Each class centroid is the average of its support latent vectors; classification scores fall off with distance from these centroids (episodic / prototypical learning, as in ASAP).</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= TOPOLOGY ================= -->
+<section class="section alt" id="topology">
+  <div class="wrap">
+    <span class="kicker">Zero-touch scenarios</span>
+    <h2>Automatic topology generation</h2>
+    <p class="intro">
+      A <code>star_topology</code> script builds a honeypot-and-attacker scenario with a single command. Nodes attach to the Open
+      vSwitch, which attaches to the controller; a second edge switch links everything to a GNS3 NAT node for Internet access
+      (needed for cloud logging and for measuring latency as a node feature). The default scenario spins up seven attackers and
+      seven victims — and it's all driven by the <code>container_manager</code>.
+    </p>
+
+    <figure class="figbox mt32">
+      <img src="./assets/topology.png" alt="A SmartVille star topology as seen in the GNS3 desktop GUI: multiple attacker nodes on the left and victim nodes on the right, each with an assigned 192.168.1.x IP address, all connected through two Open vSwitch nodes to a central PoX controller and a NAT cloud for Internet access." loading="lazy" />
+      <figcaption><b>Fig. 3 — A star topology in the GNS3 GUI.</b> Attackers, victims, forwarding elements, a controller and a NAT node are created as GNS3 appliances on a fresh project. The generator auto-assigns interfaces, IP addresses, names and per-node behaviours from the script parameters.</figcaption>
+    </figure>
+
+    <div class="callout mt24">
+      🧩 <b>Configurable &amp; reproducible.</b> Topology size and node behaviour (env vars, start commands, labels, IPs) come from
+      Hydra config files — e.g. <code>python3 utils/star_topology.py override=acid</code>. Modify the modular script to define
+      entirely new topologies.
+    </div>
+  </div>
+</section>
+
+<!-- ================= MONITORING ================= -->
+<section class="section" id="monitoring">
+  <div class="wrap">
+    <span class="kicker">Observability</span>
+    <h2>Two ways to watch an experiment</h2>
+    <p class="intro">
+      SmartVille pre-packages both a <b>local</b> node-status dashboard and a <b>cloud</b> ML-metrics tracker, so you can watch the
+      network and the learner at the same time.
+    </p>
+
+    <div class="split mt32">
+      <div>
+        <h3 style="margin-top:0">Node metrics: Kafka → Prometheus → Grafana</h3>
+        <p class="muted mt8">
+          Producer scripts on the nodes publish CPU, RAM and network metrics to <b>Kafka</b> topics (one per node). The controller
+          consumes them; <b>Prometheus</b> persists the stream into a time-series store; <b>Grafana</b> renders live dashboards.
+          Anomalous patterns in these node-level signals enrich the detector's feature space.
+        </p>
+      </div>
+      <figure class="figbox dark-ok">
+        <img src="./assets/kafka.png" alt="Diagram of the interactions between Kafka, Prometheus and Grafana: nodes act as Kafka producers streaming metrics, the controller consumes them, Prometheus persists the data, and Grafana visualizes it in dashboards." loading="lazy" style="background:#fff; padding:14px;" />
+        <figcaption><b>Fig. 4 — The node-monitoring middleware.</b> Data flows from node producers through Kafka to Prometheus (persistence) and Grafana (visualization).</figcaption>
+      </figure>
+    </div>
+
+    <div class="grid g2 mt32">
+      <figure class="figbox">
+        <img src="./assets/grafana.png" alt="Grafana dashboard screenshots showing time-series of inbound network traffic (lower panel) and CPU usage (upper panel) for network nodes over time." loading="lazy" />
+        <figcaption><b>Fig. 5 — Grafana node dashboards.</b> Live history of node-status metrics (here: inbound traffic and CPU usage). SmartVille tracks CPU, RAM, latency and inbound/outbound traffic per node.</figcaption>
+      </figure>
+      <figure class="figbox">
+        <img src="./assets/wandb.png" alt="Weights & Biases cloud dashboard showing multiple training and testing metric plots and latent-space decompositions pre-packaged with SmartVille." loading="lazy" />
+        <figcaption><b>Fig. 6 — Weights &amp; Biases ML tracking.</b> Pre-packaged plots for training/testing metrics and significant latent-space decompositions, logged to the cloud for reproducible experiments.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ATTACKS ================= -->
+<section class="section alt" id="attacks">
+  <div class="wrap">
+    <span class="kicker">Realistic traffic</span>
+    <h2>The attack &amp; honeypot catalog</h2>
+    <p class="intro">
+      Attack and benign patterns are extracted from the publicly available <b>Aposemat IoT-23</b> captures and replayed at faithful
+      pacing. Unless noted, flows are filtered by attacker source IP; source/destination IPs and transport ports are masked online
+      before the raw bytes reach the neural modules.
+    </p>
+
+    <div class="table-wrap mt32">
+      <table>
+        <thead>
+          <tr><th>Pattern</th><th>Type</th><th>IoT-23 capture</th><th>Flows extracted</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>Hajime</b></td><td class="type-trojan">Trojan (Linux exploit)</td><td class="pill">9.1</td><td>~50,000</td></tr>
+          <tr><td><b>Hakai</b></td><td class="type-ddos">DDoS botnet (Mirai/Gafgyt)</td><td class="pill">8.1</td><td>~12,000</td></tr>
+          <tr><td><b>Bashlite</b></td><td class="type-ddos">DDoS botnet</td><td class="pill">60.1</td><td>~50,000</td></tr>
+          <tr><td><b>Mirai</b></td><td class="type-ddos">DDoS botnet (IoT)</td><td class="pill">34.1</td><td>~24,000</td></tr>
+          <tr><td><b>Torii</b></td><td class="type-cc">C&amp;C + info-gathering</td><td class="pill">20.1</td><td>~50,000</td></tr>
+          <tr><td><b>Muhstik</b></td><td class="type-worm">Worm (Mirai-based)</td><td class="pill">3.1</td><td>~50,000</td></tr>
+          <tr><td><b>Okiru</b></td><td class="type-cc">C&amp;C botnet (ARC)</td><td class="pill">7.1</td><td>~50,000</td></tr>
+          <tr><td><b>Horizontal Scan</b></td><td class="type-scan">Reconnaissance</td><td class="pill">1.1</td><td>~50,000</td></tr>
+          <tr><td><b>C&amp;C HeartBeat</b></td><td class="type-cc">C&amp;C heartbeat</td><td class="pill">7.1</td><td>~1,500</td></tr>
+          <tr><td><b>Generic DDoS</b></td><td class="type-ddos">DDoS (C&amp;C context)</td><td class="pill">7.1</td><td>~50,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="mt32">IoT honeypots (attack victims)</h3>
+    <div class="grid g3 mt16">
+      <div class="card"><div class="ic">🔐</div><h3>Somfy door lock</h3><p>Smart-lock flows from Honeypot 7.1 — reproduced by two nodes in the reference topology.</p></div>
+      <div class="card"><div class="ic">💡</div><h3>Philips HUE lamp</h3><p>Smart-LED flows from Honeypot 4.1 — reproduced by one node.</p></div>
+      <div class="card"><div class="ic">🔊</div><h3>Amazon Echo</h3><p>Personal-assistant flows from Honeypot 5.1 — reproduced by one node.</p></div>
+    </div>
+    <p class="muted mt16">All flow-extraction code is open-sourced alongside the testbed. See the repository's <code>iot23_dataset</code> and <code>data_supply_chain.MD</code> for details.</p>
+  </div>
+</section>
+
+<!-- ================= QUICKSTART ================= -->
+<section class="section" id="quickstart">
+  <div class="wrap">
+    <span class="kicker">Get running</span>
+    <h2>Quickstart</h2>
+    <p class="intro">
+      SmartVille runs on a Linux host with a Docker engine and a GNS3 server. Tested on GNS3 2.2.54 and Python 3.12.3. Full
+      instructions live in the repository <a href="https://github.com/DISTA-IoT/insubria-smartville#readme" target="_blank" rel="noopener">README</a>.
+    </p>
+
+    <div class="code-steps mt32">
+      <div class="step">
+        <div class="n">1</div>
+        <div class="st-body">
+          <h4>Install dependencies &amp; set your W&amp;B key</h4>
+          <pre><span class="c"># create a .env file next to the README with your Weights &amp; Biases key</span>
+WANDB_API_KEY=pastehereyourwandbapikey
+
+<span class="c"># python deps for the host-side scripts</span>
+<span class="p">pip</span> install -r requirements.txt</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <div class="st-body">
+          <h4>Build the Docker node images</h4>
+          <pre><span class="c"># build every node image (controller, victim, attacker, switch)</span>
+<span class="p">make</span> all</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div class="st-body">
+          <h4>Generate a topology <span class="muted">(GNS3 server must be running)</span></h4>
+          <pre><span class="p">python3</span> utils/star_topology.py
+<span class="c"># or a named profile via Hydra:</span>
+<span class="p">python3</span> utils/star_topology.py override=acid</pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <div class="st-body">
+          <h4>Launch the dashboard &amp; drive the experiment</h4>
+          <pre><span class="p">python3</span> dashboard/dash.py override=acid
+<span class="c"># open the GUI at http://localhost:7777 — start monitoring,</span>
+<span class="c"># launch traffic/attacks, and start the training cycle.</span></pre>
+        </div>
+      </div>
+      <div class="step">
+        <div class="n">5</div>
+        <div class="st-body">
+          <h4>Replay an attack from an attacker node <span class="muted">(example)</span></h4>
+          <pre><span class="c"># send the Hakai attack to 192.168.1.4</span>
+<span class="p">python3</span> replay.py hakai <span class="s">192.168.1.4</span>
+
+<span class="c"># start the SmartController PoX component (training)</span>
+./pox.py smartController.smartController</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout mt24">
+      ⚙️ Command-line arguments for training — feature domains, hyper-parameters, metric logging — are read from
+      <code>smartville.yaml</code>. A terminal-only workflow is available via <code>dashboard/dash_cli.py</code>.
+    </div>
+  </div>
+</section>
+
+<!-- ================= TECH STACK ================= -->
+<section class="section alt">
+  <div class="wrap">
+    <span class="kicker">Under the hood</span>
+    <h2>Technology stack</h2>
+    <div class="tech-grid mt24">
+      <div class="tech"><span class="d">🌐</span><div><b>GNS3</b><small>Network emulation</small></div></div>
+      <div class="tech"><span class="d">🐳</span><div><b>Docker</b><small>Node virtualization</small></div></div>
+      <div class="tech"><span class="d">🧩</span><div><b>PoX</b><small>SDN controller (Py3)</small></div></div>
+      <div class="tech"><span class="d">🔀</span><div><b>Open vSwitch</b><small>OpenFlow switch</small></div></div>
+      <div class="tech"><span class="d">🔥</span><div><b>PyTorch</b><small>Neural modules</small></div></div>
+      <div class="tech"><span class="d">📨</span><div><b>Apache Kafka</b><small>Metric streaming</small></div></div>
+      <div class="tech"><span class="d">📈</span><div><b>Prometheus</b><small>Metric persistence</small></div></div>
+      <div class="tech"><span class="d">📊</span><div><b>Grafana</b><small>Local dashboards</small></div></div>
+      <div class="tech"><span class="d">☁️</span><div><b>Weights &amp; Biases</b><small>ML tracking</small></div></div>
+      <div class="tech"><span class="d">🧪</span><div><b>Scapy</b><small>Packet rewriting</small></div></div>
+      <div class="tech"><span class="d">📼</span><div><b>TcpReplay</b><small>Faithful replays</small></div></div>
+      <div class="tech"><span class="d">🗃️</span><div><b>Aposemat IoT-23</b><small>Real traffic source</small></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CITE ================= -->
+<section class="section" id="cite">
+  <div class="wrap">
+    <span class="kicker">Please cite us</span>
+    <h2>Citation</h2>
+    <p class="intro">If SmartVille or its ASAP neural modules are useful to your research, a citation is greatly appreciated.</p>
+
+    <div class="cite mt24">
+      <button class="copy-btn" data-cite="smartville">Copy</button>
+      <pre id="cite-smartville">@misc{cevallos2024smartville,
+  title  = {Smartville: an open-source SDN online-intrusion detection testbed},
+  author = {Cevallos, Jesus and Iannello, Stefano and Grattacaso, Giuseppe
+            and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
+  year   = {2024},
+  url    = {https://github.com/DISTA-IoT/smartville}
+}</pre>
+    </div>
+
+    <div class="cite mt16">
+      <button class="copy-btn" data-cite="asap">Copy</button>
+      <pre id="cite-asap">@article{cevallos2024asap,
+  title     = {ASAP: Automatic Synthesis of Attack Prototypes,
+               an online-learning, end-to-end approach},
+  author    = {Cevallos, Jesus and Rizzardi, Alessandra and Sicari, Sabrina
+               and Coen-Porisini, Alberto and others},
+  journal   = {Computer Networks},
+  pages     = {110828},
+  year      = {2024},
+  publisher = {Elsevier}
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="font-size:1.2rem"><span class="mark">🔍</span> Smart<em style="color:var(--primary)">Ville</em></div>
+        <p class="authors mt16">
+          Jesús Cevallos · Stefano Iannello · Giuseppe Grattacaso ·<br>
+          Alessandra Rizzardi · Sabrina Sicari<sup>*</sup> · Alberto Coen-Porisini
+        </p>
+        <p class="aff">
+          Dipartimento di Scienze Teoriche ed Applicate (DiSTA)<br>
+          Insubria University — Varese, Italy<br>
+          <span class="muted">* Corresponding author</span>
+        </p>
+      </div>
+      <div>
+        <h4>Repositories</h4>
+        <ul class="foot-links">
+          <li><a href="https://github.com/DISTA-IoT/insubria-smartville" target="_blank" rel="noopener">↗ Testbed code (this repo)</a></li>
+          <li><a href="https://github.com/QwertyJacob/Smartville-Paper" target="_blank" rel="noopener">↗ Paper source</a></li>
+          <li><a href="https://github.com/DISTA-IoT/smartville" target="_blank" rel="noopener">↗ DISTA-IoT / smartville</a></li>
+          <li><a href="https://github.com/noxrepo/pox" target="_blank" rel="noopener">↗ PoX controller</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Resources</h4>
+        <ul class="foot-links">
+          <li><a href="https://www.stratosphereips.org/datasets-iot23" target="_blank" rel="noopener">↗ Aposemat IoT-23 dataset</a></li>
+          <li><a href="https://docs.gns3.com/" target="_blank" rel="noopener">↗ GNS3 docs</a></li>
+          <li><a href="https://pytorch.org/" target="_blank" rel="noopener">↗ PyTorch</a></li>
+          <li><a href="https://docs.wandb.ai/" target="_blank" rel="noopener">↗ Weights &amp; Biases</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="foot-bottom">
+      <span>© 2024–2025 DiSTA-IoT, Insubria University · Released under the Apache License 2.0.</span>
+      <span class="muted">Supported by SERENA-IIoT (PRIN 2022, 2022CN4EBH) &amp; SERICS (PE00000014, NRRP MUR — EU NGEU).</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // ---- Theme toggle (respects system, remembers choice) ----
+  (function () {
+    var root = document.documentElement;
+    var stored = null;
+    try { stored = localStorage.getItem('sv-theme'); } catch (e) {}
+    if (stored) root.setAttribute('data-theme', stored);
+    var btn = document.getElementById('themeBtn');
+    function current() {
+      var attr = root.getAttribute('data-theme');
+      if (attr) return attr;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    btn.addEventListener('click', function () {
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('sv-theme', next); } catch (e) {}
+    });
+  })();
+
+  // ---- Mobile menu ----
+  (function () {
+    var menuBtn = document.getElementById('menuBtn');
+    var links = document.getElementById('navlinks');
+    menuBtn.addEventListener('click', function () { links.classList.toggle('open'); });
+    links.addEventListener('click', function (e) {
+      if (e.target.tagName === 'A') links.classList.remove('open');
+    });
+  })();
+
+  // ---- Copy citation ----
+  (function () {
+    document.querySelectorAll('.copy-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var el = document.getElementById('cite-' + b.getAttribute('data-cite'));
+        if (!el) return;
+        navigator.clipboard.writeText(el.innerText).then(function () {
+          var old = b.textContent; b.textContent = 'Copied ✓';
+          setTimeout(function () { b.textContent = old; }, 1600);
+        });
+      });
+    });
+  })();
+</script>
+</body>
+</html>
