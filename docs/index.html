@@ -681,8 +681,8 @@
         </p>
       </div>
       <figure class="figbox dark-ok">
-        <img src="./assets/kafka.png" alt="Diagram of the interactions between Kafka, Prometheus and Grafana: nodes act as Kafka producers streaming metrics, the controller consumes them, Prometheus persists the data, and Grafana visualizes it in dashboards." loading="lazy" style="background:#fff; padding:14px;" />
-        <figcaption><b>Fig. 4 — The node-monitoring middleware.</b> Data flows from node producers through Kafka to Prometheus (persistence) and Grafana (visualization).</figcaption>
+        <img src="./assets/trio.png" alt="Paper figure: representation of Kafka, Prometheus and Grafana interactions. Network devices send device-status data (1) to Kafka; Prometheus retrieves it (2) and stores it (3) in a NoSQL database; Grafana retrieves (4) and manipulates (5) the data and shows it (6) to the user." loading="lazy" style="background:#fff; padding:14px;" />
+        <figcaption><b>Fig. 4 — Kafka · Prometheus · Grafana interactions</b> (paper, Appendix C). Arrows show the flow of data; each label's <i>(n)</i> gives the order: device-status data → Kafka → Prometheus (persisted in NoSQL) → Grafana → user.</figcaption>
       </figure>
     </div>
 
