@@ -1,15 +1,31 @@
-# Smartville | ASAP | TIGER | ACID
-![alt text](./readme_imgs/smartville.png)
+# SmartVille — A framework for realistic Deep-Learning-based online network intrusion detection
 
-**This is the official (1) the SmartVille repository, it also contains the official implementation of (2) the TIGER environment, the (3) ASAP framework and the (4) ACID agents that test Deep Active Inference for Active Defence! If you find our repository useful, please cite us!**
+![The degrees of freedom of the SmartVille framework](./readme_imgs/framework.png)
+
+**SmartVille is a *framework* — a scientific instrument for formulating, training and benchmarking neural intrusion detectors under online, open-world and multi-modal assumptions.** It is *not* a new stand-alone detector chasing leaderboard accuracy: the contribution is the research formulation and the reproducible methodology. This repository is the **open-source proof-of-concept implementation** of that framework, and it also carries the implementations of the (a) ASAP meta-learning setup, (b) the TIGER environment, and (c) the ACID active-defence agents. If you find it useful, [please cite us!](#citations)
+
+## What the framework provides
+
+SmartVille organises the deep-learning NID lifecycle around four ideas the offline literature usually skips:
+
+- **Online learning as the default**, not an update phase bolted onto an offline pipeline — the detector begins inferring the moment traffic is observed and keeps learning while deployed.
+- **Open-world assumptions** — previously unseen attack behaviours are expected to appear *after* deployment and must be organised, not just scored.
+- **A multi-modal input design** — raw traffic bytes, traffic statistics and node-level measurements assembled as parallel online tensor streams.
+- **An end-to-end differentiable Encode–Process–Decode (EPD) pipeline** — so different lightweight neural architectures can be swapped and benchmarked without bulky handcrafted preprocessing.
+
+Two inference regimes are studied within the same framework: **supervised classification** (recognising known attack classes via prototypical learning) and **Collective Anomaly Detection** (relationally *clustering* concurrent, heterogeneous unknowns via differentiable kernel regression).
+
+![The Encode–Process–Decode neural pipeline](./readme_imgs/neural_pipeline.png)
+
+> 📖 **A full, figure-by-figure explainer of the paper is published as a GitHub Page:** https://dista-iot.github.io/insubria-smartville/
 
 ## Citations
-    @misc{cevallos2024smartville,
-        title = {Smartville: an open-source SDN online-intrusion detection testbed},
-        author = {Cevallos, Jesus and Iannello, Stefano and Grattacaso, Giuseppe and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
-        year = {2024}, 
-        url = {https://github.com/DISTA-IoT/smartville/tree/release_1.0},
-        note = {Accessed: YYYY-MM-DD} 
+    @article{cevallos2025smartville,
+        title = {SmartVille: A Framework for Realistic Deep Learning-based Online Network Intrusion Detection},
+        author = {Cevallos M., Jes\'us F. and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
+        year = {2025},
+        note = {Manuscript under review},
+        url = {https://github.com/DISTA-IoT/insubria-smartville}
         }
 
     @article{cevallos2024asap,
@@ -23,30 +39,29 @@
 
     @misc{cevallos2024tiger,
         title = {TIGER: an open-source cyber-Threat Intelligence Game Environment for Reinforcement learning},
-        author = {Cevallos, Jesus and Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
+        author = {Cevallos, Jesus and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
         year = {2024}, 
-        url = {https://github.com/DISTA-IoT/smartville},
+        url = {https://github.com/DISTA-IoT/insubria-smartville},
         note = {Accessed: YYYY-MM-DD} 
         }
 
     @misc{cevallos2025acid,
         title = {ACID: beta-testing ACtive Inference for active cyber-Defence.},
-        author = {Cevallos, Jesus and Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
+        author = {Cevallos, Jesus and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
         year = {2025}, 
-        url = {https://github.com/DISTA-IoT/smartville},
+        url = {https://github.com/DISTA-IoT/insubria-smartville},
         note = {Accessed: YYYY-MM-DD} 
         }
 
-## Overview:
+## Overview
 
+This repository is the open-source, proof-of-concept **implementation** of the SmartVille framework, built on GNS3, PyTorch and Docker for training and evaluating online, machine-learning-based intrusion detection under realistic network conditions. It should be read as *one concrete realisation* of the framework's requirements — online learning, multi-modal observation and continual incorporation of new threat intelligence — rather than as the primary contribution of the paper.
 
-Smartville is an open-source testbed based on GNS3, Pytorch, and Docker for training and testing online intrusion detection systems based on machine learning. 
+- The framework paper *"SmartVille: A Framework for Realistic Deep Learning-based Online Network Intrusion Detection"* is under review. Stay tuned!
 
-- A related paper *"SmartVille: an open-source SDN online-intrusion detection testbed"*  is under review. Stay tuned!
+- SmartVille also instantiates the **ASAP** meta-learning setup for automatic synthesis of attack prototypes, described in the companion paper *"ASAP: Automatic Synthesis of Attack Prototypes, an Online-Learning, End-to-End Approach"* (Computer Networks, 2024).
 
-- SmartVille also contains an implementation of the ASAP framework for automatic synthesis of attack prototypes, described on our omonimous under-review paper: *“ASAP: Automatic Synthesis of Attack Prototypes, an Online-Learning, End-to-End Approach”*. 
-
-If you find our work useful, [please cite us!](#citation)
+If you find our work useful, [please cite us!](#citations)
 
 **Feel free to contribute!**
 
@@ -303,7 +318,7 @@ The Aposemat IoT23 dataset was used in our work to reproduce realistic IoT attac
 
 - Hajime: This Trojan malware searches to exploit Linux-related vulnerabilities. It was extracted from the dataset's capture 9.1. We extracted 5e4 flows.
 - Hakai: This is a distributed denial-of-service (DDoS) botnet, a specialization of the Mirai and Gafgyt malware. (Extracted from dataset's capture 8.1.) 1.2e4 flows were extracted.
-- Bashlite: This is another more general DDoS botnet. (Dataset's capture 60.1.) 5e4 flows extracted.
+- Gafgyt: This is another more general DDoS botnet. (Dataset's capture 60.1.) 5e4 flows extracted.
 - Mirai: This is an open-source DDoS attack specially used over IoT devices. Capture: 34.1. Flows: 2.4e4.
 - Torii: A Command and Conquer (C&C) and Information Gathering malware. Capture: 20.1. Flows extracted: 5e4.
 - Muhstik: A worm based on the Mirai Botnet. Among others, it targets IoT devices. Commonly used to mine cryptocurrency and perform DDoS attacks. Capture: 3.1. Flows extracted: 5e4.
