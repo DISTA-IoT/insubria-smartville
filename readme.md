@@ -1,3 +1,5 @@
+### 📖 Project page & figure-by-figure paper explainer → **https://dista-iot.github.io/insubria-smartville/**
+
 # SmartVille — A framework for realistic Deep-Learning-based online network intrusion detection
 
 ![The degrees of freedom of the SmartVille framework](./readme_imgs/framework.png)
@@ -20,12 +22,13 @@ Two inference regimes are studied within the same framework: **supervised classi
 > 📖 **A full, figure-by-figure explainer of the paper is published as a GitHub Page:** https://dista-iot.github.io/insubria-smartville/
 
 ## Citations
-    @article{cevallos2025smartville,
+    @article{cevallos2026smartville,
         title = {SmartVille: A Framework for Realistic Deep Learning-based Online Network Intrusion Detection},
         author = {Cevallos M., Jes\'us F. and Rizzardi, Alessandra and Sicari, Sabrina and Coen-Porisini, Alberto},
-        year = {2025},
-        note = {Manuscript under review},
-        url = {https://github.com/DISTA-IoT/insubria-smartville}
+        journal = {Journal of Network and Systems Management},
+        year = {2026},
+        note = {In press},
+        publisher = {Springer}
         }
 
     @article{cevallos2024asap,
@@ -57,7 +60,7 @@ Two inference regimes are studied within the same framework: **supervised classi
 
 This repository is the open-source, proof-of-concept **implementation** of the SmartVille framework, built on GNS3, PyTorch and Docker for training and evaluating online, machine-learning-based intrusion detection under realistic network conditions. It should be read as *one concrete realisation* of the framework's requirements — online learning, multi-modal observation and continual incorporation of new threat intelligence — rather than as the primary contribution of the paper.
 
-- The framework paper *"SmartVille: A Framework for Realistic Deep Learning-based Online Network Intrusion Detection"* is under review. Stay tuned!
+- The framework paper *"SmartVille: A Framework for Realistic Deep Learning-based Online Network Intrusion Detection"* has been **accepted (in press, 2026) at the Journal of Network and Systems Management**.
 
 - SmartVille also instantiates the **ASAP** meta-learning setup for automatic synthesis of attack prototypes, described in the companion paper *"ASAP: Automatic Synthesis of Attack Prototypes, an Online-Learning, End-to-End Approach"* (Computer Networks, 2024).
 
